@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Admin — Platos</title>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f2f4f8;
+            margin: 0;
+            padding: 0;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 20px auto;
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+        }
+
+        h2 { margin-top: 0; }
+
+        .form-row {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 8px;
+            align-items: center;
+        }
+
+        label {
+            width: 140px;
+            font-weight: bold;
+        }
+
+        input, select {
+            padding: 6px;
+            font-size: 14px;
+        }
+
+        #nombre { width: 300px; }
+        #peso { width: 80px; }
+
+        .error {
+            color: red;
+            font-weight: bold;
+            margin-bottom: 8px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 12px;
+            font-size: 14px;
+        }
+
+        th, td {
+            border-bottom: 1px solid #ddd;
+            padding: 6px;
+            text-align: left;
+            vertical-align: middle;
+        }
+
+        th {
+            background: #eee;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="container">
+
+    <h2>Nomenclador de Platos</h2>
+
+    {% if errores %}
+        <div class="error">{{ errores|join(" | ") }}</div>
+    {% endif %}
+
+    <!-- ======================================================
+         FORMULARIO — PLATOS (POST CLÁSICO)
+    ====================================================== -->
+
+    <form method="post" action="/admin/platos" id="form-plato">
+
+        <div class="form-row">
+            <label>Nombre:</label>
+            <input type="text" id="nombre" name="nombre"
+                   maxlength="40" autocomplete="off"
+                   placeholder="Nombre del plato" autofocus>
+        </div>
+
+        <div class="form-row">
+            <label>Tipo:</label>
+            <select id="tipo" name="tipo_plato">
+                <option value="">Tipo</option>
+                <option>Principal</option>
+                <option>Guarnición</option>
+                <option>Postre</option>
+            </select>
+        </div>
+
+        <div class="form-row">
+            <label>Peso por ración:</label>
+            <input type="text" id="peso" name="peso_racion"
+                   value="0.00" maxlength="7" inputmode="decimal">
+        </div>
+
+        <!-- botón submit oculto -->
+        <button type="submit" id="btn-submit" style="display:none;"></button>
+
+    </form>
+
+    <!-- ======================================================
+         TABLA DE PLATOS — UNA FILA POR PLATO
+    ====================================================== -->
+
+    <table>
+        <thead>
+            <tr>
+                <th>Nombre</th>
+                <th>Tipo</th>
+                <th>Peso</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for p in platos %}
+            <tr>
+                <td>{{ p.nombre }}</td>
+                <td>{{ p.tipo_plato }}</td>
+                <td>{{ "%.2f"|format(p.peso_racion) }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+</div>
+
+<!-- ======================================================
+     JS — CONTROL DE ENTER ENTRE CAMPOS
+====================================================== -->
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+
+    const nombre = document.getElementById("nombre");
+    const tipo = document.getElementById("tipo");
+    const peso = document.getElementById("peso");
+    const btn = document.getElementById("btn-submit");
+
+    // ENTER en nombre → tipo
+    nombre.addEventListener("keydown", function(e){
+        if (e.key === "Enter") {
+            e.preventDefault();
+            tipo.focus();
+        }
+    });
+
+    // ENTER en tipo → peso
+    tipo.addEventListener("keydown", function(e){
+        if (e.key === "Enter") {
+            e.preventDefault();
+            peso.focus();
+        }
+    });
+
+    // cambio en tipo con mouse → peso
+    tipo.addEventListener("change", function(){
+        peso.focus();
+    });
+
+    // ENTER en peso → submit
+    peso.addEventListener("keydown", function(e){
+        if (e.key === "Enter") {
+            e.preventDefault();
+            btn.click();
+        }
+    });
+
+    // formato peso
+    peso.addEventListener("blur", function(){
+        const v = Number(this.value);
+        if (!isNaN(v)) this.value = v.toFixed(2);
+    });
+
+});
+</script>

@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Nueva receta</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+
+<body>
+
+    <div class="container">
+
+        <a href="/" class="btn-volver">← Volver</a>
+
+        <h1>Nueva receta</h1>
+
+        <form method="post" action="/nueva">
+
+            <label>Nombre del plato</label><br>
+            <input type="text" name="nombre" required><br><br>
+
+            <label>Tipo de plato</label><br>
+            <input type="text" name="tipo_plato" required><br><br>
+
+            <label>Raciones base</label><br>
+            <input type="text" name="raciones_base" inputmode="numeric" pattern="[0-9]+" placeholder="Ej: 10"
+                required><br><br>
+
+            <label>Peso de una ración (g)</label><br>
+            <input type="text" name="peso_racion" inputmode="decimal" pattern="[0-9]+([.,][0-9]+)?"
+                placeholder="Ej: 125.5" required><br><br>
+
+            <label>Preparación</label><br>
+            <textarea name="preparacion" rows="3"></textarea><br><br>
+
+            <label>Elaboración</label><br>
+            <textarea name="elaboracion" rows="3"></textarea><br><br>
+
+            <label>Presentación</label><br>
+            <textarea name="presentacion" rows="3"></textarea><br><br>
+
+            <label>Nutrición (texto)</label><br>
+            <textarea name="nutricion_texto" rows="3"></textarea><br><br>
+
+            <button type="submit">Guardar receta</button>
+
+        </form>
+
+    </div>
+
+</body>
+
+</html>

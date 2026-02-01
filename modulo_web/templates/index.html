@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Catálogo de Recetas</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+
+<div class="container">
+
+    <h1>Catálogo de Recetas</h1>
+
+    <div style="margin-bottom: 12px;">
+        <a href="/nueva" class="btn-nuevo">+ Nueva receta</a>
+    </div>
+
+    {% if recetas %}
+
+    <div class="tabla-scroll">
+
+        <table class="tabla-recetas">
+            <thead>
+                <tr>
+                    <th>Plato</th>
+                    <th>Tipo</th>
+                    <th>Peso ración</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+            {% for r in recetas %}
+                <tr>
+                    <td>{{ r.nombre }}</td>
+                    <td>{{ r.tipo_plato }}</td>
+                    <td>{{ r.peso_racion }} g</td>
+                    <td>
+                        <a class="btn-ver" href="/receta/{{ r.id }}">Ver</a>
+                    </td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+
+    </div>
+
+    {% else %}
+        <p>No hay recetas publicadas.</p>
+    {% endif %}
+
+</div>
+
+</body>
+</html>

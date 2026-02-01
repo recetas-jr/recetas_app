@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Admin — Ingredientes</title>
+
+    <style>
+    body {
+        font-family: Arial, sans-serif;
+        background-color: #f2f4f8;
+        margin: 0;
+        padding: 0;
+    }
+
+    .contenedor {
+        max-width: 900px;
+        margin: 20px auto;
+        background: white;
+        padding: 15px;
+        border-radius: 8px;
+    }
+
+    h2 {
+        margin-top: 0;
+    }
+
+    .form-row {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 5px;
+    }
+
+    input, select {
+        padding: 6px;
+        font-size: 14px;
+        border: 2px solid #999;
+        border-radius: 4px;
+        transition: border-color 0.15s ease, box-shadow 0.15s ease, background-color 0.15s ease;
+    }
+
+    /* ==============================
+       FOCO ACTIVO — VIOLETA FORZADO
+       ============================== */
+    input:focus, select:focus {
+        outline: none !important;
+        border-color: #8a2be2 !important;      /* violeta */
+        background-color: #f6edff !important;  /* violeta suave */
+        box-shadow: 0 0 0 2px rgba(138, 43, 226, 0.35) !important;
+    }
+
+    input#nombre {
+        width: 300px;
+    }
+
+    select#unidad_id {
+        width: 220px;
+    }
+
+    .help {
+        font-size: 13px;
+        margin-bottom: 6px;
+    }
+
+    .error {
+        color: red;
+        font-weight: bold;
+        margin-bottom: 8px;
+    }
+
+    .tabla-scroll {
+        max-height: 300px;
+        overflow-y: auto;
+        border: 1px solid #ccc;
+    }
+
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 14px;
+    }
+
+    th, td {
+        border-bottom: 1px solid #ddd;
+        padding: 6px;
+        text-align: left;
+    }
+
+    th {
+        background: #eee;
+        position: sticky;
+        top: 0;
+    }
+
+    a {
+        text-decoration: none;
+    }
+</style>
+</head>
+
+<body>
+<div class="contenedor">
+
+    <h2>Nomenclador de Ingredientes</h2>
+
+    <!-- ======================================================
+     FORMULARIO — CAPTURA CONTINUA DE INGREDIENTES
+====================================================== -->
+
+<form id="formIngrediente" method="post" action="/admin/ingredientes/crear" autocomplete="off">
+
+    <div class="form-row">
+        <input id="nombre" name="nombre" placeholder="Ingrediente" autofocus>
+
+        <select name="unidad_id" id="unidad_id">
+            <option value="">Unidad de Medida</option>
+            {% for u in unidades %}
+                <option value="{{ u.id }}">{{ u.nombre }}</option>
+            {% endfor %}
+        </select>
+    </div>
+
+    <div class="help">
+        <b>ENTER guarda</b> &nbsp;&nbsp; <b>ESC cancela</b>
+    </div>
+
+    {% if error %}
+        <div class="error">{{ error }}</div>
+    {% endif %}
+
+</form>
+
+<!-- ======================================================
+     JS — FLUJO DE CAPTURA CONTINUA DE INGREDIENTES
+====================================================== -->
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+
+    const form = document.getElementById("formIngrediente");
+    const inpNombre = document.getElementById("nombre");
+    const selUnidad = document.getElementById("unidad_id");
+
+    function limpiarTodo() {
+        inpNombre.value = "";
+        selUnidad.value = "";
+        inpNombre.focus();
+    }
+
+    // ENTER en INGREDIENTE => pasar a UNIDAD (NO submit)
+    inpNombre.addEventListener("keydown", function (e) {
+        if (e.key === "Enter") {
+            e.preventDefault();
+            selUnidad.focus();
+        }
+    });
+
+    // ENTER en UNIDAD => guardar ingrediente (submit)
+    selUnidad.addEventListener("keydown", function (e) {
+        if (e.key === "Enter") {
+            e.preventDefault();
+
+            if (!inpNombre.value.trim() || !selUnidad.value) return;
+
+            form.submit();
+        }
+    });
+
+    // ESC en cualquier campo => limpiar y volver a ingrediente
+    [inpNombre, selUnidad].forEach(el => {
+        el.addEventListener("keydown", function (e) {
+            if (e.key === "Escape") {
+                e.preventDefault();
+                limpiarTodo();
+            }
+        });
+    });
+
+});
+</script>
+
+
+    <div class="tabla-scroll">
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Ingrediente</th>
+                    <th>UM</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for i in ingredientes %}
+                <tr>
+                    <td>{{ i.id }}</td>
+                    <td>{{ i.nombre }}</td>
+                    <td>
+                         {% for u in unidades %}
+                             {% if u.id == i.unidad_id %}
+                                 {{ u.codigo }}
+                             {% endif %}
+                         {% endfor %}
+                    </td>
+                    
+                    <td>
+                        <a href="/admin/ingredientes/borrar/{{ i.id }}" onclick="return confirm('¿Borrar ingrediente?')">🗑</a>
+                    </td>
+                
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+</div>
+
+</body>
+
+</html>

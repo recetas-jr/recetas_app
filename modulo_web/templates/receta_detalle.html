@@ -1,0 +1,127 @@
+<html>
+
+<head>
+    <title>{{ receta.nombre }}</title>
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+
+<body>
+    <div class="container">
+        <a href="/" class="btn-volver">← Volver</a>
+        <h1>{{ receta.nombre }}</h1>
+        <div class="tabs">
+            <button id="btn-ficha" class="tab-active" onclick="mostrarFicha()">
+                Página I — Ficha técnica
+            </button>
+            <button id="btn-proceso" onclick="mostrarProceso()">
+                Página II — Procedimiento
+            </button>
+        </div>
+
+        <div id="tab-ficha">
+
+            <h3>Raciones</h3>
+
+            <div class="raciones-info">
+
+                <div class="racion-base">
+                    Raciones base de la receta:
+                    <strong>{{ receta.raciones_base }}</strong>
+                </div>
+
+                <div class="raciones-calculo">
+                    <form method="post">
+                        <label>
+                            Calcular para:
+                            <input type="number" name="raciones" value="{{ raciones }}" min="1">
+                        </label>
+                        <button type="submit">Recalcular</button>
+                    </form>
+                </div>
+            </div>
+
+            <h3>Ingredientes</h3>
+
+            <table class="tabla-ingredientes">
+                <thead>
+                    <tr>
+                        <th>Ingrediente</th>
+                        <th>Cantidad</th>
+                        <th>Unidad</th>
+                        <th>Rol</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for i in ingredientes %}
+                    <tr>
+                        <td>{{ i.nombre }}</td>
+                        <td>{{ i.cantidad }}</td>
+                        <td>{{ i.unidad }}</td>
+                        <td>{{ i.rol }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+
+
+        </div>
+
+        <div id="tab-proceso" style="display:none;">
+
+            <div class="acordeon">
+
+                <button class="acordeon-btn" onclick="toggleAcordeon(this)">
+                    Preparación
+                </button>
+                <div class="acordeon-panel">
+                    <p>{{ receta.preparacion }}</p>
+                </div>
+
+                <button class="acordeon-btn" onclick="toggleAcordeon(this)">
+                    Elaboración
+                </button>
+                <div class="acordeon-panel">
+                    <p>{{ receta.elaboracion }}</p>
+                </div>
+
+                <button class="acordeon-btn" onclick="toggleAcordeon(this)">
+                    Presentación
+                </button>
+                <div class="acordeon-panel">
+                    <p>{{ receta.presentacion }}</p>
+                </div>
+
+                <button class="acordeon-btn" onclick="toggleAcordeon(this)">
+                    Nutrición (por ración)
+                </button>
+                <div class="acordeon-panel">
+                    <ul>
+                        <li>Proteínas: {{ receta.nutricion.proteinas }}</li>
+                        <li>Carbohidratos: {{ receta.nutricion.carbohidratos }}</li>
+                        <li>Grasas: {{ receta.nutricion.grasas }}</li>
+                        <li>Fibra: {{ receta.nutricion.fibra }}</li>
+                        <li>Sodio: {{ receta.nutricion.sodio }}</li>
+                    </ul>
+                </div>
+
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        function toggleAcordeon(btn) {
+            const panel = btn.nextElementSibling;
+
+            if (panel.style.display === "block") {
+                panel.style.display = "none";
+            } else {
+                panel.style.display = "block";
+            }
+        }
+    </script>
+
+</body>
+
+</html>

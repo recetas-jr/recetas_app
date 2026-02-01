@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Receta MASTER — Detalle</title>
+</head>
+
+<body style="font-family: Arial, sans-serif; background:#f2f4f8; margin:0; padding:20px;">
+
+<div style="
+    background:#444;
+    color:white;
+    padding:12px 18px;
+    font-weight:bold;
+    border-radius:6px;
+    margin-bottom:18px;
+">
+    DETALLE — RECETA MASTER
+</div>
+
+<div style="background:white; padding:15px; border-radius:6px; max-width:900px;">
+
+    <p><b>Plato:</b> {{ nombre_plato }}</p>
+    <p><b>Raciones base:</b> {{ receta.raciones_base }}</p>
+
+    <hr>
+
+    <p><b>Preparación:</b><br>{{ receta.preparacion or "—" }}</p>
+    <p><b>Elaboración:</b><br>{{ receta.elaboracion or "—" }}</p>
+    <p><b>Presentación:</b><br>{{ receta.presentacion or "—" }}</p>
+    <p><b>Nutrición:</b><br>{{ receta.nutricion or "—" }}</p>
+
+    <hr>
+
+    <h3>Ingredientes</h3>
+
+    <table border="1" cellpadding="5" cellspacing="0" width="100%">
+        <thead style="background:#eee;">
+            <tr>
+                <th>Ingrediente</th>
+                <th>Cantidad</th>
+                <th>UM</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for i in ingredientes %}
+            <tr>
+                <td>{{ i.nombre }}</td>
+                <td style="text-align:right;">{{ i.cantidad }}</td>
+                <td>{{ i.unidad }}</td>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="3" style="text-align:center;">No hay ingredientes</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <br>
+
+    <a href="/admin/recetas">← Volver al MASTER</a>
+
+</div>

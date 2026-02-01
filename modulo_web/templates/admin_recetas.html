@@ -1,0 +1,249 @@
+<!-- ======================================================
+     TEMPLATE — ADMIN RECETAS MASTER (BASE OPERATIVA)
+====================================================== -->
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Admin — Receta MASTER</title>
+</head>
+
+<body style="font-family: Arial, sans-serif; background:#f2f4f8; margin:0; padding:20px;">
+
+<!-- ======================================================
+     ENCABEZADO — ADMIN RECETAS MASTER
+====================================================== -->
+<div style="
+    background:#c00000;
+    color:white;
+    padding:12px 18px;
+    font-weight:bold;
+    border-radius:6px;
+    margin-bottom:18px;
+">
+    *** ADMIN — RECETA MASTER · CAPTURA ***
+</div>
+
+<!-- ======================================================
+     FORMULARIO — MASTER DE RECETAS
+====================================================== -->
+<form method="post" style="background:white; padding:15px; border-radius:6px; max-width:900px;">
+
+    <div style="margin-bottom:10px;">
+        <label for="plato_id" style="display:inline-block; width:140px; font-weight:bold;">Plato:</label>
+        <select name="plato_id" id="plato_id" style="width:60%;">
+            <option value="">-- Seleccione --</option>
+            {% for p in platos %}
+                <option value="{{ p.id }}">{{ p.nombre }}</option>
+            {% endfor %}
+        </select>
+    </div>
+
+    <div style="margin-bottom:10px;">
+        <label for="raciones_base" style="display:inline-block; width:140px; font-weight:bold;">Raciones base:</label>
+        <input type="text" name="raciones_base" id="raciones_base" style="width:60%;">
+    </div>
+
+    <div style="margin-bottom:10px;">
+        <label for="preparacion" style="display:block; font-weight:bold;">Preparación:</label>
+        <textarea name="preparacion" id="preparacion" rows="3" style="width:100%;"></textarea>
+    </div>
+
+    <div style="margin-bottom:10px;">
+        <label for="elaboracion" style="display:block; font-weight:bold;">Elaboración:</label>
+        <textarea name="elaboracion" id="elaboracion" rows="4" style="width:100%;"></textarea>
+    </div>
+
+    <div style="margin-bottom:10px;">
+        <label for="presentacion" style="display:block; font-weight:bold;">Presentación:</label>
+        <textarea name="presentacion" id="presentacion" rows="2" style="width:100%;"></textarea>
+    </div>
+
+    <div style="margin-bottom:15px;">
+        <label for="nutricion" style="display:block; font-weight:bold;">Nutrición:</label>
+        <textarea name="nutricion" id="nutricion" rows="2" style="width:100%;"></textarea>
+    </div>
+
+<!-- ==========================================================
+      <INGREDIENTES> — <CANTIDAD> - <BOTON FINALIZAR Y GUARDAR>
+                            CAPTURA EN EL MASTER
+============================================================ -->
+
+<hr>
+
+<div style="margin-top:15px; padding:10px; border:1px solid #ccc; border-radius:6px;">
+
+    <div style="display:flex; gap:20px; align-items:flex-end;">
+
+        <!-- INGREDIENTE -->
+        <div style="flex:1;">
+            <label style="font-weight:bold;">Ingrediente:</label><br>
+            <select id="ingrediente_id" name="ingrediente_id" style="width:100%;">
+                <option value="">-- Seleccione ingrediente --</option>
+                {% for ing in ingredientes %}
+                    <option value="{{ ing.id }}">
+                        {{ ing.nombre }} ({{ ing.unidad_codigo }})
+                    </option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <!-- CANTIDAD -->
+        <div>
+            <label style="font-weight:bold;">Cantidad:</label><br>
+            <input type="number" id="cantidad" name="cantidad" step="0.01" style="width:120px;">
+        </div> 
+
+        <!-- BOTÓN FINALIZAR -->
+        <div>
+            <button type="button" id="btnGuardarReceta" style="padding:6px 14px;">
+                Finalizar y Guardar en MASTER
+            </button>
+        </div>
+
+    </div>
+
+</div>
+
+<br>
+
+<table border="1" cellpadding="5" cellspacing="0" width="100%">
+    <thead>
+        <tr>
+            <th>Ingrediente</th>
+            <th>Cantidad</th>
+            <th>UM</th>
+        </tr>
+    </thead>
+
+    <tbody id="tablaIngredientes">
+    </tbody>
+</table>
+
+<input type="hidden" name="ingredientes_json" id="ingredientes_json">
+
+</form>
+
+<!-- ======================================================
+     NAVEGACIÓN POR TECLADO — ENTER AVANZA ENTRE CAMPOS
+====================================================== -->
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+
+    const form = document.querySelector("form");
+    if (!form) return;
+
+    const selPlato = document.getElementById("plato_id");
+    const inpRaciones = document.getElementById("raciones_base");
+    const txtPreparacion = document.getElementById("preparacion");
+    const txtElaboracion = document.getElementById("elaboracion");
+    const txtPresentacion = document.getElementById("presentacion");
+    const txtNutricion = document.getElementById("nutricion");
+
+    const selIngrediente = document.getElementById("ingrediente_id");
+    const inpCantidad = document.getElementById("cantidad");
+
+    const btnGuardar = document.getElementById("btnGuardarReceta");
+    const tabla = document.getElementById("tablaIngredientes");
+    const hiddenJson = document.getElementById("ingredientes_json");
+
+    let listaIngredientes = [];
+
+    // PLATO → RACIONES (por change)
+    selPlato.addEventListener("change", function () {
+        inpRaciones.focus();
+    });
+
+    // ENTER en RACIONES → PREPARACIÓN
+    inpRaciones.addEventListener("keydown", function (e) {
+        if (e.key === "Enter") {
+            e.preventDefault();
+            e.stopPropagation();
+            txtPreparacion.focus();
+        }
+    });
+
+    function avanzarEnter(actual, siguiente) {
+        actual.addEventListener("keydown", function (e) {
+            if (e.key === "Enter") {
+                e.preventDefault();
+                e.stopPropagation();
+                siguiente.focus();
+            }
+        });
+    }
+
+    avanzarEnter(txtPreparacion, txtElaboracion);
+    avanzarEnter(txtElaboracion, txtPresentacion);
+    avanzarEnter(txtPresentacion, txtNutricion);
+
+    txtNutricion.addEventListener("keydown", function (e) {
+        if (e.key === "Enter") {
+            e.preventDefault();
+            e.stopPropagation();
+            selIngrediente.focus();
+        }
+    });
+
+    selIngrediente.addEventListener("change", function () {
+        inpCantidad.focus();
+    });
+
+    inpCantidad.addEventListener("keydown", function (e) {
+        if (e.key !== "Enter") return;
+
+        e.preventDefault();
+        e.stopPropagation();
+
+        const ingId = selIngrediente.value;
+        const cantidad = inpCantidad.value.trim();
+
+        if (!ingId || !cantidad) return;
+
+        const opcion = selIngrediente.options[selIngrediente.selectedIndex];
+        const texto = opcion.textContent;
+
+        let nombre = texto;
+        let unidad = "";
+
+        const match = texto.match(/(.*)\((.*)\)/);
+        if (match) {
+            nombre = match[1].trim();
+            unidad = match[2].trim();
+        }
+
+        const item = {
+            ingrediente_id: parseInt(ingId),
+            nombre: nombre,
+            cantidad: parseFloat(cantidad),
+            unidad: unidad
+        };
+
+        listaIngredientes.push(item);
+
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+            <td>${item.nombre}</td>
+            <td style="text-align:right;">${item.cantidad}</td>
+            <td>${item.unidad}</td>
+        `;
+        tabla.appendChild(tr);
+
+        hiddenJson.value = JSON.stringify(listaIngredientes);
+
+        inpCantidad.value = "";
+        selIngrediente.value = "";
+        selIngrediente.focus();
+    });
+
+    btnGuardar.addEventListener("click", function () {
+        form.submit();
+    });
+
+});
+</script>
+
+
+
+</body>
+</html>

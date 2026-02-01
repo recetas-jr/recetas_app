@@ -1,0 +1,28 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Entornos virtuales
+venv/
+.env/
+
+# Flask
+instance/
+.webassets-cache
+
+# IDEs / Editores
+.vscode/
+.idea/
+
+# Logs
+*.log
+
+# Sistema
+.DS_Store
+Thumbs.db
+
+# Datos locales (no versionar datos reales)
+data_compartida/data/*.json
+modulo_web/web_data/*.json

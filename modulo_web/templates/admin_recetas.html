@@ -10,9 +10,6 @@
 
 <body style="font-family: Arial, sans-serif; background:#f2f4f8; margin:0; padding:20px;">
 
-<!-- ======================================================
-     ENCABEZADO — ADMIN RECETAS MASTER
-====================================================== -->
 <div style="
     background:#c00000;
     color:white;
@@ -24,13 +21,10 @@
     *** ADMIN — RECETA MASTER · CAPTURA ***
 </div>
 
-<!-- ======================================================
-     FORMULARIO — MASTER DE RECETAS
-====================================================== -->
 <form method="post" style="background:white; padding:15px; border-radius:6px; max-width:900px;">
 
     <div style="margin-bottom:10px;">
-        <label for="plato_id" style="display:inline-block; width:140px; font-weight:bold;">Plato:</label>
+        <label style="display:inline-block; width:140px; font-weight:bold;">Plato:</label>
         <select name="plato_id" id="plato_id" style="width:60%;">
             <option value="">-- Seleccione --</option>
             {% for p in platos %}
@@ -40,45 +34,38 @@
     </div>
 
     <div style="margin-bottom:10px;">
-        <label for="raciones_base" style="display:inline-block; width:140px; font-weight:bold;">Raciones base:</label>
+        <label style="display:inline-block; width:140px; font-weight:bold;">Raciones base:</label>
         <input type="text" name="raciones_base" id="raciones_base" style="width:60%;">
     </div>
 
     <div style="margin-bottom:10px;">
-        <label for="preparacion" style="display:block; font-weight:bold;">Preparación:</label>
+        <label style="font-weight:bold;">Preparación:</label>
         <textarea name="preparacion" id="preparacion" rows="3" style="width:100%;"></textarea>
     </div>
 
     <div style="margin-bottom:10px;">
-        <label for="elaboracion" style="display:block; font-weight:bold;">Elaboración:</label>
+        <label style="font-weight:bold;">Elaboración:</label>
         <textarea name="elaboracion" id="elaboracion" rows="4" style="width:100%;"></textarea>
     </div>
 
     <div style="margin-bottom:10px;">
-        <label for="presentacion" style="display:block; font-weight:bold;">Presentación:</label>
+        <label style="font-weight:bold;">Presentación:</label>
         <textarea name="presentacion" id="presentacion" rows="2" style="width:100%;"></textarea>
     </div>
 
     <div style="margin-bottom:15px;">
-        <label for="nutricion" style="display:block; font-weight:bold;">Nutrición:</label>
+        <label style="font-weight:bold;">Nutrición:</label>
         <textarea name="nutricion" id="nutricion" rows="2" style="width:100%;"></textarea>
     </div>
-
-<!-- ==========================================================
-      <INGREDIENTES> — <CANTIDAD> - <BOTON FINALIZAR Y GUARDAR>
-                            CAPTURA EN EL MASTER
-============================================================ -->
 
 <hr>
 
 <div style="margin-top:15px; padding:10px; border:1px solid #ccc; border-radius:6px;">
-
     <div style="display:flex; gap:20px; align-items:flex-end;">
 
-        <!-- INGREDIENTE -->
         <div style="flex:1;">
             <label style="font-weight:bold;">Ingrediente:</label><br>
-            <select id="ingrediente_id" name="ingrediente_id" style="width:100%;">
+            <select id="ingrediente_id" style="width:100%;">
                 <option value="">-- Seleccione ingrediente --</option>
                 {% for ing in ingredientes %}
                     <option value="{{ ing.id }}">
@@ -88,21 +75,18 @@
             </select>
         </div>
 
-        <!-- CANTIDAD -->
         <div>
             <label style="font-weight:bold;">Cantidad:</label><br>
-            <input type="number" id="cantidad" name="cantidad" step="0.01" style="width:120px;">
-        </div> 
+            <input type="number" id="cantidad" step="0.01" style="width:120px;">
+        </div>
 
-        <!-- BOTÓN FINALIZAR -->
         <div>
-            <button type="button" id="btnGuardarReceta" style="padding:6px 14px;">
+            <button type="button" id="btnGuardarReceta">
                 Finalizar y Guardar en MASTER
             </button>
         </div>
 
     </div>
-
 </div>
 
 <br>
@@ -115,18 +99,51 @@
             <th>UM</th>
         </tr>
     </thead>
-
-    <tbody id="tablaIngredientes">
-    </tbody>
+    <tbody id="tablaIngredientes"></tbody>
 </table>
 
 <input type="hidden" name="ingredientes_json" id="ingredientes_json">
-
 </form>
 
 <!-- ======================================================
-     NAVEGACIÓN POR TECLADO — ENTER AVANZA ENTRE CAMPOS
+     LISTADO DE RECETAS — AUDITORÍA
 ====================================================== -->
+<div style="margin-top:30px; background:white; padding:15px; border-radius:6px;">
+    <h3>📋 Listado de Recetas — Auditoría</h3>
+    <div style="max-height:300px; overflow-y:auto; border:1px solid #ccc;">
+        <table width="100%" cellpadding="6">
+            <thead style="background:#f0f0f0;">
+                <tr>
+                    <th>ID Receta</th>
+                    <th>Nombre Receta</th>
+                    <th>ID Plato</th>
+                    <th>Nombre Plato</th>
+                    <th>Raciones</th>
+                    <th># Ingredientes</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for r in recetas %}
+                <tr>
+                    <td>{{ r.id }}</td>
+                    <td>{{ r.plato_nombre }}</td>
+                    <td>{{ r.plato_id }}</td>
+                    <td>{{ r.plato_nombre }}</td>
+                    <td align="right">{{ r.raciones_base }}</td>
+                    <td align="right">{{ r.cantidad_ingredientes | default(0) }}</td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="6" style="text-align:center; color:#777;">
+                        No hay recetas registradas
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
 <script>
 document.addEventListener("DOMContentLoaded", function () {
 
@@ -143,89 +160,137 @@ document.addEventListener("DOMContentLoaded", function () {
     const selIngrediente = document.getElementById("ingrediente_id");
     const inpCantidad = document.getElementById("cantidad");
 
-    const btnGuardar = document.getElementById("btnGuardarReceta");
     const tabla = document.getElementById("tablaIngredientes");
     const hiddenJson = document.getElementById("ingredientes_json");
+    const btnGuardar = document.getElementById("btnGuardarReceta");
 
     let listaIngredientes = [];
+    let hayCambiosNoGuardados = false;
+    let platoAnterior = selPlato.value;
 
-    // PLATO → RACIONES (por change)
-    selPlato.addEventListener("change", function () {
-        inpRaciones.focus();
+    // -------------------------------------------------
+    // CONTROL DE CAMBIOS
+    // -------------------------------------------------
+    function marcarCambio() {
+        hayCambiosNoGuardados = true;
+    }
+
+    function limpiarFormulario() {
+        form.reset();
+        tabla.innerHTML = "";
+        listaIngredientes = [];
+        hiddenJson.value = "";
+        hayCambiosNoGuardados = false;
+    }
+
+    document.querySelectorAll("input, textarea").forEach(el => {
+        el.addEventListener("input", marcarCambio);
     });
 
-    // ENTER en RACIONES → PREPARACIÓN
-    inpRaciones.addEventListener("keydown", function (e) {
+    // -------------------------------------------------
+    // BLOQUEO DE SUBMIT IMPLÍCITO
+    // -------------------------------------------------
+    form.addEventListener("keydown", function (e) {
         if (e.key === "Enter") {
+            const tag = e.target.tagName.toLowerCase();
+            if (tag === "input" || tag === "textarea" || tag === "select") {
+                return;
+            }
             e.preventDefault();
-            e.stopPropagation();
-            txtPreparacion.focus();
         }
     });
 
-    function avanzarEnter(actual, siguiente) {
-        actual.addEventListener("keydown", function (e) {
+    // -------------------------------------------------
+    // CAMBIO DE PLATO CON VALIDACIÓN
+    // -------------------------------------------------
+    selPlato.addEventListener("focus", function () {
+        platoAnterior = selPlato.value;
+    });
+
+    selPlato.addEventListener("change", function () {
+
+        // Caso 1: había datos sin guardar
+        if (hayCambiosNoGuardados) {
+            const ok = confirm(
+                "Hay datos de una receta que no han sido guardados.\n" +
+                "Si continúa, se perderán.\n\n¿Desea continuar?"
+            );
+
+            if (!ok) {
+                // Cancela: vuelve al plato anterior
+                selPlato.value = platoAnterior;
+                return;
+            }
+
+        // Acepta perder datos
+        limpiarFormulario();
+
+        // Volvemos explícitamente a Plato
+        selPlato.focus();
+        platoAnterior = selPlato.value;
+        return;   // ⬅️ CLAVE: evita caer a Raciones
+    }
+
+    // Caso 2: cambio normal de plato
+    platoAnterior = selPlato.value;
+    inpRaciones.focus();
+});
+
+    // -------------------------------------------------
+    // NAVEGACIÓN SECUENCIAL CON ENTER (MASTER)
+    // -------------------------------------------------
+    function avanzarConEnter(origen, destino) {
+        origen.addEventListener("keydown", function (e) {
             if (e.key === "Enter") {
                 e.preventDefault();
-                e.stopPropagation();
-                siguiente.focus();
+                destino.focus();
             }
         });
     }
 
-    avanzarEnter(txtPreparacion, txtElaboracion);
-    avanzarEnter(txtElaboracion, txtPresentacion);
-    avanzarEnter(txtPresentacion, txtNutricion);
+    avanzarConEnter(inpRaciones, txtPreparacion);
+    avanzarConEnter(txtPreparacion, txtElaboracion);
+    avanzarConEnter(txtElaboracion, txtPresentacion);
+    avanzarConEnter(txtPresentacion, txtNutricion);
+    avanzarConEnter(txtNutricion, selIngrediente);
 
-    txtNutricion.addEventListener("keydown", function (e) {
-        if (e.key === "Enter") {
-            e.preventDefault();
-            e.stopPropagation();
-            selIngrediente.focus();
-        }
-    });
-
+    // -------------------------------------------------
+    // INGREDIENTE → CANTIDAD
+    // -------------------------------------------------
     selIngrediente.addEventListener("change", function () {
         inpCantidad.focus();
     });
 
+    // -------------------------------------------------
+    // CANTIDAD → AGREGAR INGREDIENTE
+    // -------------------------------------------------
     inpCantidad.addEventListener("keydown", function (e) {
         if (e.key !== "Enter") return;
-
         e.preventDefault();
-        e.stopPropagation();
 
         const ingId = selIngrediente.value;
-        const cantidad = inpCantidad.value.trim();
+        const cantidad = parseFloat(inpCantidad.value);
 
-        if (!ingId || !cantidad) return;
+        if (!ingId || isNaN(cantidad) || cantidad <= 0) return;
 
-        const opcion = selIngrediente.options[selIngrediente.selectedIndex];
-        const texto = opcion.textContent;
-
-        let nombre = texto;
-        let unidad = "";
-
+        const texto = selIngrediente.options[selIngrediente.selectedIndex].textContent;
         const match = texto.match(/(.*)\((.*)\)/);
-        if (match) {
-            nombre = match[1].trim();
-            unidad = match[2].trim();
-        }
 
         const item = {
             ingrediente_id: parseInt(ingId),
-            nombre: nombre,
-            cantidad: parseFloat(cantidad),
-            unidad: unidad
+            nombre: match ? match[1].trim() : texto,
+            cantidad: cantidad,
+            um: match ? match[2].trim() : ""
         };
 
         listaIngredientes.push(item);
+        hayCambiosNoGuardados = true;
 
         const tr = document.createElement("tr");
         tr.innerHTML = `
             <td>${item.nombre}</td>
-            <td style="text-align:right;">${item.cantidad}</td>
-            <td>${item.unidad}</td>
+            <td align="right">${item.cantidad}</td>
+            <td>${item.um}</td>
         `;
         tabla.appendChild(tr);
 
@@ -236,14 +301,16 @@ document.addEventListener("DOMContentLoaded", function () {
         selIngrediente.focus();
     });
 
+    // -------------------------------------------------
+    // GUARDAR RECETA
+    // -------------------------------------------------
     btnGuardar.addEventListener("click", function () {
+        hayCambiosNoGuardados = false;
         form.submit();
     });
 
 });
 </script>
-
-
 
 </body>
 </html>

@@ -70,6 +70,18 @@ input[type="number"] {
     width: 80px;
 }
 
+/* ===== INPUT BASE (NOMENCLADORES) ===== */
+input {
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+/* ===== FOCO ACTIVO (UX NOMENCLADORES) ===== */
+input:focus {
+    outline: none;
+    border: 2px solid red !important;
+}
+
 /* ===== Botón volver ===== */
 
 .btn-volver {

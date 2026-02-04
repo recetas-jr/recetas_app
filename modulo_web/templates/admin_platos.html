@@ -65,6 +65,18 @@
         th {
             background: #eee;
         }
+
+        .col-borrar {
+            text-align: center;
+            width: 60px;
+        }
+
+        button.borrar {
+            cursor: pointer;
+            background: none;
+            border: none;
+            font-size: 16px;
+        }
     </style>
 </head>
 
@@ -73,6 +85,15 @@
 <div class="container">
 
     <h2>Nomenclador de Platos</h2>
+
+    <!-- MENSAJES FLASH (ERRORES / AVISOS) -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+          <div class="error">{{ message|safe }}</div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
 
     {% if errores %}
         <div class="error">{{ errores|join(" | ") }}</div>
@@ -113,7 +134,7 @@
     </form>
 
     <!-- ======================================================
-         TABLA DE PLATOS — UNA FILA POR PLATO
+         TABLA DE PLATOS — CON BORRADO
     ====================================================== -->
 
     <table>
@@ -122,6 +143,7 @@
                 <th>Nombre</th>
                 <th>Tipo</th>
                 <th>Peso</th>
+                <th class="col-borrar">Borrar</th>
             </tr>
         </thead>
         <tbody>
@@ -130,6 +152,14 @@
                 <td>{{ p.nombre }}</td>
                 <td>{{ p.tipo_plato }}</td>
                 <td>{{ "%.2f"|format(p.peso_racion) }}</td>
+                <td class="col-borrar">
+                    <form method="post"
+                          action="/admin/platos/borrar/{{ p.id }}"
+                          onsubmit="return confirm('¿Seguro que desea borrar este plato?');"
+                          style="display:inline;">
+                        <button type="submit" class="borrar">🗑️</button>
+                    </form>
+                </td>
             </tr>
             {% endfor %}
         </tbody>
@@ -185,3 +215,6 @@ document.addEventListener("DOMContentLoaded", function () {
 
 });
 </script>
+
+</body>
+</html>

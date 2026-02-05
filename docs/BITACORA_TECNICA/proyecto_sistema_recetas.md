@@ -719,3 +719,185 @@ El uso de `-m` garantiza:
 
 Este comando es obligatorio para el entorno de desarrollo web.
 
+
+---
+
+## 📅 2026-02 — Fase XIX — Master Web: borrados, validaciones y estabilidad
+
+### 🎯 Objetivo
+Consolidar el módulo web del MASTER de recetas incorporando:
+- Borrado seguro de recetas.
+- Borrado seguro en nomencladores (platos, unidades, ingredientes).
+- Validaciones cruzadas contra el MASTER.
+- Mejoras de usabilidad en el formulario (flujo por ENTER, control de abandono de datos, ajustes de UI).
+- Estabilización de persistencia y rutas reales de guardado.
+
+---
+
+### 🧩 Cambios técnicos
+
+#### Backend (Flask / Persistencia)
+- Implementado borrado de **recetas MASTER**:
+  - `POST /admin/recetas/borrar/<id>`
+- Implementado borrado de **platos** con validación:
+  - Si el plato está usado por alguna receta → se bloquea el borrado.
+  - Si no está usado → se permite y se guarda.
+- Implementado borrado de:
+  - Unidades de medida (con validación de uso en ingredientes).
+  - Ingredientes.
+- Estandarizado uso de:
+  - `cargar_recetas_maestro()`
+  - `guardar_datos(RECETAS_MAESTRO_FILE, ...)`
+- Corregidas rutas reales de guardado para evitar inconsistencias entre carpetas.
+- Añadidos mensajes `flash`:
+  - Éxito al borrar.
+  - Error cuando un elemento está en uso.
+  - En el caso de platos, el mensaje incluye el **nombre del plato resaltado**.
+
+#### Frontend (Templates)
+
+**admin_recetas.html**
+- Botón de borrado por fila en el listado de recetas con confirmación.
+- Control de cambios no guardados al cambiar de plato.
+- Flujo de foco por ENTER entre campos.
+- Ajustes de anchos:
+  - Raciones base reducido.
+  - Cantidad reducida.
+  - Ingrediente ajustado.
+- Visualización del **nombre de la unidad de medida** junto a la cantidad.
+- Listado inferior compactado:
+  - Anchos definidos para ID Receta, ID Plato, Raciones, #Ingredientes y Borrar.
+  - Se mantiene scroll horizontal.
+
+**admin_platos.html**
+- Columna “Borrar” con icono 🗑️ por fila y confirmación.
+- Integración con backend para:
+  - Bloquear borrado si el plato está en uso en el MASTER.
+  - Mostrar mensaje de error o éxito con `flash`.
+
+---
+
+### 🧠 Reglas funcionales
+
+- ❌ No se puede borrar un **plato** si está usado por alguna receta MASTER.
+- ❌ No se puede borrar una **unidad** si está usada por algún ingrediente.
+- ❌ No se puede borrar un **ingrediente** si está en uso (según validación).
+- ✅ El borrado de **recetas MASTER** es directo pero siempre con confirmación.
+- ⚠️ Si hay datos no guardados y se cambia de plato:
+  - El sistema advierte y permite cancelar.
+
+---
+
+### 🗂️ Control de versiones (Git)
+
+- Se consolidó el uso de Git en el proyecto.
+- Se realizaron commits que incluyen:
+  - Borrados en MASTER y nomencladores.
+  - Validaciones cruzadas.
+  - Ajustes de UI y flujo de captura.
+  - Cambios en persistencia.
+  - Inclusión de documentación en `docs/`.
+- El proyecto queda listo para backup completo copiando la carpeta `recetas_app` con su `.git`.
+
+---
+
+### ✅ Estado actual
+
+- El sistema permite:
+  - Crear, listar y borrar recetas MASTER.
+  - Administrar platos, ingredientes y unidades con validaciones de integridad.
+- El flujo de captura es estable y controlado.
+- La integridad referencial entre MASTER y nomencladores está protegida.
+
+---
+
+### 📌 Próximos pasos
+
+- Pulir detalles finos de UX (ESC para cancelar, pequeños ajustes visuales).
+- Consolidar reglas finales de edición (no solo borrado).
+- Preparar fase de pruebas con datos reales.
+- Documentar la estructura final de datos como “fuente única de verdad”.
+
+---
+📜 2) Decisión 1 — Integridad en borrados
+📄 Archivo nuevo: docs/decisiones/INTEGRIDAD_BORRADOS_MASTER.md
+👉 Contenido exacto:
+
+# Decisión: Integridad referencial en borrados (MASTER y nomencladores)
+
+## Contexto
+El sistema maneja:
+- Nomencladores: Platos, Ingredientes, Unidades de Medida.
+- Un MASTER de recetas que depende de esos nomencladores.
+
+Borrar un elemento referenciado puede romper la coherencia del sistema.
+
+## Decisión
+
+1. ❌ No se permite borrar un PLATO si:
+   - Está siendo usado por al menos una receta en el MASTER.
+
+2. ❌ No se permite borrar una UNIDAD DE MEDIDA si:
+   - Está asociada a al menos un ingrediente.
+
+3. ❌ No se permite borrar un INGREDIENTE si:
+   - Está siendo usado en alguna receta (según validación definida).
+
+4. ✅ Sí se permite borrar una RECETA MASTER:
+   - Siempre con confirmación explícita del usuario.
+
+## Implementación
+
+- Las validaciones se hacen en backend antes de ejecutar el borrado.
+- Si el elemento está en uso:
+  - Se bloquea la operación.
+  - Se muestra un mensaje claro al usuario.
+- Si no está en uso:
+  - Se borra.
+  - Se guarda persistencia.
+  - Se notifica éxito.
+
+## Consecuencias
+
+- Se protege la integridad de los datos.
+- Se evita dejar recetas huérfanas o referencias rotas.
+- Se prioriza seguridad de datos sobre comodidad operativa.
+📜 3) Decisión 2 — Flujo de captura en MASTER Web
+📄 Archivo nuevo: docs/decisiones/FLUJO_CAPTURA_MASTER_WEB.md
+👉 Contenido exacto:
+
+# Decisión: Flujo de captura en MASTER Web y control de abandono de datos
+
+## Contexto
+El formulario MASTER de recetas es largo y con múltiples campos.
+El usuario puede cambiar de plato o abandonar una receta sin guardarla, perdiendo datos.
+
+## Decisión
+
+1. Se implementa control de “cambios no guardados”.
+2. Si el usuario intenta cambiar de plato y hay datos sin guardar:
+   - El sistema muestra una advertencia.
+   - El usuario puede cancelar o continuar.
+3. Se estandariza el uso de ENTER para:
+   - Avanzar entre campos.
+   - Agilizar la captura.
+4. El botón “Finalizar y Guardar” es la única acción que:
+   - Confirma y persiste la receta.
+
+## Implementación
+
+- Se mantiene un flag `hayCambiosNoGuardados`.
+- Se marca en cualquier input o textarea modificado.
+- Al cambiar de plato:
+  - Si hay cambios → se pide confirmación.
+- El flujo de foco se controla por JavaScript.
+
+## Consecuencias
+
+- Se reduce el riesgo de pérdida accidental de datos.
+- Se mejora la experiencia del operador.
+- El sistema se comporta de forma predecible y segura.
+
+
+
+

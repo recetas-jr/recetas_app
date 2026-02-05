@@ -26,3 +26,53 @@ Thumbs.db
 # Datos locales (no versionar datos reales)
 data_compartida/data/*.json
 modulo_web/web_data/*.json
+
+# -----------------------------
+# Python
+# -----------------------------
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# -----------------------------
+# Datos locales / reales
+# -----------------------------
+data/
+data_compartida/
+recetas_maestro.json
+
+# -----------------------------
+# Archivos temporales / pruebas
+# -----------------------------
+CALCULO_RACIONES_ES_TEMPORAL.md
+ESTRUCTURA_JSON_RECETAS_INGREDIENTES.md
+JSON_FUENTE_UNICA_VERDAD.md
+LEYENDA_ESTRUCTURA_DOCUMENTACION.md
+REGLAS_FORMATO_DATOS.md
+estructura_actual.txt
+prueba_persistencia.py
+costos.py
+type
+web_app
+
+# -----------------------------
+# Consolas viejas / pruebas
+# -----------------------------
+modulo_consola_v1/
+modulo_consola_v2/
+
+# -----------------------------
+# Cache y basura de editores
+# -----------------------------
+.vscode/
+.idea/
+*.log
+*.tmp
+
+# -----------------------------
+# Windows
+# -----------------------------
+Thumbs.db
+desktop.ini
+

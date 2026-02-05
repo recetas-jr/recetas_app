@@ -1,0 +1,32 @@
+[
+  {
+    "id": 1,
+    "nombre": "SAL",
+    "unidad_id": 1
+  },
+  {
+    "id": 2,
+    "nombre": "AJO",
+    "unidad_id": 1
+  },
+  {
+    "id": 3,
+    "nombre": "ACEITE",
+    "unidad_id": 6
+  },
+  {
+    "id": 4,
+    "nombre": "AZUCAR",
+    "unidad_id": 1
+  },
+  {
+    "id": 5,
+    "nombre": "VINAGRE",
+    "unidad_id": 6
+  },
+  {
+    "id": 6,
+    "nombre": "COMINO",
+    "unidad_id": 1
+  }
+]

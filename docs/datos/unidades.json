@@ -1,0 +1,37 @@
+[
+  {
+    "id": 1,
+    "codigo": "G",
+    "nombre": "gramos"
+  },
+  {
+    "id": 2,
+    "codigo": "KG",
+    "nombre": "kilogramos"
+  },
+  {
+    "id": 3,
+    "codigo": "L",
+    "nombre": "litros"
+  },
+  {
+    "id": 4,
+    "codigo": "OZ",
+    "nombre": "onza"
+  },
+  {
+    "id": 5,
+    "codigo": "U",
+    "nombre": "unidad"
+  },
+  {
+    "id": 6,
+    "codigo": "ML",
+    "nombre": "mililitros"
+  },
+  {
+    "id": 7,
+    "codigo": "LB",
+    "nombre": "libra"
+  }
+]

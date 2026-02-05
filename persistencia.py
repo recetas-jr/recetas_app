@@ -144,5 +144,57 @@ def cargar_recetas_operativas():
 
     return recetas
 
+# --------------------------------------------------
+# DETALLE DE RECETA — TEXTO TÉCNICO POR VERSIÓN
+# --------------------------------------------------
+
+def cargar_detalle_receta(receta_maestro_id):
+    """
+    Devuelve el detalle técnico de una receta por versión.
+    Si no existe, devuelve un diccionario vacío.
+    """
+    detalles = cargar_datos(RECETAS_DETALLE_FILE, [])
+
+    for d in detalles:
+        if d.get("receta_maestro_id") == receta_maestro_id:
+            return d
+
+    return {}
+
+# --------------------------------------------------
+# INGREDIENTES DE RECETA — COMPOSICIÓN POR VERSIÓN
+# --------------------------------------------------
+
+def cargar_ingredientes_receta(receta_maestro_id):
+    """
+    Devuelve la lista de ingredientes asociados a una versión de receta.
+    Si no existen, devuelve una lista vacía.
+    """
+    ingredientes = cargar_datos(RECETAS_ING_FILE, [])
+
+    return [
+        i for i in ingredientes
+        if i.get("receta_maestro_id") == receta_maestro_id
+    ]
+
+def guardar_detalle_receta(receta_maestro_id, datos):
+    """
+    Guarda o actualiza el detalle técnico de una receta por versión.
+    """
+    detalles = cargar_datos(RECETAS_DETALLE_FILE, [])
+
+    # eliminar detalle previo de esa versión (si existe)
+    detalles = [
+        d for d in detalles
+        if d.get("receta_maestro_id") != receta_maestro_id
+    ]
+
+    datos_guardar = dict(datos)
+    datos_guardar["receta_maestro_id"] = receta_maestro_id
+
+    detalles.append(datos_guardar)
+
+    guardar_datos(RECETAS_DETALLE_FILE, detalles)
+
 
 

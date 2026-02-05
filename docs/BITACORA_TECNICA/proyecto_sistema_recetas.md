@@ -694,3 +694,28 @@ Con este anexo, la bitácora queda **100 % autocontenida**: concepto + contratos
 
 Cuando quieras, seguimos con código o descansamos.
 
+
+======================================= ¿CÓMO ARRANCA LA CONSOLA Y POR QUÉ ======================================
+
+## Ejecución correcta del módulo web (Flask)
+
+El módulo web del sistema de recetas debe iniciarse usando ejecución
+como módulo de paquete, NO como script directo.
+
+Comando correcto:
+
+    python -m modulo_web.web_app
+
+Motivo técnico:
+
+- `modulo_web` es un paquete Python (contiene __init__.py)
+- El código utiliza imports entre módulos del paquete
+- Ejecutar `web_app.py` directamente rompe el contexto de imports
+
+El uso de `-m` garantiza:
+- Resolución correcta de imports
+- Inicialización adecuada del paquete
+- Ejecución estable del servidor Flask
+
+Este comando es obligatorio para el entorno de desarrollo web.
+

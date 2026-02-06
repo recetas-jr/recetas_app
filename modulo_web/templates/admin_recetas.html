@@ -6,9 +6,10 @@
 <head>
     <meta charset="UTF-8">
     <title>Admin — Receta MASTER</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
 </head>
 
-<body style="font-family: Arial, sans-serif; background:#f2f4f8; margin:0; padding:20px;">
+<body style="font-family: Arial, sans-serif; background:#f2f4f8; margin:0; padding:8px;">
 
 <div style="
     background:#c00000;
@@ -21,7 +22,7 @@
     *** ADMIN — RECETA MASTER · CAPTURA ***
 </div>
 
-<form method="post" style="background:white; padding:15px; border-radius:6px; max-width:900px;">
+<form method="post" autocomplete="off" style="background:white; padding:10px; border-radius:6px; max-width:900px;">
 
     <div style="margin-bottom:10px;">
         <label style="display:inline-block; width:140px; font-weight:bold;">Plato:</label>
@@ -35,7 +36,7 @@
 
     <div style="margin-bottom:10px;">
         <label style="display:inline-block; width:140px; font-weight:bold;">Raciones base:</label>
-        <input type="text" name="raciones_base" id="raciones_base" style="width:90px;">
+        <input type="number" name="raciones_base" id="raciones_base" step="1" min="0" style="width:90px;" autocomplete="off">
     </div>
 
     <div style="margin-bottom:10px;">
@@ -78,7 +79,7 @@
 
         <div>
             <label style="font-weight:bold;">Cantidad:</label><br>
-            <input type="number" id="cantidad" step="0.01" style="width:90px;">
+            <input type="number" id="cantidad" step="0.01" style="width:90px;" autocomplete="off">
         </div>
 
         <div style="min-width:120px; padding-bottom:6px;">
@@ -191,6 +192,12 @@ document.addEventListener("DOMContentLoaded", function () {
         hayCambiosNoGuardados = true;
     }
 
+    function limpiarLineaIngrediente() {
+        inpCantidad.value = "";
+        selIngrediente.value = "";
+        spanUmNombre.textContent = "";
+    }
+
     function limpiarFormulario() {
         form.reset();
         tabla.innerHTML = "";
@@ -200,36 +207,108 @@ document.addEventListener("DOMContentLoaded", function () {
         spanUmNombre.textContent = "";
     }
 
-    document.querySelectorAll("input, textarea").forEach(el => {
+    [
+        inpRaciones,
+        txtPreparacion,
+        txtElaboracion,
+        txtPresentacion,
+        txtNutricion,
+        inpCantidad
+    ].forEach(el => {
         el.addEventListener("input", marcarCambio);
     });
 
-    // -----------------------------
-    // NAVEGACIÓN CON ENTER
-    // -----------------------------
-    function avanzarConEnter(origen, destino) {
-        origen.addEventListener("keydown", function (e) {
-            if (e.key === "Enter") {
-                e.preventDefault();
-                destino.focus();
-            }
-        });
+    const ordenFoco = [
+        selPlato,
+        inpRaciones,
+        txtPreparacion,
+        txtElaboracion,
+        txtPresentacion,
+        txtNutricion,
+        selIngrediente,
+        inpCantidad
+    ];
+
+    function enfocarSiguiente(actual) {
+        const idx = ordenFoco.indexOf(actual);
+        if (idx === -1) return;
+        const siguiente = ordenFoco[idx + 1];
+        if (siguiente) siguiente.focus();
     }
 
-    avanzarConEnter(inpRaciones, txtPreparacion);
-    avanzarConEnter(txtPreparacion, txtElaboracion);
-    avanzarConEnter(txtElaboracion, txtPresentacion);
-    avanzarConEnter(txtPresentacion, txtNutricion);
-    avanzarConEnter(txtNutricion, selIngrediente);
+    document.addEventListener("keydown", function (e) {
+        const activo = document.activeElement;
 
-    // -----------------------------
-    // CAMBIO DE PLATO
-    // -----------------------------
+        // ESC: cancelar todo y volver al primer escaque
+        if (e.key === "Escape") {
+            e.preventDefault();
+            e.stopPropagation();
+            limpiarFormulario();
+            selPlato.focus();
+            return;
+        }
+
+        // ENTER
+        if (e.key === "Enter") {
+
+            // En Cantidad: agrega ingrediente
+            if (activo === inpCantidad) {
+                e.preventDefault();
+
+                const ingId = selIngrediente.value;
+                const cantidad = parseFloat(inpCantidad.value);
+                if (!ingId || isNaN(cantidad) || cantidad <= 0) return;
+
+                const opt = selIngrediente.options[selIngrediente.selectedIndex];
+                const nombre = opt.textContent;
+                const umNombre = opt.getAttribute("data-um-nombre") || "";
+
+                const item = {
+                    ingrediente_id: parseInt(ingId),
+                    nombre: nombre,
+                    cantidad: cantidad,
+                    um: umNombre
+                };
+
+                listaIngredientes.push(item);
+                hayCambiosNoGuardados = true;
+
+                const tr = document.createElement("tr");
+                tr.innerHTML = `
+                    <td>${item.nombre}</td>
+                    <td align="right">${item.cantidad}</td>
+                    <td>${item.um}</td>
+                `;
+                tabla.appendChild(tr);
+
+                hiddenJson.value = JSON.stringify(listaIngredientes);
+
+                limpiarLineaIngrediente();
+                selIngrediente.focus();
+                return;
+            }
+
+            // En selector de ingrediente: dejar comportamiento nativo
+            if (activo === selIngrediente) {
+                return;
+            }
+
+            // En el resto: avanzar foco
+            if (ordenFoco.includes(activo)) {
+                e.preventDefault();
+                enfocarSiguiente(activo);
+                return;
+            }
+        }
+    });
+
+    // Control de abandono al cambiar Plato
     selPlato.addEventListener("focus", () => platoAnterior = selPlato.value);
 
     selPlato.addEventListener("change", function () {
 
-        if (hayCambiosNoGuardados) {
+        // BLINDAJE: bandera O lista con elementos
+        if (hayCambiosNoGuardados || listaIngredientes.length > 0) {
             const ok = confirm(
                 "Hay datos de una receta que no han sido guardados.\n" +
                 "Si continúa, se perderán.\n\n¿Desea continuar?"
@@ -250,60 +329,16 @@ document.addEventListener("DOMContentLoaded", function () {
         inpRaciones.focus();
     });
 
-    // -----------------------------
-    // INGREDIENTE → CANTIDAD
-    // -----------------------------
+    // Ingrediente -> mostrar UM y saltar a Cantidad
     selIngrediente.addEventListener("change", function () {
+        marcarCambio();
         const opt = selIngrediente.options[selIngrediente.selectedIndex];
-        const umNombre = opt.getAttribute("data-um-nombre") || "";
+        const umNombre = opt ? (opt.getAttribute("data-um-nombre") || "") : "";
         spanUmNombre.textContent = umNombre;
         inpCantidad.focus();
     });
 
-    // -----------------------------
-    // CANTIDAD → AGREGAR
-    // -----------------------------
-    inpCantidad.addEventListener("keydown", function (e) {
-        if (e.key !== "Enter") return;
-        e.preventDefault();
-
-        const ingId = selIngrediente.value;
-        const cantidad = parseFloat(inpCantidad.value);
-        if (!ingId || isNaN(cantidad) || cantidad <= 0) return;
-
-        const opt = selIngrediente.options[selIngrediente.selectedIndex];
-        const nombre = opt.textContent;
-        const umNombre = opt.getAttribute("data-um-nombre") || "";
-
-        const item = {
-            ingrediente_id: parseInt(ingId),
-            nombre: nombre,
-            cantidad: cantidad,
-            um: umNombre
-        };
-
-        listaIngredientes.push(item);
-        hayCambiosNoGuardados = true;
-
-        const tr = document.createElement("tr");
-        tr.innerHTML = `
-            <td>${item.nombre}</td>
-            <td align="right">${item.cantidad}</td>
-            <td>${item.um}</td>
-        `;
-        tabla.appendChild(tr);
-
-        hiddenJson.value = JSON.stringify(listaIngredientes);
-
-        inpCantidad.value = "";
-        selIngrediente.value = "";
-        spanUmNombre.textContent = "";
-        selIngrediente.focus();
-    });
-
-    // -----------------------------
-    // GUARDAR
-    // -----------------------------
+    // Guardar
     btnGuardar.addEventListener("click", function () {
         hayCambiosNoGuardados = false;
         form.submit();

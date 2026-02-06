@@ -899,5 +899,78 @@ El usuario puede cambiar de plato o abandonar una receta sin guardarla, perdiend
 - El sistema se comporta de forma predecible y segura.
 
 
+## 📅 2026-02 — Fase XX — Estabilización del flujo de captura en MASTER Web
+
+### 🎯 Objetivo
+Pulir y estabilizar la experiencia de captura del MASTER de recetas en la versión Web, garantizando:
+- Flujo continuo por teclado (ENTER).
+- Cancelación global segura (ESC).
+- Protección contra pérdida de datos al cambiar de receta/plato sin guardar.
+
+---
+
+### 🧩 Cambios implementados (Frontend)
+
+Archivo principal afectado:
+- `modulo_web/templates/admin_recetas.html`
+
+Se consolidaron las siguientes reglas de UX:
+
+#### 1) Flujo por ENTER
+- ENTER avanza el foco entre los campos del formulario en el orden definido.
+- En el campo **Cantidad**, ENTER:
+  - Valida selección de ingrediente y valor numérico.
+  - Agrega el ingrediente a la tabla.
+  - Actualiza el JSON oculto (`ingredientes_json`).
+  - Devuelve el foco al selector de Ingrediente.
+
+#### 2) ESC como cancelación global
+- Al presionar **ESC** en cualquier punto del formulario:
+  - Se limpia toda la captura en curso.
+  - Se vacía la tabla de ingredientes.
+  - Se resetean los campos y banderas internas.
+  - El foco vuelve al primer escaque (**Plato**).
+
+Esto permite abortar una receta en cualquier momento y empezar de nuevo sin efectos colaterales.
+
+#### 3) Control de abandono de datos (cambio de Plato)
+- Se implementó un blindaje doble para detectar datos en curso:
+  - Bandera: `hayCambiosNoGuardados`
+  - Contenido real: `listaIngredientes.length > 0`
+- Al cambiar el **Plato**:
+  - Si hay datos en curso → se muestra advertencia de confirmación.
+  - Si el usuario cancela → se restaura el Plato anterior.
+  - Si confirma → se limpia el formulario y se continúa.
+
+Esto evita pérdidas silenciosas de trabajo en curso.
+
+#### 4) Marcado de cambios
+- La bandera `hayCambiosNoGuardados` se activa:
+  - Al escribir en campos de edición.
+  - Al agregar ingredientes a la receta.
+- Se resetea:
+  - Al guardar.
+  - Al usar ESC (cancelación total).
+  - Al limpiar el formulario tras confirmar cambio de Plato.
+
+---
+
+### ✅ Resultado
+
+- El MASTER Web queda con un flujo de captura:
+  - Predecible
+  - Seguro
+  - 100% operable por teclado
+- Se elimina el riesgo de perder datos sin advertencia.
+- Se consolida un comportamiento de UX estable que sirve como base para futuras mejoras.
+
+---
+
+### 🗂️ Nota de control de versiones
+
+Este hito corresponde a un punto estable del proyecto y debe quedar registrado en Git como:
+- Estabilización del flujo de captura (ENTER / ESC / control de abandono).
+
+
 
 

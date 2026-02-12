@@ -5,16 +5,16 @@ body {
     background-color: #f2f4f8;
     margin: 0;
     padding: 12px;
-    font-size: 13px;   /* 👈 más pequeño */
+    font-size: 13px;
 }
 
 /* ===== Tarjeta principal ===== */
 
 .container {
-    max-width: 700px;   /* antes 900 */
-    margin: 20px auto;  /* menos espacio arriba */
+    max-width: 700px;
+    margin: 20px auto;
     background: white;
-    padding: 20px;      /* menos relleno interno */
+    padding: 20px;
     border-radius: 12px;
 }
 
@@ -65,9 +65,10 @@ button:hover {
     background-color: #2c80b4;
 }
 
+/* 👇 ULTRA COMPACTO */
 input[type="number"] {
     padding: 4px;
-    width: 80px;
+    width: 28px;
 }
 
 /* ===== INPUT BASE (NOMENCLADORES) ===== */
@@ -144,7 +145,7 @@ input:focus {
 }
 
 .tabla-scroll {
-    max-height: 420px;      /* controla el alto del listado */
+    max-height: 420px;
     overflow-y: auto;
     border: 1px solid #ddd;
     border-radius: 6px;
@@ -187,8 +188,9 @@ input:focus {
     font-size: 13px;
 }
 
+/* 👇 ULTRA COMPACTO */
 .raciones-linea input {
-    width: 70px;
+    width: 28px;
     padding: 3px 6px;
 }
 
@@ -206,3 +208,24 @@ input:focus {
     border-radius: 6px;
     font-size: 13px;
 }
+
+/* ===== Quitar flechitas (spinners) de inputs number ===== */
+
+/* Chrome, Edge, Safari */
+input[type=number]::-webkit-inner-spin-button,
+input[type=number]::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+/* Firefox */
+input[type=number] {
+    -moz-appearance: textfield;
+    appearance: textfield;
+}
+
+/* Evitar cambios con la rueda del mouse */
+input[type=number] {
+    overscroll-behavior: contain;
+}
+

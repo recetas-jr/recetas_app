@@ -289,6 +289,8 @@ def admin_recetas():
     recetas_listado = sorted(recetas_listado, key=lambda r: r["plato_nombre"].lower())
     error = None
 
+    limpiar_form = False
+
     if request.method == "POST":
 
         plato_id_txt = request.form.get("plato_id", "").strip()
@@ -314,6 +316,24 @@ def admin_recetas():
             except:
                 error = "Error leyendo ingredientes."
 
+        # -------------------------------------------------
+        # VALIDACIÓN DE DUPLICIDAD POR PLATO (REGLA MASTER)
+        # -------------------------------------------------
+        if not error:
+            for r in recetas:
+                try:
+                    plato_id_existente = int(r.get("plato_id"))
+                except:
+                    continue
+
+                print("DEBUG DUPLICIDAD -> existente:", plato_id_existente, "nuevo:", plato_id)
+
+                if plato_id_existente == plato_id:
+                    nombre_plato = mapa_platos.get(plato_id, "")
+                    error = f"YA EXISTE LA RECETA {nombre_plato}"
+                    limpiar_form = True   # bandera para limpiar todo en el HTML
+                    break
+
         if not error:
 
             nuevo_id = max([r["id"] for r in recetas], default=0) + 1
@@ -337,7 +357,8 @@ def admin_recetas():
         platos=platos,
         ingredientes=ingredientes,
         recetas=recetas_listado,
-        error=error
+        error=error,
+        limpiar_form=limpiar_form
     )
 
 
@@ -352,7 +373,7 @@ def borrar_receta_master(receta_id):
     recetas = [r for r in recetas if r["id"] != receta_id]
 
     guardar_datos(RECETAS_MAESTRO_FILE, recetas)
-    return redirect("/admin/recetas")
+    return redirect("/admin/recetas/listado")
 
 
 # ==================================================
@@ -390,6 +411,36 @@ def ver_receta_master(receta_id):
         receta=receta,
         nombre_plato=nombre_plato,
         ingredientes=ingredientes_detalle
+    )
+
+
+# ==================================================
+#       ADMIN_RECETAS_LISTADO DEL MASTER
+# ==================================================
+
+@app.route("/admin/recetas/listado", methods=["GET"])
+def admin_recetas_listado():
+
+    platos = sorted(cargar_platos(), key=lambda p: p["nombre"].lower())
+    recetas = cargar_recetas_maestro()
+
+    mapa_platos = {p["id"]: p["nombre"] for p in platos}
+
+    recetas_listado = []
+    for r in recetas:
+        recetas_listado.append({
+            "id": r["id"],
+            "plato_id": r["plato_id"],
+            "plato_nombre": mapa_platos.get(r["plato_id"], "—"),
+            "raciones_base": r.get("raciones_base", 0),
+            "cantidad_ingredientes": len(r.get("ingredientes", []))
+        })
+
+    recetas_listado = sorted(recetas_listado, key=lambda r: r["plato_nombre"].lower())
+
+    return render_template(
+        "admin_recetas_listado.html",
+        recetas=recetas_listado
     )
 
 

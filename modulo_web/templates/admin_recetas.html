@@ -1,12 +1,25 @@
 <!-- ======================================================
-     TEMPLATE — ADMIN RECETAS MASTER (BASE OPERATIVA)
+     TEMPLATE — ADMIN RECETAS MASTER (CAPTURA)
 ====================================================== -->
 <!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Admin — Receta MASTER</title>
+    <title>Admin — Receta MASTER · Captura</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+
+    <style>
+        input, select, button {
+            height: 30px;
+            box-sizing: border-box;
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border: 2px solid #7b2cff !important;
+            box-shadow: 0 0 0 1px #b58cff;
+        }
+    </style>
 </head>
 
 <body style="font-family: Arial, sans-serif; background:#f2f4f8; margin:0; padding:8px;">
@@ -22,41 +35,61 @@
     *** ADMIN — RECETA MASTER · CAPTURA ***
 </div>
 
+{% if error %}
+<div id="error-box" style="
+    background:#ffdede;
+    border:1px solid #cc0000;
+    color:#900;
+    padding:8px 12px;
+    border-radius:6px;
+    margin-bottom:10px;
+    font-weight:bold;
+">
+    {{ error }}
+</div>
+{% endif %}
+
 <form method="post" autocomplete="off" style="background:white; padding:10px; border-radius:6px; max-width:900px;">
+    <input type="hidden" id="limpiar_form" value="{{ '1' if limpiar_form else '0' }}">
 
     <div style="margin-bottom:10px;">
         <label style="display:inline-block; width:140px; font-weight:bold;">Plato:</label>
         <select name="plato_id" id="plato_id" style="width:60%;">
             <option value="">-- Seleccione --</option>
             {% for p in platos %}
-                <option value="{{ p.id }}">{{ p.nombre }}</option>
+                <option value="{{ p.id }}"
+                    {% if request.form.get('plato_id','')|int == p.id %}selected{% endif %}>
+                    {{ p.nombre }}
+                </option>
             {% endfor %}
         </select>
     </div>
 
     <div style="margin-bottom:10px;">
         <label style="display:inline-block; width:140px; font-weight:bold;">Raciones base:</label>
-        <input type="number" name="raciones_base" id="raciones_base" step="1" min="0" style="width:90px;" autocomplete="off">
+        <input type="number" name="raciones_base" id="raciones_base"
+               step="1" min="0" style="width:45px;" autocomplete="off"
+               value="{{ request.form.get('raciones_base', '') }}">
     </div>
 
     <div style="margin-bottom:10px;">
         <label style="font-weight:bold;">Preparación:</label>
-        <textarea name="preparacion" id="preparacion" rows="3" style="width:100%;"></textarea>
+        <textarea name="preparacion" id="preparacion" rows="3" style="width:100%;">{{ request.form.get('preparacion','') }}</textarea>
     </div>
 
     <div style="margin-bottom:10px;">
         <label style="font-weight:bold;">Elaboración:</label>
-        <textarea name="elaboracion" id="elaboracion" rows="4" style="width:100%;"></textarea>
+        <textarea name="elaboracion" id="elaboracion" rows="4" style="width:100%;">{{ request.form.get('elaboracion','') }}</textarea>
     </div>
 
     <div style="margin-bottom:10px;">
         <label style="font-weight:bold;">Presentación:</label>
-        <textarea name="presentacion" id="presentacion" rows="2" style="width:100%;"></textarea>
+        <textarea name="presentacion" id="presentacion" rows="2" style="width:100%;">{{ request.form.get('presentacion','') }}</textarea>
     </div>
 
     <div style="margin-bottom:15px;">
         <label style="font-weight:bold;">Nutrición:</label>
-        <textarea name="nutricion" id="nutricion" rows="2" style="width:100%;"></textarea>
+        <textarea name="nutricion" id="nutricion" rows="2" style="width:100%;">{{ request.form.get('nutricion','') }}</textarea>
     </div>
 
 <hr>
@@ -64,29 +97,28 @@
 <div style="margin-top:15px; padding:10px; border:1px solid #ccc; border-radius:6px;">
     <div style="display:flex; gap:12px; align-items:flex-end;">
 
-        <div style="flex:1;">
+        <div style="flex:1 1 auto; min-width:320px;">
             <label style="font-weight:bold;">Ingrediente:</label><br>
             <select id="ingrediente_id" style="width:100%;">
                 <option value="">-- Seleccione ingrediente --</option>
                 {% for ing in ingredientes %}
-                    <option value="{{ ing.id }}"
-                            data-um-nombre="{{ ing.unidad_nombre }}">
+                    <option value="{{ ing.id }}" data-um-nombre="{{ ing.unidad_nombre }}">
                         {{ ing.nombre }}
                     </option>
                 {% endfor %}
             </select>
         </div>
 
-        <div>
+        <div style="flex:0 0 auto; width:60px;">
             <label style="font-weight:bold;">Cantidad:</label><br>
-            <input type="number" id="cantidad" step="0.01" style="width:90px;" autocomplete="off">
+            <input type="number" id="cantidad" step="0.01" style="width:45px;" autocomplete="off">
         </div>
 
-        <div style="min-width:120px; padding-bottom:6px;">
+        <div style="flex:0 0 120px; padding-bottom:6px;">
             <span id="um_nombre" style="font-weight:bold; color:#004aad;"></span>
         </div>
 
-        <div style="margin-left:10px;">
+        <div style="flex:0 0 auto; margin-left:10px;">
             <button type="button" id="btnGuardarReceta">
                 Finalizar y Guardar en MASTER
             </button>
@@ -101,7 +133,7 @@
     <thead>
         <tr>
             <th>Ingrediente</th>
-            <th width="120">Cantidad</th>
+            <th width="120" style="text-align:right;">Cantidad</th>
             <th width="120">UM</th>
         </tr>
     </thead>
@@ -111,58 +143,6 @@
 <input type="hidden" name="ingredientes_json" id="ingredientes_json">
 </form>
 
-<!-- ======================================================
-     LISTADO DE RECETAS — AUDITORÍA (CON BORRADO)
-====================================================== -->
-<div style="margin-top:30px; background:white; padding:15px; border-radius:6px;">
-    <h3>📋 Listado de Recetas — Auditoría</h3>
-
-    <div style="max-height:300px; overflow-x:auto; overflow-y:auto; border:1px solid #ccc;">
-        <table width="100%" cellpadding="6">
-            <thead style="background:#f0f0f0; position:sticky; top:0;">
-                <tr>
-                    <th width="80">ID Receta</th>
-                    <th>Nombre Receta</th>
-                    <th width="80">ID Plato</th>
-                    <th>Nombre Plato</th>
-                    <th width="80" align="right">Raciones</th>
-                    <th width="110" align="right"># Ingred.</th>
-                    <th width="60" align="center">🗑️</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for r in recetas %}
-                <tr>
-                    <td>{{ r.id }}</td>
-                    <td>{{ r.plato_nombre }}</td>
-                    <td>{{ r.plato_id }}</td>
-                    <td>{{ r.plato_nombre }}</td>
-                    <td align="right">{{ r.raciones_base }}</td>
-                    <td align="right">{{ r.cantidad_ingredientes | default(0) }}</td>
-                    <td align="center">
-                        <form method="post"
-                              action="/admin/recetas/borrar/{{ r.id }}"
-                              onsubmit="return confirm('¿Seguro que desea borrar esta receta?');"
-                              style="display:inline;">
-                            <button type="submit">🗑️</button>
-                        </form>
-                    </td>
-                </tr>
-                {% else %}
-                <tr>
-                    <td colspan="7" style="text-align:center; color:#777;">
-                        No hay recetas registradas
-                    </td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    </div>
-</div>
-
-<!-- ======================================================
-     SCRIPT — MASTER DE RECETAS (ESTABLE)
-====================================================== -->
 <script>
 document.addEventListener("DOMContentLoaded", function () {
 
@@ -183,6 +163,12 @@ document.addEventListener("DOMContentLoaded", function () {
     const tabla = document.getElementById("tablaIngredientes");
     const hiddenJson = document.getElementById("ingredientes_json");
     const btnGuardar = document.getElementById("btnGuardarReceta");
+
+    const flagLimpiar = document.getElementById("limpiar_form");
+
+    form.addEventListener("submit", function (e) {
+        e.preventDefault();
+    });
 
     let listaIngredientes = [];
     let hayCambiosNoGuardados = false;
@@ -205,6 +191,23 @@ document.addEventListener("DOMContentLoaded", function () {
         hiddenJson.value = "";
         hayCambiosNoGuardados = false;
         spanUmNombre.textContent = "";
+    }
+
+    // Restaurar raciones si venimos de guardado correcto
+    if (flagLimpiar.value !== "1") {
+        const guardado = localStorage.getItem("ultima_racion");
+        if (guardado !== null) {
+            inpRaciones.value = guardado;
+        }
+    }
+
+    // Si es duplicado: limpiar todo menos raciones
+    if (flagLimpiar && flagLimpiar.value === "1") {
+        const racionesPrevias = inpRaciones.value;
+        limpiarFormulario();
+        inpRaciones.value = racionesPrevias;
+        selPlato.value = "";
+        selPlato.focus();
     }
 
     [
@@ -239,7 +242,6 @@ document.addEventListener("DOMContentLoaded", function () {
     document.addEventListener("keydown", function (e) {
         const activo = document.activeElement;
 
-        // ESC: cancelar todo y volver al primer escaque
         if (e.key === "Escape") {
             e.preventDefault();
             e.stopPropagation();
@@ -248,10 +250,37 @@ document.addEventListener("DOMContentLoaded", function () {
             return;
         }
 
-        // ENTER
+        if (e.key === "Enter" && activo === selPlato) {
+            e.preventDefault();
+            if (selPlato.value) {
+                inpRaciones.focus();
+            }
+            return;
+        }
+
+        if (e.key === "Enter" && activo === inpRaciones) {
+            e.preventDefault();
+            const r = parseInt(inpRaciones.value, 10);
+            if (isNaN(r) || r <= 0) {
+                alert("Debe indicar raciones base mayores que 0.");
+                inpRaciones.value = "";
+                inpRaciones.focus();
+                return;
+            }
+            enfocarSiguiente(activo);
+            return;
+        }
+
         if (e.key === "Enter") {
 
-            // En Cantidad: agrega ingrediente
+            if (activo === selIngrediente) {
+                e.preventDefault();
+                if (selIngrediente.value) {
+                    inpCantidad.focus();
+                }
+                return;
+            }
+
             if (activo === inpCantidad) {
                 e.preventDefault();
 
@@ -259,12 +288,24 @@ document.addEventListener("DOMContentLoaded", function () {
                 const cantidad = parseFloat(inpCantidad.value);
                 if (!ingId || isNaN(cantidad) || cantidad <= 0) return;
 
+                const ingIdInt = parseInt(ingId);
+
+                const yaExiste = listaIngredientes.some(it => it.ingrediente_id === ingIdInt);
+                if (yaExiste) {
+                    const optDup = selIngrediente.options[selIngrediente.selectedIndex];
+                    const nombreDup = optDup ? optDup.textContent : "";
+                    alert("Ingrediente duplicado: " + nombreDup);
+                    limpiarLineaIngrediente();
+                    selIngrediente.focus();
+                    return;
+                }
+
                 const opt = selIngrediente.options[selIngrediente.selectedIndex];
                 const nombre = opt.textContent;
                 const umNombre = opt.getAttribute("data-um-nombre") || "";
 
                 const item = {
-                    ingrediente_id: parseInt(ingId),
+                    ingrediente_id: ingIdInt,
                     nombre: nombre,
                     cantidad: cantidad,
                     um: umNombre
@@ -288,12 +329,6 @@ document.addEventListener("DOMContentLoaded", function () {
                 return;
             }
 
-            // En selector de ingrediente: dejar comportamiento nativo
-            if (activo === selIngrediente) {
-                return;
-            }
-
-            // En el resto: avanzar foco
             if (ordenFoco.includes(activo)) {
                 e.preventDefault();
                 enfocarSiguiente(activo);
@@ -302,12 +337,10 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     });
 
-    // Control de abandono al cambiar Plato
     selPlato.addEventListener("focus", () => platoAnterior = selPlato.value);
 
     selPlato.addEventListener("change", function () {
 
-        // BLINDAJE: bandera O lista con elementos
         if (hayCambiosNoGuardados || listaIngredientes.length > 0) {
             const ok = confirm(
                 "Hay datos de una receta que no han sido guardados.\n" +
@@ -329,7 +362,6 @@ document.addEventListener("DOMContentLoaded", function () {
         inpRaciones.focus();
     });
 
-    // Ingrediente -> mostrar UM y saltar a Cantidad
     selIngrediente.addEventListener("change", function () {
         marcarCambio();
         const opt = selIngrediente.options[selIngrediente.selectedIndex];
@@ -338,8 +370,9 @@ document.addEventListener("DOMContentLoaded", function () {
         inpCantidad.focus();
     });
 
-    // Guardar
     btnGuardar.addEventListener("click", function () {
+        // Guardar raciones para restaurar tras redirect correcto
+        localStorage.setItem("ultima_racion", inpRaciones.value || "");
         hayCambiosNoGuardados = false;
         form.submit();
     });

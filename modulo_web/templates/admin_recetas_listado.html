@@ -1,0 +1,124 @@
+<!-- ======================================================
+     TEMPLATE — ADMIN RECETAS MASTER (LISTADO)
+====================================================== -->
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Admin — Recetas MASTER · Listado</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <style>
+        .buscador-wrap {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        .buscador-wrap input {
+            height: 30px;
+            box-sizing: border-box;
+            padding: 4px 8px;
+            width: 280px;
+        }
+        .hint {
+            color: #666;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body style="font-family: Arial, sans-serif; background:#f2f4f8; margin:0; padding:12px;">
+
+<div style="
+    background:#004aad;
+    color:white;
+    padding:12px 18px;
+    font-weight:bold;
+    border-radius:6px;
+    margin-bottom:12px;
+">
+    📋 LISTADO — RECETAS MASTER
+</div>
+
+<div style="background:white; padding:15px; border-radius:6px; max-width:1100px;">
+
+    <!-- Buscador -->
+    <div class="buscador-wrap">
+        <label for="filtroPlato"><strong>Buscar por plato:</strong></label>
+        <input type="text" id="filtroPlato" placeholder="Escribe parte del nombre del plato...">
+        <span class="hint">Filtra en tiempo real</span>
+    </div>
+
+    <div style="max-height:420px; overflow:auto; border:1px solid #ccc;">
+        <table width="100%" cellpadding="6" id="tablaListado">
+            <thead style="background:#f0f0f0; position:sticky; top:0;">
+                <tr>
+                    <th width="80">ID Receta</th>
+                    <th>Nombre Receta</th>
+                    <th width="80">ID Plato</th>
+                    <th>Nombre Plato</th>
+                    <th width="80" style="text-align:right;">Raciones</th>
+                    <th width="110" style="text-align:right;"># Ingred.</th>
+                    <th width="60" style="text-align:center;">🗑️</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for r in recetas %}
+                <tr>
+                    <td>{{ r.id }}</td>
+                    <td>{{ r.plato_nombre }}</td>
+                    <td>{{ r.plato_id }}</td>
+                    <td class="col-plato">{{ r.plato_nombre }}</td>
+                    <td align="right">{{ r.raciones_base }}</td>
+                    <td align="right">{{ r.cantidad_ingredientes | default(0) }}</td>
+                    <td align="center">
+                        <form method="post"
+                              action="/admin/recetas/borrar/{{ r.id }}"
+                              onsubmit="return confirm('¿Seguro que desea borrar esta receta?');"
+                              style="display:inline;">
+                            <button type="submit">🗑️</button>
+                        </form>
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="7" style="text-align:center; color:#777;">
+                        No hay recetas registradas
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <div style="margin-top:12px;">
+        <a href="/admin/recetas">⬅️ Volver a Captura</a>
+    </div>
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const input = document.getElementById("filtroPlato");
+    const tabla = document.getElementById("tablaListado");
+    if (!input || !tabla) return;
+
+    input.addEventListener("input", function () {
+        const filtro = input.value.toLowerCase().trim();
+        const filas = tabla.querySelectorAll("tbody tr");
+
+        filas.forEach(tr => {
+            const celdaPlato = tr.querySelector(".col-plato");
+            if (!celdaPlato) return;
+
+            const texto = celdaPlato.textContent.toLowerCase();
+            if (texto.includes(filtro)) {
+                tr.style.display = "";
+            } else {
+                tr.style.display = "none";
+            }
+        });
+    });
+});
+</script>
+
+</body>
+</html>

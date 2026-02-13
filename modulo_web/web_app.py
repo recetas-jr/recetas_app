@@ -21,6 +21,18 @@ from persistencia import (
     RECETAS_MAESTRO_FILE
 )
 
+# NUEVO: Tipos de platos (archivo JSON)
+import os
+
+DATA_DIR = "data"
+TIPOS_PLATOS_FILE = os.path.join(DATA_DIR, "tipos_platos.json")
+
+def cargar_tipos_platos():
+    return cargar_datos(TIPOS_PLATOS_FILE, [])
+
+def guardar_tipos_platos(tipos):
+    guardar_datos(TIPOS_PLATOS_FILE, tipos)
+
 app = Flask(__name__)
 app.secret_key = "recetas_app_clave_segura_temporal"
 
@@ -66,6 +78,9 @@ def index():
 def admin_platos():
 
     platos = cargar_platos()
+    tipos_platos = cargar_tipos_platos()
+    tipos_platos = sorted(tipos_platos, key=lambda t: t["nombre"].lower())
+
     errores = []
 
     if request.method == "POST":
@@ -95,7 +110,7 @@ def admin_platos():
 
         if errores:
             platos = sorted(platos, key=lambda p: p["nombre"].lower())
-            return render_template("admin_platos.html", platos=platos, errores=errores)
+            return render_template("admin_platos.html", platos=platos, errores=errores, tipos_platos=tipos_platos)
 
         nuevo_id = max([p["id"] for p in platos], default=0) + 1
 
@@ -111,7 +126,7 @@ def admin_platos():
         return redirect("/admin/platos")
 
     platos = sorted(platos, key=lambda p: p["nombre"].lower())
-    return render_template("admin_platos.html", platos=platos, errores=[])
+    return render_template("admin_platos.html", platos=platos, errores=[], tipos_platos=tipos_platos)
 
 
 # =======================================
@@ -262,6 +277,77 @@ def crear_ingrediente():
 
 
 # ==================================================
+# ADMIN TIPOS DE PLATOS
+# ==================================================
+
+@app.route("/admin/tipos_platos", methods=["GET", "POST"])
+def admin_tipos_platos():
+
+    tipos_platos = cargar_tipos_platos()
+    errores = []
+
+    if request.method == "POST":
+        nombre = request.form.get("nombre", "").strip()
+
+        if not nombre:
+            errores.append("El nombre del tipo no puede estar vacío.")
+        else:
+            for t in tipos_platos:
+                if t["nombre"].lower() == nombre.lower():
+                    errores.append("Este tipo de plato ya existe.")
+                    break
+
+        if not errores:
+            nuevo_id = max([t["id"] for t in tipos_platos], default=0) + 1
+
+            tipos_platos.append({
+                "id": nuevo_id,
+                "nombre": nombre
+            })
+
+            guardar_tipos_platos(tipos_platos)
+            return redirect("/admin/tipos_platos")
+
+    tipos_platos = sorted(tipos_platos, key=lambda t: t["nombre"].lower())
+
+    return render_template(
+        "admin_tipos_platos.html",
+        tipos_platos=tipos_platos,
+        errores=errores
+    )
+
+
+@app.route("/admin/tipos_platos/borrar/<int:id>", methods=["POST"])
+def borrar_tipo_plato(id):
+
+    tipos_platos = cargar_tipos_platos()
+    platos = cargar_platos()
+
+    tipo = next((t for t in tipos_platos if t["id"] == id), None)
+    nombre_tipo = tipo["nombre"] if tipo else f"(id {id})"
+
+    # ¿Está el tipo usado en algún plato?
+    usado = any(p.get("tipo_plato", "").lower() == nombre_tipo.lower() for p in platos)
+
+    if usado:
+        flash(
+            f"No se puede borrar el tipo <span style='color:#004aad; font-weight:bold;'>{nombre_tipo}</span> porque está siendo usado por uno o más platos.",
+            "error"
+        )
+        return redirect("/admin/tipos_platos")
+
+    # Borrado permitido
+    tipos_platos = [t for t in tipos_platos if t["id"] != id]
+    guardar_tipos_platos(tipos_platos)
+
+    flash(
+        f"Tipo de plato <span style='color:#004aad; font-weight:bold;'>{nombre_tipo}</span> borrado correctamente.",
+        "ok"
+    )
+    return redirect("/admin/tipos_platos")
+
+
+# ==================================================
 # ADMIN RECETAS — MASTER
 # ==================================================
 
@@ -331,7 +417,7 @@ def admin_recetas():
                 if plato_id_existente == plato_id:
                     nombre_plato = mapa_platos.get(plato_id, "")
                     error = f"YA EXISTE LA RECETA {nombre_plato}"
-                    limpiar_form = True   # bandera para limpiar todo en el HTML
+                    limpiar_form = True
                     break
 
         if not error:

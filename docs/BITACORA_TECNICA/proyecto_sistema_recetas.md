@@ -971,6 +971,65 @@ Esto evita pérdidas silenciosas de trabajo en curso.
 Este hito corresponde a un punto estable del proyecto y debe quedar registrado en Git como:
 - Estabilización del flujo de captura (ENTER / ESC / control de abandono).
 
+## 🧩 Fase XX — Estabilización del MASTER de Recetas (Web)
+
+**Commit de referencia:** `899b4e1`
+
+### Estado actual (BASE ESTABLE)
+
+Queda estabilizado el flujo del MASTER de Recetas en la versión web con las siguientes garantías:
+
+- ✅ Flujo de captura con teclado:
+  - ENTER avanza por los escaques según orden definido.
+  - ENTER en Cantidad agrega ingrediente.
+  - ESC cancela la captura, limpia el formulario y vuelve el foco a Plato.
+- ✅ Validación de raciones:
+  - Se valida en cliente de forma **instantánea**.
+  - No permite avanzar si el valor no es numérico o ≤ 0.
+- ✅ Control de duplicados:
+  - **Duplicidad de receta (por Plato):** se valida en servidor (POST).
+    - Si existe, se muestra mensaje de error y se limpia el formulario según reglas actuales.
+  - **Duplicidad de ingrediente:** se valida en cliente al intentar agregarlo.
+    - Se muestra mensaje y se limpia solo la línea de ingrediente.
+- ✅ Listado de recetas separado:
+  - Captura: `/admin/recetas`
+  - Listado: `/admin/recetas/listado`
+
+### Reglas de oro
+
+- Este flujo se considera **base estable**.
+- Cualquier cambio en:
+  - manejo de ENTER / ESC,
+  - validaciones,
+  - limpieza de formulario,
+  - o control de duplicados  
+  debe hacerse con extremo cuidado para no romper la UX ya estabilizada.
+
+## 2026-02-12 — Estabilización MASTER de Recetas (Web)
+
+Se consolidó el flujo completo del módulo MASTER de Recetas en la versión web.
+
+Cambios principales:
+- Flujo de captura controlado por teclado:
+  - ENTER avanza entre campos y agrega ingredientes.
+  - ESC limpia todo el formulario y vuelve el foco a Plato.
+- Validación inmediata de Raciones:
+  - Solo se permite valor numérico entero > 0.
+  - No avanza si el valor es inválido.
+- Control de duplicidad:
+  - No se permite crear más de una receta por Plato (regla MASTER).
+  - Se muestra mensaje de error al intentar duplicar.
+  - En caso de duplicado, se limpia el formulario de captura según reglas definidas.
+- Control de duplicidad de ingredientes dentro de una receta:
+  - Si se intenta repetir un ingrediente, se muestra mensaje y se limpia solo la línea de ingrediente.
+- Separación de vistas:
+  - Captura: /admin/recetas
+  - Listado: /admin/recetas/listado
+
+Estado:
+- Flujo considerado estable.
+- Cambios versionados en Git con commit: 899b4e1
+- A partir de este punto, se continúa el desarrollo sobre esta base sin romper el flujo existente.
 
 
 

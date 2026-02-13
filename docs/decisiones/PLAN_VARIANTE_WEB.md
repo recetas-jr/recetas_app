@@ -519,6 +519,36 @@ Nomenclador de Platos aprobado para continuar con el siguiente módulo.
 FIN DE DECISIONES
 DIA: 16-ENE-2026 — HORA: 3:35 pm
 
+## Líneas de evolución posteriores a la Fase XX
+
+Con la base estable del MASTER de Recetas, se consideran como posibles extensiones futuras:
+
+- 🔎 Búsqueda y/o filtrado de recetas por Plato en el listado.
+- 📄 Pantalla de consulta rápida de recetas existentes sin entrar en edición.
+- 🧭 Mejoras de navegación entre:
+  - Captura de recetas
+  - Listado de recetas
+  - Detalle de receta
+
+Estas mejoras se abordarán **sin romper** el flujo de captura ya estabilizado.
+
+## Actualización de plan — MASTER de Recetas Web
+
+El módulo MASTER de Recetas queda establecido con:
+
+- Pantalla de Captura independiente.
+- Pantalla de Listado independiente.
+- Flujo de captura optimizado para teclado.
+- Validaciones clave implementadas:
+  - Raciones (> 0, entero).
+  - Duplicidad de receta por Plato.
+  - Duplicidad de ingredientes dentro de la receta.
+
+A partir de este punto:
+- Se prioriza no romper el flujo existente.
+- Las nuevas funcionalidades (búsqueda, filtros, edición, etc.) se agregarán sobre esta base estable.
+- Cualquier cambio debe respetar el comportamiento de ENTER, ESC y las validaciones actuales.
+
 
 
 

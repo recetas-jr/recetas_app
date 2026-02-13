@@ -325,3 +325,33 @@ Orden correcto en Variante Web:
 4. Receta MASTER
 
 Este orden garantiza integridad referencial del sistema.
+
+### MASTER de Recetas
+Módulo central donde se definen las recetas completas asociadas a un Plato.
+Incluye:
+- Plato
+- Raciones base
+- Textos descriptivos (preparación, elaboración, etc.)
+- Lista de ingredientes con cantidades y unidades
+
+A diferencia de los nomencladores, el MASTER contiene **entidades compuestas** y reglas de negocio.
+
+### Captura (de Recetas)
+Pantalla destinada a la creación de nuevas recetas en el MASTER.
+URL: `/admin/recetas`
+
+### Listado (de Recetas)
+Pantalla destinada a la visualización y gestión del conjunto de recetas existentes.
+URL: `/admin/recetas/listado`
+
+### Duplicidad de Receta
+Regla de negocio que establece que:
+> No puede existir más de una receta para el mismo Plato en el MASTER.
+
+Se valida contra los datos persistidos en el servidor.
+
+### Duplicidad de Ingrediente
+Regla de interfaz que establece que:
+> Una receta no puede contener el mismo ingrediente más de una vez.
+
+Se valida en cliente durante la captura de la receta.

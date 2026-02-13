@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Admin — Platos</title>
+    <title>Admin — Tipos de Plato</title>
 
     <style>
         body {
@@ -13,7 +13,7 @@
         }
 
         .container {
-            max-width: 900px;
+            max-width: 700px;
             margin: 20px auto;
             background: white;
             padding: 15px;
@@ -30,17 +30,16 @@
         }
 
         label {
-            width: 140px;
+            width: 160px;
             font-weight: bold;
         }
 
-        input, select {
+        input {
             padding: 6px;
             font-size: 14px;
         }
 
         #nombre { width: 300px; }
-        #peso { width: 80px; }
 
         .error {
             color: red;
@@ -78,11 +77,11 @@
             font-size: 16px;
         }
 
-        input:focus, select:focus {
-            outline: none;                 /* quita el borde feo del navegador */
-            background-color: #eaf3ff;      /* color suave de fondo */
-            border: 1px solid #2a7ae2;      /* mismo color que “gramos” */
-            box-shadow: 0 0 0 2px #cfe2ff;  /* halo suave opcional */
+        input:focus {
+            outline: none;
+            background-color: #eaf3ff;
+            border: 1px solid #2a7ae2;
+            box-shadow: 0 0 0 2px #cfe2ff;
         }
     </style>
 </head>
@@ -91,7 +90,7 @@
 
 <div class="container">
 
-    <h2>Nomenclador de Platos</h2>
+    <h2>Nomenclador de Tipos de Plato</h2>
 
     <!-- MENSAJES FLASH (ERRORES / AVISOS) -->
     {% with messages = get_flashed_messages(with_categories=true) %}
@@ -107,33 +106,17 @@
     {% endif %}
 
     <!-- ======================================================
-         FORMULARIO — PLATOS (POST CLÁSICO)
+         FORMULARIO — TIPOS DE PLATO
     ====================================================== -->
 
-    <form method="post" action="/admin/platos" id="form-plato">
+    <form method="post" action="/admin/tipos_platos" id="form-tipo-plato">
 
         <div class="form-row">
-            <label>Nombre:</label>
+            <label>Nombre del tipo:</label>
             <input type="text" id="nombre" name="nombre"
                    maxlength="40" autocomplete="off"
-                   placeholder="Nombre del plato" autofocus>
-        </div>
-
-        <div class="form-row">
-            <label>Tipo:</label>
-            <select id="tipo" name="tipo_plato">
-                <option value="">Tipo</option>
-                {% for t in tipos_platos %}
-                    <option value="{{ t.nombre }}">{{ t.nombre }}</option>
-                {% endfor %}
-            </select>
-        </div>
-
-        <div class="form-row">
-            <label>Peso por ración:</label>
-            <input type="text" id="peso" name="peso_racion"
-                   value="0.00" maxlength="7" inputmode="decimal">
-            <span style="color:#2a7ae2;">gramos</span>
+                   placeholder="Ej: Principal, Guarnición, Postre"
+                   autofocus>
         </div>
 
         <!-- botón submit oculto -->
@@ -142,28 +125,24 @@
     </form>
 
     <!-- ======================================================
-         TABLA DE PLATOS — CON BORRADO
+         TABLA DE TIPOS DE PLATO — CON BORRADO
     ====================================================== -->
 
     <table>
         <thead>
             <tr>
                 <th>Nombre</th>
-                <th>Tipo</th>
-                <th>Peso (<span style="color:#2a7ae2;">gramos</span>)</th>
                 <th class="col-borrar">Borrar</th>
             </tr>
         </thead>
         <tbody>
-            {% for p in platos %}
+            {% for t in tipos_platos %}
             <tr>
-                <td>{{ p.nombre }}</td>
-                <td>{{ p.tipo_plato }}</td>
-                <td>{{ "%.2f"|format(p.peso_racion) }}</td>
+                <td>{{ t.nombre }}</td>
                 <td class="col-borrar">
                     <form method="post"
-                          action="/admin/platos/borrar/{{ p.id }}"
-                          onsubmit="return confirm('¿Seguro que desea borrar este plato?');"
+                          action="/admin/tipos_platos/borrar/{{ t.id }}"
+                          onsubmit="return confirm('¿Seguro que desea borrar este tipo de plato?');"
                           style="display:inline;">
                         <button type="submit" class="borrar">🗑️</button>
                     </form>
@@ -176,49 +155,20 @@
 </div>
 
 <!-- ======================================================
-     JS — CONTROL DE ENTER ENTRE CAMPOS
+     JS — CONTROL DE ENTER
 ====================================================== -->
 <script>
 document.addEventListener("DOMContentLoaded", function () {
 
     const nombre = document.getElementById("nombre");
-    const tipo = document.getElementById("tipo");
-    const peso = document.getElementById("peso");
     const btn = document.getElementById("btn-submit");
 
-    // ENTER en nombre → tipo
+    // ENTER en nombre → submit
     nombre.addEventListener("keydown", function(e){
-        if (e.key === "Enter") {
-            e.preventDefault();
-            tipo.focus();
-        }
-    });
-
-    // ENTER en tipo → peso
-    tipo.addEventListener("keydown", function(e){
-        if (e.key === "Enter") {
-            e.preventDefault();
-            peso.focus();
-        }
-    });
-
-    // cambio en tipo con mouse → peso
-    tipo.addEventListener("change", function(){
-        peso.focus();
-    });
-
-    // ENTER en peso → submit
-    peso.addEventListener("keydown", function(e){
         if (e.key === "Enter") {
             e.preventDefault();
             btn.click();
         }
-    });
-
-    // formato peso
-    peso.addEventListener("blur", function(){
-        const v = Number(this.value);
-        if (!isNaN(v)) this.value = v.toFixed(2);
     });
 
 });

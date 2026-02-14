@@ -1,11 +1,13 @@
 import json
 import os
+import sqlite3
+from pathlib import Path
 
 # --------------------------------------------------
 # RUTAS BASE DEL PROYECTO
 # --------------------------------------------------
 
-BASE_DIR = BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 DATA_DIR = os.path.join(BASE_DIR, "data_compartida", "data")
 
 RECETAS_DETALLE_FILE = os.path.join(DATA_DIR, "recetas_detalle_version.json")
@@ -18,10 +20,12 @@ RECETAS_CATALOGO_FILE = os.path.join(DATA_DIR, "recetas_catalogo.json")
 RECETAS_MAESTRO_FILE = os.path.join(DATA_DIR, "recetas_maestro.json")
 RECETAS_ING_FILE = os.path.join(DATA_DIR, "recetas_ingredientes.json")
 
+# SQLite
+DB_PATH = Path(BASE_DIR) / "modulo_web" / "recetas.db"
+
 # --------------------------------------------------
 # FUNCIONES DE SOPORTE
 # --------------------------------------------------
-
 
 def asegurar_directorio():
     """
@@ -32,10 +36,16 @@ def asegurar_directorio():
         os.makedirs(DATA_DIR)
 
 
-# --------------------------------------------------
-# FUNCIONES PÚBLICAS DE PERSISTENCIA
-# --------------------------------------------------
+def get_db_conn():
+    conn = sqlite3.connect(DB_PATH)
+    conn.row_factory = sqlite3.Row
+    conn.execute("PRAGMA foreign_keys = ON;")
+    return conn
 
+
+# --------------------------------------------------
+# FUNCIONES PÚBLICAS DE PERSISTENCIA (JSON)
+# --------------------------------------------------
 
 def cargar_datos(ruta, por_defecto):
     """
@@ -67,28 +77,120 @@ def guardar_datos(ruta, datos):
 # --------------------------------------------------
 
 def cargar_platos():
-    print(">>> LEYENDO PLATOS DESDE:", PLATOS_FILE)
-    return cargar_datos(PLATOS_FILE, [])
+    """
+    Lee platos desde SQLite. Si algo falla, cae a JSON.
+    """
+    try:
+        conn = get_db_conn()
+        cur = conn.cursor()
+        cur.execute("""
+            SELECT
+                p.id,
+                p.nombre,
+                tp.nombre AS tipo_plato,
+                p.activo,
+                p.peso_racion
+            FROM platos p
+            LEFT JOIN tipos_plato tp ON tp.id = p.tipo_plato_id
+            ORDER BY p.nombre;
+        """)
+        filas = cur.fetchall()
+        conn.close()
+
+        platos = []
+        for r in filas:
+            platos.append({
+                "id": r["id"],
+                "nombre": r["nombre"],
+                "tipo_plato": r["tipo_plato"] or "",
+                "activo": bool(r["activo"]),
+                "peso_racion": r["peso_racion"] if r["peso_racion"] is not None else 0.0,
+                "foto": ""
+            })
+
+        print(">>> LEYENDO PLATOS DESDE: SQLite")
+        return platos
+    except Exception as e:
+        print(">>> ERROR DB, usando JSON para platos:", e)
+        print(">>> LEYENDO PLATOS DESDE:", PLATOS_FILE)
+        return cargar_datos(PLATOS_FILE, [])
 
 
 def guardar_platos(platos):
     guardar_datos(PLATOS_FILE, platos)
 
 
+def cargar_unidades():
+    """
+    Lee unidades desde SQLite. Si algo falla, cae a JSON.
+    """
+    try:
+        conn = get_db_conn()
+        cur = conn.cursor()
+        cur.execute("""
+            SELECT id, codigo, nombre
+            FROM unidades
+            ORDER BY codigo;
+        """)
+        filas = cur.fetchall()
+        conn.close()
+
+        unidades = []
+        for r in filas:
+            unidades.append({
+                "id": r["id"],
+                "codigo": r["codigo"],
+                "nombre": r["nombre"],
+            })
+
+        print(">>> LEYENDO UNIDADES DESDE: SQLite")
+        return unidades
+    except Exception as e:
+        print(">>> ERROR DB, usando JSON para unidades:", e)
+        print(">>> LEYENDO UNIDADES DESDE:", UNIDADES_FILE)
+        return cargar_datos(UNIDADES_FILE, [])
+
+
+def guardar_unidades(unidades):
+    guardar_datos(UNIDADES_FILE, unidades)
+
+
 def cargar_ingredientes():
-    return cargar_datos(INGREDIENTES_FILE, [])
+    """
+    TERCER SWITCH A DB:
+    Lee ingredientes desde SQLite (con su unidad_id).
+    Si algo falla, cae a JSON.
+    """
+    try:
+        conn = get_db_conn()
+        cur = conn.cursor()
+        cur.execute("""
+            SELECT i.id, i.nombre, i.unidad_id, i.activo
+            FROM ingredientes i
+            ORDER BY i.nombre;
+        """)
+        filas = cur.fetchall()
+        conn.close()
+
+        ingredientes = []
+        for r in filas:
+            ingredientes.append({
+                "id": r["id"],
+                "nombre": r["nombre"],
+                "unidad_id": r["unidad_id"],
+                "activo": bool(r["activo"]),
+            })
+
+        print(">>> LEYENDO INGREDIENTES DESDE: SQLite")
+        return ingredientes
+    except Exception as e:
+        print(">>> ERROR DB, usando JSON para ingredientes:", e)
+        print(">>> LEYENDO INGREDIENTES DESDE:", INGREDIENTES_FILE)
+        return cargar_datos(INGREDIENTES_FILE, [])
 
 
 def guardar_ingredientes(ingredientes):
     guardar_datos(INGREDIENTES_FILE, ingredientes)
-
-
-def cargar_unidades():
-    return cargar_datos(UNIDADES_FILE, [])
-
-
-def guardar_unidades(unidades):
-    guardar_datos(UNIDADES_FILE, unidades)        
 
 
 # --------------------------------------------------
@@ -100,13 +202,9 @@ def cargar_recetas_catalogo():
 
 
 def cargar_recetas_maestro():
-
     print(">>> LEYENDO RECETAS DESDE:", RECETAS_MAESTRO_FILE)
-
     datos = cargar_datos(RECETAS_MAESTRO_FILE, [])
-
     print(">>> TOTAL RECETAS LEIDAS:", len(datos))
-
     return datos
 
 
@@ -116,10 +214,6 @@ def cargar_versiones_activas():
 
 
 def cargar_recetas_operativas():
-    """
-    Devuelve recetas listas para usar en GUI y cálculo:
-    combina catálogo + versión activa
-    """
     catalogo = cargar_recetas_catalogo()
     versiones = cargar_versiones_activas()
 
@@ -149,16 +243,10 @@ def cargar_recetas_operativas():
 # --------------------------------------------------
 
 def cargar_detalle_receta(receta_maestro_id):
-    """
-    Devuelve el detalle técnico de una receta por versión.
-    Si no existe, devuelve un diccionario vacío.
-    """
     detalles = cargar_datos(RECETAS_DETALLE_FILE, [])
-
     for d in detalles:
         if d.get("receta_maestro_id") == receta_maestro_id:
             return d
-
     return {}
 
 # --------------------------------------------------
@@ -166,35 +254,20 @@ def cargar_detalle_receta(receta_maestro_id):
 # --------------------------------------------------
 
 def cargar_ingredientes_receta(receta_maestro_id):
-    """
-    Devuelve la lista de ingredientes asociados a una versión de receta.
-    Si no existen, devuelve una lista vacía.
-    """
     ingredientes = cargar_datos(RECETAS_ING_FILE, [])
-
     return [
         i for i in ingredientes
         if i.get("receta_maestro_id") == receta_maestro_id
     ]
 
-def guardar_detalle_receta(receta_maestro_id, datos):
-    """
-    Guarda o actualiza el detalle técnico de una receta por versión.
-    """
-    detalles = cargar_datos(RECETAS_DETALLE_FILE, [])
 
-    # eliminar detalle previo de esa versión (si existe)
+def guardar_detalle_receta(receta_maestro_id, datos):
+    detalles = cargar_datos(RECETAS_DETALLE_FILE, [])
     detalles = [
         d for d in detalles
         if d.get("receta_maestro_id") != receta_maestro_id
     ]
-
     datos_guardar = dict(datos)
     datos_guardar["receta_maestro_id"] = receta_maestro_id
-
     detalles.append(datos_guardar)
-
     guardar_datos(RECETAS_DETALLE_FILE, detalles)
-
-
-

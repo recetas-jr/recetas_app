@@ -21,6 +21,14 @@ from persistencia import (
     RECETAS_MAESTRO_FILE
 )
 
+# NUEVO: Persistencia DB (SQLite) para LECTURA
+from modulo_web.persistencia_db import (
+    db_cargar_platos,
+    db_cargar_unidades,
+    db_cargar_ingredientes,
+    db_cargar_recetas_maestro_listado
+)
+
 # NUEVO: Tipos de platos (archivo JSON)
 import os
 
@@ -41,8 +49,12 @@ app.secret_key = "recetas_app_clave_segura_temporal"
 # ==================================================
 
 def cargar_ingredientes_con_unidad():
-    ingredientes = cargar_ingredientes()
-    unidades = cargar_unidades()
+    try:
+        ingredientes = db_cargar_ingredientes()
+        unidades = db_cargar_unidades()
+    except:
+        ingredientes = cargar_ingredientes()
+        unidades = cargar_unidades()
 
     mapa_unidades = {u["id"]: u for u in unidades}
 
@@ -66,7 +78,10 @@ def cargar_ingredientes_con_unidad():
 
 @app.route("/", methods=["GET"])
 def index():
-    recetas = cargar_recetas_maestro()
+    try:
+        recetas = db_cargar_recetas_maestro_listado()
+    except:
+        recetas = cargar_recetas_maestro()
     return render_template("index.html", recetas=recetas)
 
 
@@ -77,7 +92,11 @@ def index():
 @app.route("/admin/platos", methods=["GET", "POST"])
 def admin_platos():
 
-    platos = cargar_platos()
+    try:
+        platos = db_cargar_platos()
+    except:
+        platos = cargar_platos()
+
     tipos_platos = cargar_tipos_platos()
     tipos_platos = sorted(tipos_platos, key=lambda t: t["nombre"].lower())
 
@@ -104,7 +123,7 @@ def admin_platos():
         for p in platos:
             if (
                 p["nombre"].lower() == nombre.lower()
-                and p["tipo_plato"].lower() == tipo_plato.lower()
+                and p.get("tipo_plato","").lower() == tipo_plato.lower()
             ):
                 errores.append("Plato duplicado (nombre + tipo).")
 
@@ -136,13 +155,16 @@ def admin_platos():
 @app.route("/admin/platos/borrar/<int:plato_id>", methods=["POST"])
 def borrar_plato(plato_id):
 
-    platos = cargar_platos()
+    try:
+        platos = db_cargar_platos()
+    except:
+        platos = cargar_platos()
+
     recetas = cargar_recetas_maestro()
 
     plato = next((p for p in platos if p.get("id") == plato_id), None)
     nombre_plato = plato["nombre"] if plato else f"(id {plato_id})"
 
-    # ¿Está el plato usado en alguna receta?
     usado = any(r.get("plato_id") == plato_id for r in recetas)
 
     if usado:
@@ -152,7 +174,6 @@ def borrar_plato(plato_id):
         )
         return redirect("/admin/platos")
 
-    # Borrado permitido
     platos_filtrados = [p for p in platos if p.get("id") != plato_id]
 
     guardar_platos(platos_filtrados)
@@ -171,7 +192,11 @@ def borrar_plato(plato_id):
 @app.route("/admin/unidades", methods=["GET", "POST"])
 def admin_unidades():
 
-    unidades = cargar_unidades()
+    try:
+        unidades = db_cargar_unidades()
+    except:
+        unidades = cargar_unidades()
+
     errores = []
 
     if request.method == "POST":
@@ -220,7 +245,11 @@ def admin_ingredientes():
     ingredientes = cargar_ingredientes_con_unidad()
     ingredientes = sorted(ingredientes, key=lambda i: i["nombre"].lower())
 
-    unidades = cargar_unidades()
+    try:
+        unidades = db_cargar_unidades()
+    except:
+        unidades = cargar_unidades()
+
     unidades = sorted(unidades, key=lambda u: u["nombre"].lower())
 
     return render_template(
@@ -246,8 +275,12 @@ def crear_ingrediente():
     except:
         errores.append("Unidad inválida.")
 
-    ingredientes = cargar_ingredientes()
-    unidades = cargar_unidades()
+    try:
+        ingredientes = db_cargar_ingredientes()
+        unidades = db_cargar_unidades()
+    except:
+        ingredientes = cargar_ingredientes()
+        unidades = cargar_unidades()
 
     if unidad_id_txt and not any(u["id"] == unidad_id for u in unidades):
         errores.append("Unidad no existe.")
@@ -321,12 +354,15 @@ def admin_tipos_platos():
 def borrar_tipo_plato(id):
 
     tipos_platos = cargar_tipos_platos()
-    platos = cargar_platos()
+
+    try:
+        platos = db_cargar_platos()
+    except:
+        platos = cargar_platos()
 
     tipo = next((t for t in tipos_platos if t["id"] == id), None)
     nombre_tipo = tipo["nombre"] if tipo else f"(id {id})"
 
-    # ¿Está el tipo usado en algún plato?
     usado = any(p.get("tipo_plato", "").lower() == nombre_tipo.lower() for p in platos)
 
     if usado:
@@ -336,7 +372,6 @@ def borrar_tipo_plato(id):
         )
         return redirect("/admin/tipos_platos")
 
-    # Borrado permitido
     tipos_platos = [t for t in tipos_platos if t["id"] != id]
     guardar_tipos_platos(tipos_platos)
 
@@ -356,7 +391,11 @@ def admin_recetas():
 
     import json
 
-    platos = sorted(cargar_platos(), key=lambda p: p["nombre"].lower())
+    try:
+        platos = sorted(db_cargar_platos(), key=lambda p: p["nombre"].lower())
+    except:
+        platos = sorted(cargar_platos(), key=lambda p: p["nombre"].lower())
+
     ingredientes = sorted(cargar_ingredientes_con_unidad(), key=lambda i: i["nombre"].lower())
     recetas = cargar_recetas_maestro()
 
@@ -402,17 +441,12 @@ def admin_recetas():
             except:
                 error = "Error leyendo ingredientes."
 
-        # -------------------------------------------------
-        # VALIDACIÓN DE DUPLICIDAD POR PLATO (REGLA MASTER)
-        # -------------------------------------------------
         if not error:
             for r in recetas:
                 try:
                     plato_id_existente = int(r.get("plato_id"))
                 except:
                     continue
-
-                print("DEBUG DUPLICIDAD -> existente:", plato_id_existente, "nuevo:", plato_id)
 
                 if plato_id_existente == plato_id:
                     nombre_plato = mapa_platos.get(plato_id, "")
@@ -475,7 +509,11 @@ def ver_receta_master(receta_id):
     if not receta:
         return "Receta MASTER no encontrada", 404
 
-    platos = cargar_platos()
+    try:
+        platos = db_cargar_platos()
+    except:
+        platos = cargar_platos()
+
     ingredientes_cat = cargar_ingredientes_con_unidad()
 
     plato = next((p for p in platos if p["id"] == receta["plato_id"]), None)
@@ -507,22 +545,25 @@ def ver_receta_master(receta_id):
 @app.route("/admin/recetas/listado", methods=["GET"])
 def admin_recetas_listado():
 
-    platos = sorted(cargar_platos(), key=lambda p: p["nombre"].lower())
-    recetas = cargar_recetas_maestro()
+    try:
+        recetas_listado = db_cargar_recetas_maestro_listado()
+    except:
+        platos = sorted(cargar_platos(), key=lambda p: p["nombre"].lower())
+        recetas = cargar_recetas_maestro()
 
-    mapa_platos = {p["id"]: p["nombre"] for p in platos}
+        mapa_platos = {p["id"]: p["nombre"] for p in platos}
 
-    recetas_listado = []
-    for r in recetas:
-        recetas_listado.append({
-            "id": r["id"],
-            "plato_id": r["plato_id"],
-            "plato_nombre": mapa_platos.get(r["plato_id"], "—"),
-            "raciones_base": r.get("raciones_base", 0),
-            "cantidad_ingredientes": len(r.get("ingredientes", []))
-        })
+        recetas_listado = []
+        for r in recetas:
+            recetas_listado.append({
+                "id": r["id"],
+                "plato_id": r["plato_id"],
+                "plato_nombre": mapa_platos.get(r["plato_id"], "—"),
+                "raciones_base": r.get("raciones_base", 0),
+                "cantidad_ingredientes": len(r.get("ingredientes", []))
+            })
 
-    recetas_listado = sorted(recetas_listado, key=lambda r: r["plato_nombre"].lower())
+        recetas_listado = sorted(recetas_listado, key=lambda r: r["plato_nombre"].lower())
 
     return render_template(
         "admin_recetas_listado.html",

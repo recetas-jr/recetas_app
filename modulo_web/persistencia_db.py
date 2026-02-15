@@ -84,5 +84,173 @@ def init_db():
     conn.close()
 
 
+# ==================================================
+# FUNCIONES DE LECTURA (DB → dicts)
+# ==================================================
+
+def db_cargar_platos():
+    conn = get_connection()
+    cur = conn.cursor()
+
+    cur.execute("""
+        SELECT p.id, p.nombre, p.activo, t.nombre AS tipo_plato
+        FROM platos p
+        LEFT JOIN tipos_plato t ON p.tipo_plato_id = t.id
+        WHERE p.activo = 1
+        ORDER BY p.nombre
+    """)
+
+    filas = cur.fetchall()
+    conn.close()
+
+    resultado = []
+    for f in filas:
+        resultado.append({
+            "id": f["id"],
+            "nombre": f["nombre"],
+            "tipo_plato": f["tipo_plato"] or "",
+            "activo": f["activo"]
+        })
+
+    return resultado
+
+
+def db_cargar_unidades():
+    conn = get_connection()
+    cur = conn.cursor()
+
+    cur.execute("SELECT id, codigo, nombre FROM unidades ORDER BY nombre")
+    filas = cur.fetchall()
+    conn.close()
+
+    return [
+        {
+            "id": f["id"],
+            "codigo": f["codigo"],
+            "nombre": f["nombre"]
+        }
+        for f in filas
+    ]
+
+
+def db_cargar_ingredientes():
+    conn = get_connection()
+    cur = conn.cursor()
+
+    cur.execute("""
+        SELECT id, nombre, unidad_id
+        FROM ingredientes
+        WHERE activo = 1
+        ORDER BY nombre
+    """)
+    filas = cur.fetchall()
+    conn.close()
+
+    return [
+        {
+            "id": f["id"],
+            "nombre": f["nombre"],
+            "unidad_id": f["unidad_id"]
+        }
+        for f in filas
+    ]
+
+
+def db_cargar_recetas_maestro_listado():
+    conn = get_connection()
+    cur = conn.cursor()
+
+    cur.execute("""
+        SELECT
+            r.id,
+            r.plato_id,
+            p.nombre AS plato_nombre,
+            r.raciones_base,
+            COUNT(ri.id) AS cantidad_ingredientes
+        FROM recetas_maestro r
+        JOIN platos p ON p.id = r.plato_id
+        LEFT JOIN recetas_ingredientes ri ON ri.receta_id = r.id
+        WHERE r.activo = 1
+        GROUP BY r.id, r.plato_id, p.nombre, r.raciones_base
+        ORDER BY p.nombre
+    """)
+
+    filas = cur.fetchall()
+    conn.close()
+
+    resultado = []
+    for f in filas:
+        resultado.append({
+            "id": f["id"],
+            "plato_id": f["plato_id"],
+            "plato_nombre": f["plato_nombre"],
+            "raciones_base": f["raciones_base"],
+            "cantidad_ingredientes": f["cantidad_ingredientes"]
+        })
+
+    return resultado
+
+
+# ==================================================
+# NUEVO: DETALLE DE RECETA DESDE SQLITE
+# ==================================================
+
+def db_cargar_receta_detalle(receta_id):
+    conn = get_connection()
+    cur = conn.cursor()
+
+    # 1) Cargar cabecera de receta + plato
+    cur.execute("""
+        SELECT
+            r.id,
+            r.plato_id,
+            r.raciones_base,
+            p.nombre AS plato_nombre
+        FROM recetas_maestro r
+        JOIN platos p ON p.id = r.plato_id
+        WHERE r.id = ? AND r.activo = 1
+    """, (receta_id,))
+
+    fila = cur.fetchone()
+    if not fila:
+        conn.close()
+        return None
+
+    receta = {
+        "id": fila["id"],
+        "plato_id": fila["plato_id"],
+        "raciones_base": fila["raciones_base"],
+        "plato_nombre": fila["plato_nombre"],
+        "ingredientes": []
+    }
+
+    # 2) Cargar ingredientes de la receta
+    cur.execute("""
+        SELECT
+            ri.ingrediente_id,
+            i.nombre AS ingrediente_nombre,
+            ri.cantidad,
+            u.codigo AS unidad_codigo
+        FROM recetas_ingredientes ri
+        JOIN ingredientes i ON i.id = ri.ingrediente_id
+        JOIN unidades u ON u.id = i.unidad_id
+        WHERE ri.receta_id = ?
+        ORDER BY i.nombre
+    """, (receta_id,))
+
+    filas_ing = cur.fetchall()
+    conn.close()
+
+    for f in filas_ing:
+        receta["ingredientes"].append({
+            "ingrediente_id": f["ingrediente_id"],
+            "nombre": f["ingrediente_nombre"],
+            "cantidad": f["cantidad"],
+            "unidad": f["unidad_codigo"]
+        })
+
+    return receta
+
+
 if __name__ == "__main__":
     init_db()

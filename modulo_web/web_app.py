@@ -1,7 +1,7 @@
 from flask import Flask, render_template, request, redirect, flash
 
 # --------------------------------------------------
-# CAPA DE PERSISTENCIA (CENTRALIZADA)
+# CAPA DE PERSISTENCIA (JSON)
 # --------------------------------------------------
 
 from persistencia import (
@@ -21,15 +21,22 @@ from persistencia import (
     RECETAS_MAESTRO_FILE
 )
 
-# NUEVO: Persistencia DB (SQLite) para LECTURA
+# --------------------------------------------------
+# CAPA DB (SQLite) — LECTURA
+# --------------------------------------------------
+
 from modulo_web.persistencia_db import (
     db_cargar_platos,
     db_cargar_unidades,
     db_cargar_ingredientes,
-    db_cargar_recetas_maestro_listado
+    db_cargar_recetas_maestro_listado,
+    get_connection
 )
 
-# NUEVO: Tipos de platos (archivo JSON)
+# --------------------------------------------------
+# Tipos de platos (JSON)
+# --------------------------------------------------
+
 import os
 
 DATA_DIR = "data"
@@ -148,43 +155,6 @@ def admin_platos():
     return render_template("admin_platos.html", platos=platos, errores=[], tipos_platos=tipos_platos)
 
 
-# =======================================
-#        BORRAR PLATO (CON VALIDACIÓN)
-# =======================================
-
-@app.route("/admin/platos/borrar/<int:plato_id>", methods=["POST"])
-def borrar_plato(plato_id):
-
-    try:
-        platos = db_cargar_platos()
-    except:
-        platos = cargar_platos()
-
-    recetas = cargar_recetas_maestro()
-
-    plato = next((p for p in platos if p.get("id") == plato_id), None)
-    nombre_plato = plato["nombre"] if plato else f"(id {plato_id})"
-
-    usado = any(r.get("plato_id") == plato_id for r in recetas)
-
-    if usado:
-        flash(
-            f"No se puede borrar el plato <span style='color:#004aad; font-weight:bold;'>{nombre_plato}</span> porque está asociado a una receta.",
-            "error"
-        )
-        return redirect("/admin/platos")
-
-    platos_filtrados = [p for p in platos if p.get("id") != plato_id]
-
-    guardar_platos(platos_filtrados)
-
-    flash(
-        f"Plato <span style='color:#004aad; font-weight:bold;'>{nombre_plato}</span> borrado correctamente.",
-        "ok"
-    )
-    return redirect("/admin/platos")
-
-
 # ==================================================
 # ADMIN UNIDADES
 # ==================================================
@@ -259,287 +229,8 @@ def admin_ingredientes():
     )
 
 
-@app.route("/admin/ingredientes/crear", methods=["POST"])
-def crear_ingrediente():
-
-    nombre = request.form.get("nombre", "").strip()
-    unidad_id_txt = request.form.get("unidad_id", "").strip()
-
-    errores = []
-
-    if not nombre:
-        errores.append("Debe teclear el nombre.")
-
-    try:
-        unidad_id = int(unidad_id_txt)
-    except:
-        errores.append("Unidad inválida.")
-
-    try:
-        ingredientes = db_cargar_ingredientes()
-        unidades = db_cargar_unidades()
-    except:
-        ingredientes = cargar_ingredientes()
-        unidades = cargar_unidades()
-
-    if unidad_id_txt and not any(u["id"] == unidad_id for u in unidades):
-        errores.append("Unidad no existe.")
-
-    if any(i["nombre"].upper() == nombre.upper() for i in ingredientes):
-        errores.append("Ingrediente duplicado.")
-
-    if errores:
-        ingredientes = cargar_ingredientes_con_unidad()
-        return render_template(
-            "admin_ingredientes.html",
-            ingredientes=ingredientes,
-            unidades=unidades,
-            error=" | ".join(errores)
-        )
-
-    nuevo_id = max([i["id"] for i in ingredientes], default=0) + 1
-
-    ingredientes.append({
-        "id": nuevo_id,
-        "nombre": nombre.upper(),
-        "unidad_id": unidad_id
-    })
-
-    guardar_ingredientes(ingredientes)
-    return redirect("/admin/ingredientes")
-
-
 # ==================================================
-# ADMIN TIPOS DE PLATOS
-# ==================================================
-
-@app.route("/admin/tipos_platos", methods=["GET", "POST"])
-def admin_tipos_platos():
-
-    tipos_platos = cargar_tipos_platos()
-    errores = []
-
-    if request.method == "POST":
-        nombre = request.form.get("nombre", "").strip()
-
-        if not nombre:
-            errores.append("El nombre del tipo no puede estar vacío.")
-        else:
-            for t in tipos_platos:
-                if t["nombre"].lower() == nombre.lower():
-                    errores.append("Este tipo de plato ya existe.")
-                    break
-
-        if not errores:
-            nuevo_id = max([t["id"] for t in tipos_platos], default=0) + 1
-
-            tipos_platos.append({
-                "id": nuevo_id,
-                "nombre": nombre
-            })
-
-            guardar_tipos_platos(tipos_platos)
-            return redirect("/admin/tipos_platos")
-
-    tipos_platos = sorted(tipos_platos, key=lambda t: t["nombre"].lower())
-
-    return render_template(
-        "admin_tipos_platos.html",
-        tipos_platos=tipos_platos,
-        errores=errores
-    )
-
-
-@app.route("/admin/tipos_platos/borrar/<int:id>", methods=["POST"])
-def borrar_tipo_plato(id):
-
-    tipos_platos = cargar_tipos_platos()
-
-    try:
-        platos = db_cargar_platos()
-    except:
-        platos = cargar_platos()
-
-    tipo = next((t for t in tipos_platos if t["id"] == id), None)
-    nombre_tipo = tipo["nombre"] if tipo else f"(id {id})"
-
-    usado = any(p.get("tipo_plato", "").lower() == nombre_tipo.lower() for p in platos)
-
-    if usado:
-        flash(
-            f"No se puede borrar el tipo <span style='color:#004aad; font-weight:bold;'>{nombre_tipo}</span> porque está siendo usado por uno o más platos.",
-            "error"
-        )
-        return redirect("/admin/tipos_platos")
-
-    tipos_platos = [t for t in tipos_platos if t["id"] != id]
-    guardar_tipos_platos(tipos_platos)
-
-    flash(
-        f"Tipo de plato <span style='color:#004aad; font-weight:bold;'>{nombre_tipo}</span> borrado correctamente.",
-        "ok"
-    )
-    return redirect("/admin/tipos_platos")
-
-
-# ==================================================
-# ADMIN RECETAS — MASTER
-# ==================================================
-
-@app.route("/admin/recetas", methods=["GET", "POST"])
-def admin_recetas():
-
-    import json
-
-    try:
-        platos = sorted(db_cargar_platos(), key=lambda p: p["nombre"].lower())
-    except:
-        platos = sorted(cargar_platos(), key=lambda p: p["nombre"].lower())
-
-    ingredientes = sorted(cargar_ingredientes_con_unidad(), key=lambda i: i["nombre"].lower())
-    recetas = cargar_recetas_maestro()
-
-    mapa_platos = {p["id"]: p["nombre"] for p in platos}
-
-    recetas_listado = []
-    for r in recetas:
-        recetas_listado.append({
-            "id": r["id"],
-            "plato_id": r["plato_id"],
-            "plato_nombre": mapa_platos.get(r["plato_id"], "—"),
-            "raciones_base": r.get("raciones_base", 0),
-            "cantidad_ingredientes": len(r.get("ingredientes", []))
-        })
-
-    recetas_listado = sorted(recetas_listado, key=lambda r: r["plato_nombre"].lower())
-    error = None
-
-    limpiar_form = False
-
-    if request.method == "POST":
-
-        plato_id_txt = request.form.get("plato_id", "").strip()
-        raciones_txt = request.form.get("raciones_base", "").strip()
-        ingredientes_json = request.form.get("ingredientes_json", "").strip()
-
-        if not plato_id_txt:
-            error = "Debe seleccionar un plato."
-        elif not raciones_txt:
-            error = "Debe indicar raciones base."
-        else:
-            try:
-                plato_id = int(plato_id_txt)
-                raciones_base = int(raciones_txt)
-            except:
-                error = "Datos numéricos inválidos."
-
-        lista_ingredientes = []
-
-        if not error and ingredientes_json:
-            try:
-                lista_ingredientes = json.loads(ingredientes_json)
-            except:
-                error = "Error leyendo ingredientes."
-
-        if not error:
-            for r in recetas:
-                try:
-                    plato_id_existente = int(r.get("plato_id"))
-                except:
-                    continue
-
-                if plato_id_existente == plato_id:
-                    nombre_plato = mapa_platos.get(plato_id, "")
-                    error = f"YA EXISTE LA RECETA {nombre_plato}"
-                    limpiar_form = True
-                    break
-
-        if not error:
-
-            nuevo_id = max([r["id"] for r in recetas], default=0) + 1
-
-            recetas.append({
-                "id": nuevo_id,
-                "plato_id": plato_id,
-                "raciones_base": raciones_base,
-                "preparacion": request.form.get("preparacion", ""),
-                "elaboracion": request.form.get("elaboracion", ""),
-                "presentacion": request.form.get("presentacion", ""),
-                "nutricion": request.form.get("nutricion", ""),
-                "ingredientes": lista_ingredientes
-            })
-
-            guardar_datos(RECETAS_MAESTRO_FILE, recetas)
-            return redirect("/admin/recetas")
-
-    return render_template(
-        "admin_recetas.html",
-        platos=platos,
-        ingredientes=ingredientes,
-        recetas=recetas_listado,
-        error=error,
-        limpiar_form=limpiar_form
-    )
-
-
-# ==================================================
-# BORRAR RECETA MASTER
-# ==================================================
-
-@app.route("/admin/recetas/borrar/<int:receta_id>", methods=["POST"])
-def borrar_receta_master(receta_id):
-
-    recetas = cargar_recetas_maestro()
-    recetas = [r for r in recetas if r["id"] != receta_id]
-
-    guardar_datos(RECETAS_MAESTRO_FILE, recetas)
-    return redirect("/admin/recetas/listado")
-
-
-# ==================================================
-# VER RECETA MASTER — DETALLE
-# ==================================================
-
-@app.route("/admin/recetas/<int:receta_id>", methods=["GET"])
-def ver_receta_master(receta_id):
-
-    recetas = cargar_recetas_maestro()
-    receta = next((r for r in recetas if r.get("id") == receta_id), None)
-
-    if not receta:
-        return "Receta MASTER no encontrada", 404
-
-    try:
-        platos = db_cargar_platos()
-    except:
-        platos = cargar_platos()
-
-    ingredientes_cat = cargar_ingredientes_con_unidad()
-
-    plato = next((p for p in platos if p["id"] == receta["plato_id"]), None)
-    nombre_plato = plato["nombre"] if plato else "—"
-
-    mapa_ing = {i["id"]: i for i in ingredientes_cat}
-
-    ingredientes_detalle = []
-    for ing in receta.get("ingredientes", []):
-        cat = mapa_ing.get(ing.get("ingrediente_id"))
-        ingredientes_detalle.append({
-            "nombre": cat["nombre"] if cat else "—",
-            "cantidad": ing.get("cantidad", ""),
-            "unidad": cat["unidad_codigo"] if cat else ""
-        })
-
-    return render_template(
-        "admin_receta_detalle.html",
-        receta=receta,
-        nombre_plato=nombre_plato,
-        ingredientes=ingredientes_detalle
-    )
-
-
-# ==================================================
-#       ADMIN_RECETAS_LISTADO DEL MASTER
+# ADMIN RECETAS — LISTADO (DESDE DB)
 # ==================================================
 
 @app.route("/admin/recetas/listado", methods=["GET"])
@@ -569,6 +260,42 @@ def admin_recetas_listado():
         "admin_recetas_listado.html",
         recetas=recetas_listado
     )
+
+
+# ==================================================
+# BORRAR RECETA MASTER (DB + FALLBACK JSON)
+# ==================================================
+
+@app.route("/admin/recetas/borrar/<int:receta_id>", methods=["POST"])
+def borrar_receta_master(receta_id):
+
+    # --- Intentar borrar en SQLite ---
+    try:
+        conn = get_connection()
+        cur = conn.cursor()
+
+        # Primero borrar ingredientes de la receta
+        cur.execute("DELETE FROM recetas_ingredientes WHERE receta_id = ?", (receta_id,))
+
+        # Luego borrar la receta
+        cur.execute("DELETE FROM recetas_maestro WHERE id = ?", (receta_id,))
+
+        conn.commit()
+        conn.close()
+
+        flash("Receta borrada correctamente (DB).", "ok")
+        return redirect("/admin/recetas/listado")
+
+    except Exception as e:
+        print("ERROR borrando en DB, usando fallback JSON:", e)
+
+    # --- Fallback: borrar en JSON ---
+    recetas = cargar_recetas_maestro()
+    recetas = [r for r in recetas if r["id"] != receta_id]
+    guardar_datos(RECETAS_MAESTRO_FILE, recetas)
+
+    flash("Receta borrada correctamente (JSON fallback).", "ok")
+    return redirect("/admin/recetas/listado")
 
 
 # ==================================================

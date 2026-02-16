@@ -18,11 +18,13 @@ from persistencia import (
     guardar_unidades,
 
     cargar_recetas_maestro,
-    RECETAS_MAESTRO_FILE
+    RECETAS_MAESTRO_FILE,
+    RECETAS_ING_FILE,
+    RECETAS_DETALLE_FILE,
 )
 
 # --------------------------------------------------
-# CAPA DB (SQLite) — LECTURA
+# CAPA DB (SQLite)
 # --------------------------------------------------
 
 from modulo_web.persistencia_db import (
@@ -34,19 +36,11 @@ from modulo_web.persistencia_db import (
 )
 
 # --------------------------------------------------
-# Tipos de platos (JSON)
+# Tipos de platos (DB)
 # --------------------------------------------------
 
 import os
-
-DATA_DIR = "data"
-TIPOS_PLATOS_FILE = os.path.join(DATA_DIR, "tipos_platos.json")
-
-def cargar_tipos_platos():
-    return cargar_datos(TIPOS_PLATOS_FILE, [])
-
-def guardar_tipos_platos(tipos):
-    guardar_datos(TIPOS_PLATOS_FILE, tipos)
+import json
 
 app = Flask(__name__)
 app.secret_key = "recetas_app_clave_segura_temporal"
@@ -78,7 +72,6 @@ def cargar_ingredientes_con_unidad():
 
     return resultado
 
-
 # ==================================================
 # INDEX
 # ==================================================
@@ -91,7 +84,6 @@ def index():
         recetas = cargar_recetas_maestro()
     return render_template("index.html", recetas=recetas)
 
-
 # ==================================================
 # ADMIN PLATOS
 # ==================================================
@@ -103,9 +95,6 @@ def admin_platos():
         platos = db_cargar_platos()
     except:
         platos = cargar_platos()
-
-    tipos_platos = cargar_tipos_platos()
-    tipos_platos = sorted(tipos_platos, key=lambda t: t["nombre"].lower())
 
     errores = []
 
@@ -136,7 +125,21 @@ def admin_platos():
 
         if errores:
             platos = sorted(platos, key=lambda p: p["nombre"].lower())
-            return render_template("admin_platos.html", platos=platos, errores=errores, tipos_platos=tipos_platos)
+            return render_template("admin_platos.html", platos=platos, errores=errores)
+
+        try:
+            conn = get_connection()
+            cur = conn.cursor()
+            cur.execute(
+                "INSERT INTO platos (nombre, tipo_plato_id, activo, peso_racion) VALUES (?, NULL, 1, ?)",
+                (nombre, peso_racion)
+            )
+            conn.commit()
+            conn.close()
+            flash("Plato guardado en SQLite.", "ok")
+            return redirect("/admin/platos")
+        except Exception as e:
+            print("ERROR guardando plato en DB, usando JSON fallback:", e)
 
         nuevo_id = max([p["id"] for p in platos], default=0) + 1
 
@@ -149,11 +152,11 @@ def admin_platos():
         })
 
         guardar_platos(platos)
+        flash("Plato guardado en JSON (fallback).", "ok")
         return redirect("/admin/platos")
 
     platos = sorted(platos, key=lambda p: p["nombre"].lower())
-    return render_template("admin_platos.html", platos=platos, errores=[], tipos_platos=tipos_platos)
-
+    return render_template("admin_platos.html", platos=platos, errores=[])
 
 # ==================================================
 # ADMIN UNIDADES
@@ -191,6 +194,20 @@ def admin_unidades():
         if errores:
             return render_template("admin_unidades.html", unidades=unidades, errores=errores)
 
+        try:
+            conn = get_connection()
+            cur = conn.cursor()
+            cur.execute(
+                "INSERT INTO unidades (codigo, nombre) VALUES (?, ?)",
+                (codigo, nombre)
+            )
+            conn.commit()
+            conn.close()
+            flash("Unidad guardada en SQLite.", "ok")
+            return redirect("/admin/unidades")
+        except Exception as e:
+            print("ERROR guardando unidad en DB, usando JSON fallback:", e)
+
         nuevo_id = max([u["id"] for u in unidades], default=0) + 1
 
         unidades.append({
@@ -200,16 +217,16 @@ def admin_unidades():
         })
 
         guardar_unidades(unidades)
+        flash("Unidad guardada en JSON (fallback).", "ok")
         return redirect("/admin/unidades")
 
     return render_template("admin_unidades.html", unidades=unidades, errores=[])
-
 
 # ==================================================
 # ADMIN INGREDIENTES
 # ==================================================
 
-@app.route("/admin/ingredientes", methods=["GET"])
+@app.route("/admin/ingredientes", methods=["GET", "POST"])
 def admin_ingredientes():
 
     ingredientes = cargar_ingredientes_con_unidad()
@@ -222,15 +239,181 @@ def admin_ingredientes():
 
     unidades = sorted(unidades, key=lambda u: u["nombre"].lower())
 
+    errores = []
+
+    if request.method == "POST":
+        nombre = request.form.get("nombre", "").strip()
+        unidad_id = request.form.get("unidad_id", "").strip()
+
+        if not nombre:
+            errores.append("Debe teclear el nombre del ingrediente.")
+        if not unidad_id:
+            errores.append("Debe seleccionar una unidad de medida.")
+
+        for i in ingredientes:
+            if i["nombre"].lower() == nombre.lower():
+                errores.append("Ingrediente duplicado.")
+
+        if errores:
+            return render_template(
+                "admin_ingredientes.html",
+                ingredientes=ingredientes,
+                unidades=unidades,
+                errores=errores
+            )
+
+        try:
+            conn = get_connection()
+            cur = conn.cursor()
+            cur.execute(
+                "INSERT INTO ingredientes (nombre, unidad_id, activo) VALUES (?, ?, 1)",
+                (nombre, int(unidad_id))
+            )
+            conn.commit()
+            conn.close()
+            flash("Ingrediente guardado en SQLite.", "ok")
+            return redirect("/admin/ingredientes")
+        except Exception as e:
+            print("ERROR guardando ingrediente en DB, usando JSON fallback:", e)
+
+        data = cargar_ingredientes()
+        nuevo_id = max([i["id"] for i in data], default=0) + 1
+        data.append({
+            "id": nuevo_id,
+            "nombre": nombre,
+            "unidad_id": int(unidad_id),
+            "activo": True
+        })
+        guardar_ingredientes(data)
+        flash("Ingrediente guardado en JSON (fallback).", "ok")
+        return redirect("/admin/ingredientes")
+
     return render_template(
         "admin_ingredientes.html",
         ingredientes=ingredientes,
-        unidades=unidades
+        unidades=unidades,
+        errores=[]
     )
 
+# ==================================================
+# ADMIN RECETAS — CAPTURA (GUARDAR EN DB + DETALLE)
+# ==================================================
+
+@app.route("/admin/recetas", methods=["GET", "POST"])
+def admin_recetas():
+
+    try:
+        platos = db_cargar_platos()
+    except:
+        platos = cargar_platos()
+
+    ingredientes = cargar_ingredientes_con_unidad()
+
+    error = None
+
+    if request.method == "POST":
+
+        plato_id = request.form.get("plato_id", "").strip()
+        raciones_base = request.form.get("raciones_base", "").strip()
+        ingredientes_json = request.form.get("ingredientes_json", "").strip()
+
+        preparacion = request.form.get("preparacion", "").strip()
+        elaboracion = request.form.get("elaboracion", "").strip()
+        presentacion = request.form.get("presentacion", "").strip()
+        nutricion = request.form.get("nutricion", "").strip()
+
+        if not plato_id:
+            error = "Debe seleccionar un plato."
+        elif not raciones_base.isdigit() or int(raciones_base) <= 0:
+            error = "Raciones base inválidas."
+        elif not ingredientes_json:
+            error = "Debe agregar al menos un ingrediente."
+
+        if error:
+            return render_template(
+                "admin_recetas.html",
+                platos=platos,
+                ingredientes=ingredientes,
+                error=error,
+                limpiar_form=False
+            )
+
+        lista_ing = json.loads(ingredientes_json)
+
+        try:
+            conn = get_connection()
+            cur = conn.cursor()
+
+            cur.execute(
+                "INSERT INTO recetas_maestro (plato_id, raciones_base, activo) VALUES (?, ?, 1)",
+                (int(plato_id), int(raciones_base))
+            )
+            receta_id = cur.lastrowid
+
+            for it in lista_ing:
+                cur.execute(
+                    "INSERT INTO recetas_ingredientes (receta_id, ingrediente_id, cantidad, rol) VALUES (?, ?, ?, ?)",
+                    (receta_id, it["ingrediente_id"], it["cantidad"], "principal")
+                )
+
+            cur.execute(
+                "INSERT INTO recetas_detalle (receta_id, preparacion, elaboracion, presentacion, nutricion) VALUES (?, ?, ?, ?, ?)",
+                (receta_id, preparacion, elaboracion, presentacion, nutricion)
+            )
+
+            conn.commit()
+            conn.close()
+
+            flash("Receta guardada en SQLite (con detalle).", "ok")
+            return redirect("/admin/recetas/listado")
+
+        except Exception as e:
+            print("ERROR guardando receta en DB, usando JSON fallback:", e)
+
+        recetas = cargar_recetas_maestro()
+        nuevo_id = max([r["id"] for r in recetas], default=0) + 1
+
+        recetas.append({
+            "id": nuevo_id,
+            "plato_id": int(plato_id),
+            "raciones_base": int(raciones_base),
+            "ingredientes": lista_ing
+        })
+
+        guardar_datos(RECETAS_MAESTRO_FILE, recetas)
+
+        rel = cargar_datos(RECETAS_ING_FILE, [])
+        for it in lista_ing:
+            rel.append({
+                "receta_id": nuevo_id,
+                "ingrediente_id": it["ingrediente_id"],
+                "cantidad": it["cantidad"]
+            })
+        guardar_datos(RECETAS_ING_FILE, rel)
+
+        detalles = cargar_datos(RECETAS_DETALLE_FILE, [])
+        detalles.append({
+            "receta_id": nuevo_id,
+            "preparacion": preparacion,
+            "elaboracion": elaboracion,
+            "presentacion": presentacion,
+            "nutricion": nutricion
+        })
+        guardar_datos(RECETAS_DETALLE_FILE, detalles)
+
+        flash("Receta guardada en JSON (fallback).", "ok")
+        return redirect("/admin/recetas/listado")
+
+    return render_template(
+        "admin_recetas.html",
+        platos=platos,
+        ingredientes=ingredientes,
+        error=None,
+        limpiar_form=False
+    )
 
 # ==================================================
-# ADMIN RECETAS — LISTADO (DESDE DB)
+# ADMIN RECETAS — LISTADO
 # ==================================================
 
 @app.route("/admin/recetas/listado", methods=["GET"])
@@ -239,64 +422,44 @@ def admin_recetas_listado():
     try:
         recetas_listado = db_cargar_recetas_maestro_listado()
     except:
-        platos = sorted(cargar_platos(), key=lambda p: p["nombre"].lower())
         recetas = cargar_recetas_maestro()
-
-        mapa_platos = {p["id"]: p["nombre"] for p in platos}
-
-        recetas_listado = []
-        for r in recetas:
-            recetas_listado.append({
-                "id": r["id"],
-                "plato_id": r["plato_id"],
-                "plato_nombre": mapa_platos.get(r["plato_id"], "—"),
-                "raciones_base": r.get("raciones_base", 0),
-                "cantidad_ingredientes": len(r.get("ingredientes", []))
-            })
-
-        recetas_listado = sorted(recetas_listado, key=lambda r: r["plato_nombre"].lower())
+        recetas_listado = recetas
 
     return render_template(
         "admin_recetas_listado.html",
         recetas=recetas_listado
     )
 
-
 # ==================================================
-# BORRAR RECETA MASTER (DB + FALLBACK JSON)
+# BORRAR RECETA MASTER
 # ==================================================
 
 @app.route("/admin/recetas/borrar/<int:receta_id>", methods=["POST"])
 def borrar_receta_master(receta_id):
 
-    # --- Intentar borrar en SQLite ---
     try:
         conn = get_connection()
         cur = conn.cursor()
-
-        # Primero borrar ingredientes de la receta
         cur.execute("DELETE FROM recetas_ingredientes WHERE receta_id = ?", (receta_id,))
-
-        # Luego borrar la receta
+        cur.execute("DELETE FROM recetas_detalle WHERE receta_id = ?", (receta_id,))
         cur.execute("DELETE FROM recetas_maestro WHERE id = ?", (receta_id,))
-
         conn.commit()
         conn.close()
-
         flash("Receta borrada correctamente (DB).", "ok")
         return redirect("/admin/recetas/listado")
-
     except Exception as e:
         print("ERROR borrando en DB, usando fallback JSON:", e)
 
-    # --- Fallback: borrar en JSON ---
     recetas = cargar_recetas_maestro()
     recetas = [r for r in recetas if r["id"] != receta_id]
     guardar_datos(RECETAS_MAESTRO_FILE, recetas)
 
+    detalles = cargar_datos(RECETAS_DETALLE_FILE, [])
+    detalles = [d for d in detalles if d.get("receta_id") != receta_id]
+    guardar_datos(RECETAS_DETALLE_FILE, detalles)
+
     flash("Receta borrada correctamente (JSON fallback).", "ok")
     return redirect("/admin/recetas/listado")
-
 
 # ==================================================
 # EJECUCIÓN

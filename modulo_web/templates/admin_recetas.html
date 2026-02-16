@@ -19,6 +19,12 @@
             border: 2px solid #7b2cff !important;
             box-shadow: 0 0 0 1px #b58cff;
         }
+
+        .acciones-top {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 12px;
+        }
     </style>
 </head>
 
@@ -30,9 +36,15 @@
     padding:12px 18px;
     font-weight:bold;
     border-radius:6px;
-    margin-bottom:18px;
+    margin-bottom:12px;
 ">
     *** ADMIN — RECETA MASTER · CAPTURA ***
+</div>
+
+<div class="acciones-top">
+    <form method="get" action="/admin/recetas/listado">
+        <button type="submit">📋 Ver Listado</button>
+    </form>
 </div>
 
 {% if error %}
@@ -49,7 +61,7 @@
 </div>
 {% endif %}
 
-<form method="post" autocomplete="off" style="background:white; padding:10px; border-radius:6px; max-width:900px;">
+<form id="form-captura" method="post" autocomplete="off" style="background:white; padding:10px; border-radius:6px; max-width:900px;">
     <input type="hidden" id="limpiar_form" value="{{ '1' if limpiar_form else '0' }}">
 
     <div style="margin-bottom:10px;">
@@ -140,13 +152,13 @@
     <tbody id="tablaIngredientes"></tbody>
 </table>
 
-<input type="hidden" name="ingredientes_json" id="ingredientes_json">
+<input type="hidden" name="ingredientes_json" id="ingredientes_json" value="{{ request.form.get('ingredientes_json','') }}">
 </form>
 
 <script>
 document.addEventListener("DOMContentLoaded", function () {
 
-    const form = document.querySelector("form");
+    const form = document.getElementById("form-captura");
     if (!form) return;
 
     const selPlato = document.getElementById("plato_id");
@@ -164,8 +176,6 @@ document.addEventListener("DOMContentLoaded", function () {
     const hiddenJson = document.getElementById("ingredientes_json");
     const btnGuardar = document.getElementById("btnGuardarReceta");
 
-    const flagLimpiar = document.getElementById("limpiar_form");
-
     form.addEventListener("submit", function (e) {
         e.preventDefault();
     });
@@ -173,6 +183,8 @@ document.addEventListener("DOMContentLoaded", function () {
     let listaIngredientes = [];
     let hayCambiosNoGuardados = false;
     let platoAnterior = selPlato.value;
+
+    let vieneDeErrorServidor = false;
 
     function marcarCambio() {
         hayCambiosNoGuardados = true;
@@ -193,33 +205,31 @@ document.addEventListener("DOMContentLoaded", function () {
         spanUmNombre.textContent = "";
     }
 
-    // Restaurar raciones si venimos de guardado correcto
-    if (flagLimpiar.value !== "1") {
-        const guardado = localStorage.getItem("ultima_racion");
-        if (guardado !== null) {
-            inpRaciones.value = guardado;
+    const errorBox = document.getElementById("error-box");
+    if (errorBox) {
+        vieneDeErrorServidor = true;
+        setTimeout(() => selPlato.focus(), 0);
+    }
+
+    if (hiddenJson && hiddenJson.value) {
+        try {
+            const arr = JSON.parse(hiddenJson.value);
+            if (Array.isArray(arr)) {
+                arr.forEach(item => {
+                    listaIngredientes.push(item);
+                    const tr = document.createElement("tr");
+                    tr.innerHTML = `
+                        <td>${item.nombre}</td>
+                        <td align="right">${item.cantidad}</td>
+                        <td>${item.um || ""}</td>
+                    `;
+                    tabla.appendChild(tr);
+                });
+            }
+        } catch (e) {
+            console.error("No se pudo rehidratar ingredientes:", e);
         }
     }
-
-    // Si es duplicado: limpiar todo menos raciones
-    if (flagLimpiar && flagLimpiar.value === "1") {
-        const racionesPrevias = inpRaciones.value;
-        limpiarFormulario();
-        inpRaciones.value = racionesPrevias;
-        selPlato.value = "";
-        selPlato.focus();
-    }
-
-    [
-        inpRaciones,
-        txtPreparacion,
-        txtElaboracion,
-        txtPresentacion,
-        txtNutricion,
-        inpCantidad
-    ].forEach(el => {
-        el.addEventListener("input", marcarCambio);
-    });
 
     const ordenFoco = [
         selPlato,
@@ -285,10 +295,21 @@ document.addEventListener("DOMContentLoaded", function () {
                 e.preventDefault();
 
                 const ingId = selIngrediente.value;
-                const cantidad = parseFloat(inpCantidad.value);
-                if (!ingId || isNaN(cantidad) || cantidad <= 0) return;
 
-                const ingIdInt = parseInt(ingId);
+                if (!ingId) {
+                    alert("Debe seleccionar un ingrediente.");
+                    selIngrediente.focus();
+                    return;
+                }
+
+                const cantidad = parseFloat(inpCantidad.value);
+                if (isNaN(cantidad) || cantidad <= 0) {
+                    alert("Debe indicar una cantidad válida.");
+                    inpCantidad.focus();
+                    return;
+                }
+
+                const ingIdInt = parseInt(ingId, 10);
 
                 const yaExiste = listaIngredientes.some(it => it.ingrediente_id === ingIdInt);
                 if (yaExiste) {
@@ -335,11 +356,18 @@ document.addEventListener("DOMContentLoaded", function () {
                 return;
             }
         }
-    });
+    }, true);
 
     selPlato.addEventListener("focus", () => platoAnterior = selPlato.value);
 
     selPlato.addEventListener("change", function () {
+
+        if (vieneDeErrorServidor) {
+            vieneDeErrorServidor = false;
+            platoAnterior = selPlato.value;
+            inpRaciones.focus();
+            return;
+        }
 
         if (hayCambiosNoGuardados || listaIngredientes.length > 0) {
             const ok = confirm(
@@ -371,8 +399,6 @@ document.addEventListener("DOMContentLoaded", function () {
     });
 
     btnGuardar.addEventListener("click", function () {
-        // Guardar raciones para restaurar tras redirect correcto
-        localStorage.setItem("ultima_racion", inpRaciones.value || "");
         hayCambiosNoGuardados = false;
         form.submit();
     });

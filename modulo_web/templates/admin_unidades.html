@@ -63,9 +63,10 @@
                             <td>{{ u.codigo }}</td>
                             <td>{{ u.nombre }}</td>
                             <td>
-                                <form method="post" action="/admin/unidades/borrar" style="display:inline;"
-                                      onsubmit="return confirm('¿Borrar unidad de medida?')">
-                                    <input type="hidden" name="unidad_id" value="{{ u.id }}">
+                                <form method="post"
+                                      action="/admin/unidades/borrar/{{ u.id }}"
+                                      onsubmit="return confirm('¿Borrar unidad de medida?');"
+                                      style="display:inline;">
                                     <button type="submit" style="border:none; background:none; cursor:pointer;">
                                         🗑
                                     </button>

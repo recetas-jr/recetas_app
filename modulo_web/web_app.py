@@ -1,7 +1,9 @@
 from flask import Flask, render_template, request, redirect, flash
+import json
+import os
 
 # --------------------------------------------------
-# CAPA DE PERSISTENCIA (JSON)
+# CAPA DE PERSISTENCIA (JSON) — Fallbacks legacy
 # --------------------------------------------------
 
 from persistencia import (
@@ -34,13 +36,6 @@ from modulo_web.persistencia_db import (
     db_cargar_recetas_maestro_listado,
     get_connection
 )
-
-# --------------------------------------------------
-# Tipos de platos (DB)
-# --------------------------------------------------
-
-import os
-import json
 
 app = Flask(__name__)
 app.secret_key = "recetas_app_clave_segura_temporal"
@@ -83,6 +78,68 @@ def index():
     except:
         recetas = cargar_recetas_maestro()
     return render_template("index.html", recetas=recetas)
+
+# ==================================================
+# ADMIN TIPOS DE PLATO (SQLite)
+# ==================================================
+
+@app.route("/admin/tipos_plato", methods=["GET", "POST"])
+def admin_tipos_plato():
+
+    conn = get_connection()
+    cur = conn.cursor()
+
+    errores = []
+
+    if request.method == "POST":
+        nombre = request.form.get("nombre", "").strip()
+
+        if not nombre:
+            errores.append("Debe teclear el nombre del tipo de plato.")
+
+        # Verificar duplicado
+        cur.execute("SELECT id FROM tipos_plato WHERE lower(nombre) = lower(?)", (nombre,))
+        if cur.fetchone():
+            errores.append(f"El tipo de plato '{nombre}' ya existe.")
+
+        if errores:
+            cur.execute("SELECT id, nombre FROM tipos_plato ORDER BY nombre")
+            tipos = cur.fetchall()
+            conn.close()
+            return render_template("admin_tipos_plato.html", tipos=tipos, errores=errores)
+
+        try:
+            cur.execute("INSERT INTO tipos_plato (nombre) VALUES (?)", (nombre,))
+            conn.commit()
+            flash("Tipo de plato guardado en SQLite.", "ok")
+        except Exception as e:
+            print("ERROR guardando tipo de plato:", e)
+            flash("Error al guardar tipo de plato.", "error")
+
+        conn.close()
+        return redirect("/admin/tipos_plato")
+
+    # GET
+    cur.execute("SELECT id, nombre FROM tipos_plato ORDER BY nombre")
+    tipos = cur.fetchall()
+    conn.close()
+
+    return render_template("admin_tipos_plato.html", tipos=tipos, errores=[])
+
+@app.route("/admin/tipos_plato/borrar/<int:tipo_id>", methods=["POST"])
+def borrar_tipo_plato(tipo_id):
+    try:
+        conn = get_connection()
+        cur = conn.cursor()
+        cur.execute("DELETE FROM tipos_plato WHERE id = ?", (tipo_id,))
+        conn.commit()
+        conn.close()
+        flash("Tipo de plato borrado correctamente.", "ok")
+    except Exception as e:
+        print("ERROR borrando tipo de plato:", e)
+        flash("Error al borrar tipo de plato.", "error")
+
+    return redirect("/admin/tipos_plato")
 
 # ==================================================
 # ADMIN PLATOS
@@ -296,7 +353,7 @@ def admin_ingredientes():
     )
 
 # ==================================================
-# ADMIN RECETAS — CAPTURA (GUARDAR EN DB + DETALLE)
+# ADMIN RECETAS — CAPTURA
 # ==================================================
 
 @app.route("/admin/recetas", methods=["GET", "POST"])
@@ -370,39 +427,8 @@ def admin_recetas():
         except Exception as e:
             print("ERROR guardando receta en DB, usando JSON fallback:", e)
 
-        recetas = cargar_recetas_maestro()
-        nuevo_id = max([r["id"] for r in recetas], default=0) + 1
-
-        recetas.append({
-            "id": nuevo_id,
-            "plato_id": int(plato_id),
-            "raciones_base": int(raciones_base),
-            "ingredientes": lista_ing
-        })
-
-        guardar_datos(RECETAS_MAESTRO_FILE, recetas)
-
-        rel = cargar_datos(RECETAS_ING_FILE, [])
-        for it in lista_ing:
-            rel.append({
-                "receta_id": nuevo_id,
-                "ingrediente_id": it["ingrediente_id"],
-                "cantidad": it["cantidad"]
-            })
-        guardar_datos(RECETAS_ING_FILE, rel)
-
-        detalles = cargar_datos(RECETAS_DETALLE_FILE, [])
-        detalles.append({
-            "receta_id": nuevo_id,
-            "preparacion": preparacion,
-            "elaboracion": elaboracion,
-            "presentacion": presentacion,
-            "nutricion": nutricion
-        })
-        guardar_datos(RECETAS_DETALLE_FILE, detalles)
-
-        flash("Receta guardada en JSON (fallback).", "ok")
-        return redirect("/admin/recetas/listado")
+        flash("Error al guardar receta.", "error")
+        return redirect("/admin/recetas")
 
     return render_template(
         "admin_recetas.html",
@@ -448,17 +474,9 @@ def borrar_receta_master(receta_id):
         flash("Receta borrada correctamente (DB).", "ok")
         return redirect("/admin/recetas/listado")
     except Exception as e:
-        print("ERROR borrando en DB, usando fallback JSON:", e)
+        print("ERROR borrando en DB:", e)
+        flash("Error al borrar receta.", "error")
 
-    recetas = cargar_recetas_maestro()
-    recetas = [r for r in recetas if r["id"] != receta_id]
-    guardar_datos(RECETAS_MAESTRO_FILE, recetas)
-
-    detalles = cargar_datos(RECETAS_DETALLE_FILE, [])
-    detalles = [d for d in detalles if d.get("receta_id") != receta_id]
-    guardar_datos(RECETAS_DETALLE_FILE, detalles)
-
-    flash("Receta borrada correctamente (JSON fallback).", "ok")
     return redirect("/admin/recetas/listado")
 
 # ==================================================

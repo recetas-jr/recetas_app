@@ -1031,5 +1031,106 @@ Estado:
 - Cambios versionados en Git con commit: 899b4e1
 - A partir de este punto, se continúa el desarrollo sobre esta base sin romper el flujo existente.
 
+📅 2026-02-15 — Cierre Fase XXII — Migración del MASTER a SQLite
+
+En esta fase se consolidó la migración del sistema desde JSON hacia SQLite como fuente principal de datos para la versión Web.
+
+Estado de la base de datos (SQLite):
+Archivo: modulo_web/recetas.db
+
+Tablas activas y en uso:
+
+tipos_plato
+
+platos (incluye columna peso_racion)
+
+unidades
+
+ingredientes
+
+recetas_maestro
+
+recetas_ingredientes
+
+recetas_detalle
+
+Nomencladores (Web Admin):
+
+Tipos de Plato: alta, listado y borrado en SQLite funcionando.
+
+Unidades de Medida: alta, listado y borrado en SQLite funcionando.
+
+Ingredientes: alta, listado y borrado en SQLite funcionando.
+
+Platos: alta, listado y borrado en SQLite funcionando (con peso_racion en DB).
+
+MASTER de Recetas (Web Admin):
+
+Captura de recetas guardando en SQLite.
+
+Guardado de ingredientes en recetas_ingredientes.
+
+Guardado de textos técnicos en recetas_detalle.
+
+Listado de recetas leído desde SQLite.
+
+Borrado de recetas eliminando:
+
+recetas_ingredientes
+
+recetas_detalle
+
+recetas_maestro
+
+Navegación estable entre captura y listado.
+
+Fallback a JSON:
+
+Se mantiene un fallback a JSON en caso de fallo de la base de datos, pero el flujo principal ya es SQLite.
+
+Herramientas añadidas:
+
+fix_db.py: agregó columna peso_racion a platos.
+
+fix_db_detalle.py: creó la tabla recetas_detalle.
+
+Comando de backup:
+
+python -m modulo_web.commands.backup_db
+
+Exportador DB → JSON:
+
+modulo_web/utils/export_db_a_json.py
+
+Control de versiones:
+
+Se realizó commit de cierre de fase:
+
+"Fase XXII: MASTER en SQLite con detalle, nomencladores en DB, borrado y listado estables"
+
+Decisiones de alcance:
+
+En esta fase solo se cubren:
+
+Alta
+
+Listado
+
+Borrado
+
+La edición de registros se pospone para fases posteriores.
+
+Estado final de la fase:
+
+El sistema queda estable con SQLite como backend principal.
+
+La arquitectura queda lista para:
+
+Implementar edición,
+
+Normalizar relaciones (Platos ↔ Tipos de Plato),
+
+O preparar la Web pública.
+
 
 

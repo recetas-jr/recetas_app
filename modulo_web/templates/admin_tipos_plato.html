@@ -3,90 +3,164 @@
 <head>
     <meta charset="UTF-8">
     <title>Nomenclador de Tipos de Plato</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f2f4f8;
+            margin: 0;
+            padding: 0;
+        }
+
+        .container {
+            max-width: 700px;
+            margin: 20px auto;
+            background: white;
+            padding: 15px;
+            border-radius: 6px;
+        }
+
+        h2 {
+            margin-top: 0;
+        }
+
+        form {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            margin-bottom: 10px;
+            flex-wrap: wrap;
+        }
+
+        input, button {
+            padding: 6px;
+            font-size: 14px;
+        }
+
+        input[name="nombre"] {
+            width: 260px;
+            max-width: 260px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+
+        th, td {
+            border: 1px solid #ddd;
+            padding: 6px;
+            text-align: left;
+        }
+
+        th {
+            background: #f0f0f0;
+        }
+
+        /* Mensaje de borrado: texto verde intenso */
+        .flash-msg {
+            color: #0b9b0b; /* verde intenso */
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        /* Solo el elemento borrado en rojo intenso */
+        .flash-msg .item {
+            color: #cc0000; /* rojo intenso */
+            font-weight: bold;
+        }
+
+        .errores {
+            color: #cc0000;
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+
+        .btn-borrar {
+            background: #cc0000;
+            color: #fff;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .btn-borrar:hover {
+            background: #a80000;
+        }
+
+        .ayuda {
+            font-size: 12px;
+            color: #555;
+            margin-left: 6px;
+        }
+    </style>
+
+    <script>
+        function confirmarBorrado(nombre) {
+            return confirm("¿Seguro que desea borrar '" + nombre + "'?");
+        }
+
+        document.addEventListener("keydown", function (e) {
+            if (e.key === "Escape") {
+                const i = document.getElementById("nombre");
+                i.value = "";
+                i.focus();
+            }
+        });
+    </script>
 </head>
 <body>
+<div class="container">
 
-<h1>Nomenclador de Tipos de Plato</h1>
+    <h2>Nomenclador de Tipos de Plato</h2>
 
-<table>
-    <tr>
-        <td valign="top" style="padding-right:40px;">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+          <div class="flash-msg">{{ message|safe }}</div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
 
-            <h3>Agregar</h3>
+    {% if errores %}
+        <div class="errores">
+            <ul>
+            {% for e in errores %}
+                <li>{{ e }}</li>
+            {% endfor %}
+            </ul>
+        </div>
+    {% endif %}
 
-            {% if errores %}
-              <div style="color:#b00020; font-weight:bold; margin-bottom:10px;">
-                {% for e in errores %}
-                  <div>❌ {{ e }}</div>
-                {% endfor %}
-              </div>
-            {% endif %}
+    <form method="post" action="/admin/tipos_plato" autocomplete="off">
+        <label>Nombre:</label>
+        <input type="text" id="nombre" name="nombre" placeholder="Tipo de plato" maxlength="40" autofocus>
+        <span class="ayuda">&lt;enter para guardar&gt;</span>
+    </form>
 
-            <form method="post" id="formTipo" autocomplete="off">
+    <table>
+        <thead>
+            <tr>
+                <th>Nombre</th>
+                <th>Acción</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for t in tipos %}
+            <tr>
+                <td>{{ t.nombre }}</td>
+                <td>
+                    <form method="post" action="/admin/tipos_plato/borrar/{{ t.id }}" style="display:inline;"
+                          onsubmit="return confirmarBorrado('{{ t.nombre }}');">
+                        <button type="submit" class="btn-borrar">Borrar</button>
+                    </form>
+                </td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
 
-                Nombre del tipo:<br>
-                <input type="text" id="nombre" name="nombre" size="30" maxlength="50" autocomplete="off" required autofocus>
-
-                <div style="font-size:12px; color:#555;">Enter guarda</div>
-
-            </form>
-
-        </td>
-
-        <td valign="top">
-
-            <h3>Tipos de plato registrados</h3>
-
-            <div style="max-height:300px; overflow-y:auto; border:1px solid #999;">
-
-                <table border="1" cellpadding="5" style="width:100%; border-collapse:collapse;">
-                    <tr>
-                        <th>ID</th>
-                        <th>Nombre</th>
-                        <th>Acciones</th>
-                    </tr>
-
-                    {% for t in tipos %}
-                    <tr>
-                        <td>{{ t.id }}</td>
-                        <td>{{ t.nombre }}</td>
-                        <td>
-                            <form method="post"
-                                  action="/admin/tipos_plato/borrar/{{ t.id }}"
-                                  onsubmit="return confirm('¿Borrar tipo de plato?');"
-                                  style="display:inline;">
-                                <button type="submit" style="border:none; background:none; cursor:pointer;">
-                                    🗑
-                                </button>
-                            </form>
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </table>
-
-            </div>
-
-        </td>
-    </tr>
-</table>
-
-<script>
-    // ENTER en Nombre -> guardar
-    document.getElementById("nombre").addEventListener("keydown", function (e) {
-        if (e.key === "Enter") {
-            e.preventDefault();
-            document.getElementById("formTipo").submit();
-        }
-    });
-
-    // ESC -> limpiar formulario
-    document.addEventListener("keydown", function (e) {
-        if (e.key === "Escape") {
-            document.getElementById("nombre").value = "";
-            document.getElementById("nombre").focus();
-        }
-    });
-</script>
-
+</div>
 </body>
 </html>

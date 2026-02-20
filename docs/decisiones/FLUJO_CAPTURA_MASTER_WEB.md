@@ -97,3 +97,111 @@ Se define como flujo oficial:
    - Listado: /admin/recetas/listado
 
 Este flujo se considera base estable para continuar el desarrollo del sistema.
+
+## Actualización — Flujo de Captura del Master de Recetas (alineado a estándar UI/UX)
+
+**Fecha:** 2026-02-20  
+**Estado:** Definido para implementación
+
+### Objetivo
+Definir el flujo de captura del **Master de Recetas (M.R.)** usando el mismo estándar aplicado en los nomencladores (PLATOS como referencia), garantizando:
+- Consistencia visual
+- Flujo por teclado (Enter / ESC)
+- Validaciones claras
+- No desbordes de texto
+- Mensajes de borrado y acciones con formato uniforme
+
+### Reglas generales (heredadas del estándar)
+
+- Títulos de escaques en **color intenso** y **negrita**.
+- Encabezados de tablas y títulos de columnas en **color intenso** y **negrita**.
+- Todos los campos y columnas con **ancho fijo**.
+- **Ningún texto debe desbordar**:
+  - Si excede el ancho, se corta con “…” (ellipsis).
+- Texto de ayuda visible:
+  - `<enter para guardar> | ESC aborta` (en color intenso)
+
+### Flujo de captura propuesto
+
+#### 1) Selección de plato
+- Campo: **Plato** (combo desde DB).
+- Enter:
+  - Avanza al siguiente campo.
+- ESC:
+  - Limpia formulario y vuelve al primer campo.
+
+#### 2) Raciones base
+- Campo: **Raciones base** (numérico, entero > 0).
+- Validaciones:
+  - Obligatorio
+  - Numérico
+  - Mayor que 0
+- Enter:
+  - Avanza a la sección de ingredientes.
+
+#### 3) Captura de ingredientes (bloque repetible)
+Por cada ingrediente:
+- Campo: **Ingrediente** (combo).
+- Campo: **Cantidad** (numérico > 0).
+- Enter en Cantidad:
+  - Agrega el ingrediente a la lista de la receta.
+  - Limpia campos de ingrediente y cantidad.
+  - Vuelve el foco a **Ingrediente** para seguir agregando.
+- La tabla/lista de ingredientes:
+  - Muestra: Nombre, Cantidad, UM (texto, no código).
+  - Columnas con ancho fijo y sin desbordes.
+  - Botón de borrar ingrediente con confirmación.
+
+#### 4) Detalle de receta
+Campos de texto (con ancho fijo y límite de longitud):
+- Preparación
+- Elaboración
+- Presentación
+- Nutrición
+
+Reglas:
+- Enter navega entre campos.
+- En el último campo:
+  - Enter guarda la receta completa.
+- ESC:
+  - Aborta la captura y limpia el formulario.
+
+### Guardado
+
+- Enter en el último campo del formulario:
+  - Valida:
+    - Plato seleccionado
+    - Raciones base válidas
+    - Al menos un ingrediente
+  - Si todo es correcto:
+    - Guarda en SQLite:
+      - recetas_maestro
+      - recetas_ingredientes
+      - recetas_detalle
+- Mensaje de éxito:
+  - Formato corto.
+  - Nombre del plato en **verde intenso** (o formato estándar de éxito del sistema).
+
+### Borrado de recetas (listado del Master)
+
+- Botón de borrar por receta.
+- Confirmación previa.
+- Borrado en orden:
+  1) recetas_ingredientes
+  2) recetas_detalle
+  3) recetas_maestro
+- Mensaje de borrado:
+  - Formato estándar:
+    - `xxxxxx borrado de M.R. correctamente.`
+  - Donde:
+    - `xxxxxx` (nombre del plato o receta) va en **rojo intenso**.
+    - El resto del mensaje en **verde intenso**.
+
+### Notas de implementación
+
+- El Master **no debe usar JSON** en el flujo normal.
+- SQLite es la **fuente viva** de datos.
+- El comportamiento del teclado (Enter / ESC) debe ser idéntico al de los nomencladores.
+- El diseño visual debe copiar el patrón ya validado en **PLATOS**.
+
+---

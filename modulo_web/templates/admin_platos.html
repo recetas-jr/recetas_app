@@ -2,8 +2,7 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Admin — Platos</title>
-
+    <title>Nomenclador de Platos</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -17,212 +16,279 @@
             margin: 20px auto;
             background: white;
             padding: 15px;
-            border-radius: 8px;
+            border-radius: 6px;
         }
 
-        h2 { margin-top: 0; }
+        h2 { margin-top: 0; color: #111; }
 
-        .form-row {
+        .fila {
             display: flex;
-            gap: 10px;
-            margin-bottom: 8px;
+            gap: 12px;
             align-items: center;
+            margin-bottom: 10px;
+            flex-wrap: wrap;
         }
 
-        label {
-            width: 140px;
-            font-weight: bold;
+        .campo {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        /* TITULOS DE ESCAQUES EN COLOR INTENSO */
+        .label-2l {
+            display: inline-block;
+            line-height: 1.05;
+            font-size: 13px;
+            color: #111;        /* intenso */
+            font-weight: bold;  /* intenso */
+            min-width: 80px;
+            text-align: right;
         }
 
         input, select {
             padding: 6px;
             font-size: 14px;
+            box-sizing: border-box;
         }
 
-        #nombre { width: 300px; }
-        #peso { width: 80px; }
+        /* Anchos: abrir Nombre, cerrar Peso */
+        #nombre {
+            width: 320px;
+            max-width: 320px;
+        }
 
-        .error {
-            color: red;
+        #tipo_plato {
+            width: 170px;
+            max-width: 170px;
+        }
+
+        #peso_racion {
+            width: 60px;
+            max-width: 60px;
+            text-align: right;
+        }
+
+        .um-racion {
+            margin-left: 4px;
+            font-size: 13px;
+            color: #333;
             font-weight: bold;
-            margin-bottom: 8px;
+        }
+
+        /* AYUDA EN COLOR INTENSO */
+        .ayuda {
+            font-size: 12px;
+            color: #111;
+            font-weight: bold;
+            margin-left: 10px;
         }
 
         table {
             width: 100%;
             border-collapse: collapse;
-            margin-top: 12px;
-            font-size: 14px;
+            margin-top: 10px;
         }
 
         th, td {
-            border-bottom: 1px solid #ddd;
+            border: 1px solid #ddd;
             padding: 6px;
             text-align: left;
-            vertical-align: middle;
         }
 
+        /* ENCABEZADOS DE TABLA EN COLOR INTENSO */
         th {
-            background: #eee;
+            background: #f0f0f0;
+            color: #111;
+            font-weight: bold;
         }
 
-        .col-borrar {
+        /* Limitar ancho de columnas y cortar con ... */
+        td.col-plato {
+            max-width: 360px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        td.col-tipo {
+            max-width: 180px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        /* Encabezado en dos líneas para PESO / ración */
+        th.peso-col {
             text-align: center;
-            width: 60px;
+        }
+        th.peso-col .top {
+            font-weight: bold;
+            line-height: 1.1;
+        }
+        th.peso-col .sub {
+            font-size: 12px;
+            color: #333;
+            line-height: 1.1;
         }
 
-        button.borrar {
-            cursor: pointer;
-            background: none;
+        /* Mensaje de borrado/guardado: verde intenso */
+        .flash-msg {
+            color: #0b9b0b;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        /* Solo el elemento en rojo intenso */
+        .flash-msg .item {
+            color: #cc0000;
+            font-weight: bold;
+        }
+
+        .errores {
+            color: #cc0000;
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+
+        .btn-borrar {
+            background: #cc0000;
+            color: #fff;
             border: none;
-            font-size: 16px;
+            padding: 5px 10px;
+            border-radius: 4px;
+            cursor: pointer;
         }
 
-        input:focus, select:focus {
-            outline: none;                 /* quita el borde feo del navegador */
-            background-color: #eaf3ff;      /* color suave de fondo */
-            border: 1px solid #2a7ae2;      /* mismo color que “gramos” */
-            box-shadow: 0 0 0 2px #cfe2ff;  /* halo suave opcional */
-        }
+        .btn-borrar:hover { background: #a80000; }
     </style>
+
+    <script>
+        function confirmarBorrado(nombre) {
+            return confirm("¿Seguro que desea borrar '" + nombre + "'?");
+        }
+
+        document.addEventListener("DOMContentLoaded", function () {
+            const nombre = document.getElementById("nombre");
+            const tipo = document.getElementById("tipo_plato");
+            const peso = document.getElementById("peso_racion");
+            const form = document.getElementById("form-platos");
+
+            // Enter en nombre -> pasa a tipo
+            nombre.addEventListener("keydown", function (e) {
+                if (e.key === "Enter") {
+                    e.preventDefault();
+                    tipo.focus();
+                }
+            });
+
+            // Enter en tipo -> pasa a peso
+            tipo.addEventListener("keydown", function (e) {
+                if (e.key === "Enter") {
+                    e.preventDefault();
+                    peso.focus();
+                }
+            });
+
+            // Enter en peso -> guarda
+            peso.addEventListener("keydown", function (e) {
+                if (e.key === "Enter") {
+                    e.preventDefault();
+                    form.submit();
+                }
+            });
+
+            // ESC -> limpia y vuelve al nombre
+            document.addEventListener("keydown", function (e) {
+                if (e.key === "Escape") {
+                    nombre.value = "";
+                    tipo.value = "";
+                    peso.value = "";
+                    nombre.focus();
+                }
+            });
+        });
+    </script>
 </head>
-
 <body>
-
 <div class="container">
 
     <h2>Nomenclador de Platos</h2>
 
-    <!-- MENSAJES FLASH (ERRORES / AVISOS) -->
     {% with messages = get_flashed_messages(with_categories=true) %}
       {% if messages %}
         {% for category, message in messages %}
-          <div class="error">{{ message|safe }}</div>
+          <div class="flash-msg">{{ message|safe }}</div>
         {% endfor %}
       {% endif %}
     {% endwith %}
 
     {% if errores %}
-        <div class="error">{{ errores|join(" | ") }}</div>
+        <div class="errores">
+            <ul>
+            {% for e in errores %}
+                <li>{{ e }}</li>
+            {% endfor %}
+            </ul>
+        </div>
     {% endif %}
 
-    <!-- ======================================================
-         FORMULARIO — PLATOS (POST CLÁSICO)
-    ====================================================== -->
+    <form id="form-platos" method="post" action="/admin/platos" autocomplete="off">
+        <div class="fila">
+            <div class="campo">
+                <div class="label-2l">Nombre del<br>plato</div>
+                <input type="text" id="nombre" name="nombre" placeholder="nombre del plato" maxlength="60" autofocus>
+            </div>
 
-    <form method="post" action="/admin/platos" id="form-plato">
+            <div class="campo">
+                <div class="label-2l">Tipo del<br>plato</div>
+                <select id="tipo_plato" name="tipo_plato">
+                    <option value="">-- seleccione tipo --</option>
+                    {% for t in tipos_plato %}
+                        <option value="{{ t.id }}">{{ t.nombre }}</option>
+                    {% endfor %}
+                </select>
+            </div>
 
-        <div class="form-row">
-            <label>Nombre:</label>
-            <input type="text" id="nombre" name="nombre"
-                   maxlength="40" autocomplete="off"
-                   placeholder="Nombre del plato" autofocus>
+            <div class="campo">
+                <div class="label-2l">Peso<br>ración</div>
+                <input type="text" id="peso_racion" name="peso_racion" placeholder="0.00" maxlength="6">
+                <span class="um-racion">gramos</span>
+            </div>
+
+            <span class="ayuda">&lt;enter para guardar&gt; | ESC aborta</span>
         </div>
-
-        <div class="form-row">
-            <label>Tipo:</label>
-            <select id="tipo" name="tipo_plato">
-                <option value="">Tipo</option>
-                {% for t in tipos_platos %}
-                    <option value="{{ t.nombre }}">{{ t.nombre }}</option>
-                {% endfor %}
-            </select>
-        </div>
-
-        <div class="form-row">
-            <label>Peso por ración:</label>
-            <input type="text" id="peso" name="peso_racion"
-                   value="0.00" maxlength="7" inputmode="decimal">
-            <span style="color:#2a7ae2;">gramos</span>
-        </div>
-
-        <!-- botón submit oculto -->
-        <button type="submit" id="btn-submit" style="display:none;"></button>
-
     </form>
-
-    <!-- ======================================================
-         TABLA DE PLATOS — CON BORRADO
-    ====================================================== -->
 
     <table>
         <thead>
             <tr>
-                <th>Nombre</th>
+                <th>Plato</th>
                 <th>Tipo</th>
-                <th>Peso (<span style="color:#2a7ae2;">gramos</span>)</th>
-                <th class="col-borrar">Borrar</th>
+                <th class="peso-col">
+                    <div class="top">PESO</div>
+                    <div class="sub">ración</div>
+                </th>
+                <th>Acción</th>
             </tr>
         </thead>
         <tbody>
-            {% for p in platos %}
+        {% for p in platos %}
             <tr>
-                <td>{{ p.nombre }}</td>
-                <td>{{ p.tipo_plato }}</td>
-                <td>{{ "%.2f"|format(p.peso_racion) }}</td>
-                <td class="col-borrar">
-                    <form method="post"
-                          action="/admin/platos/borrar/{{ p.id }}"
-                          onsubmit="return confirm('¿Seguro que desea borrar este plato?');"
-                          style="display:inline;">
-                        <button type="submit" class="borrar">🗑️</button>
+                <td class="col-plato" title="{{ p.nombre }}">{{ p.nombre }}</td>
+                <td class="col-tipo" title="{{ p.tipo_plato }}">{{ p.tipo_plato }}</td>
+                <td style="white-space: nowrap;">{{ "%.2f"|format(p.peso_racion) }} gramos</td>
+                <td>
+                    <form method="post" action="/admin/platos/borrar/{{ p.id }}" style="display:inline;"
+                          onsubmit="return confirmarBorrado('{{ p.nombre }}');">
+                        <button type="submit" class="btn-borrar">Borrar</button>
                     </form>
                 </td>
             </tr>
-            {% endfor %}
+        {% endfor %}
         </tbody>
     </table>
 
 </div>
-
-<!-- ======================================================
-     JS — CONTROL DE ENTER ENTRE CAMPOS
-====================================================== -->
-<script>
-document.addEventListener("DOMContentLoaded", function () {
-
-    const nombre = document.getElementById("nombre");
-    const tipo = document.getElementById("tipo");
-    const peso = document.getElementById("peso");
-    const btn = document.getElementById("btn-submit");
-
-    // ENTER en nombre → tipo
-    nombre.addEventListener("keydown", function(e){
-        if (e.key === "Enter") {
-            e.preventDefault();
-            tipo.focus();
-        }
-    });
-
-    // ENTER en tipo → peso
-    tipo.addEventListener("keydown", function(e){
-        if (e.key === "Enter") {
-            e.preventDefault();
-            peso.focus();
-        }
-    });
-
-    // cambio en tipo con mouse → peso
-    tipo.addEventListener("change", function(){
-        peso.focus();
-    });
-
-    // ENTER en peso → submit
-    peso.addEventListener("keydown", function(e){
-        if (e.key === "Enter") {
-            e.preventDefault();
-            btn.click();
-        }
-    });
-
-    // formato peso
-    peso.addEventListener("blur", function(){
-        const v = Number(this.value);
-        if (!isNaN(v)) this.value = v.toFixed(2);
-    });
-
-});
-</script>
-
 </body>
 </html>

@@ -1132,5 +1132,93 @@ Normalizar relaciones (Platos ↔ Tipos de Plato),
 
 O preparar la Web pública.
 
+## Fase XXIII — Estandarización UI y cierre parcial de Nomenclador PLATOS
+
+**Fecha:** 2026-02-20  
+**Estado:** PLATOS cerrado por ahora (funcional y estandarizado)
+
+### Objetivo
+Estandarizar la interfaz y el comportamiento de los nomencladores, tomando **PLATOS** como referencia para replicar el patrón en:
+- Tipos de Plato
+- Unidades de Medida (UM)
+- Ingredientes
+- (Luego) Master de Recetas
+
+### Cambios y reglas aplicadas en PLATOS
+
+#### 1) Interfaz (UI)
+- Títulos de escaques (labels de captura) en **color intenso** y **negrita**.
+- Encabezados de tabla y títulos de columnas en **color intenso** y **negrita**.
+- Ajuste de anchos de escaques:
+  - **Nombre del plato** más ancho.
+  - **Tipo del plato** ancho medio.
+  - **Peso ración** más estrecho.
+- Texto fijo **"gramos"** a la derecha del escaque de Peso ración.
+- Etiquetas en dos líneas cuando es necesario:
+  - "Nombre del / plato"
+  - "Tipo del / plato"
+  - "Peso / ración"
+- En la tabla:
+  - Columna de nombre y tipo con **ancho limitado**.
+  - Si el texto excede el ancho, se **corta con “…”** (ellipsis).
+  - El valor de peso se muestra como: `NN.NN gramos`.
+- Regla general establecida:  
+  > **Ningún texto debe desbordar su columna o escaque. Todo queda limitado por ancho.**
+
+#### 2) Comportamiento del teclado
+- **Enter**:
+  - En Nombre → pasa a Tipo.
+  - En Tipo → pasa a Peso.
+  - En Peso → **guarda**.
+- **ESC**:
+  - Limpia los campos del formulario.
+  - Devuelve el foco a **Nombre**.
+- Texto de ayuda visible en **color intenso**:
+  - `<enter para guardar> | ESC aborta`
+
+#### 3) Validaciones
+- Nombre obligatorio.
+- Tipo obligatorio.
+- Peso ración:
+  - Debe ser numérico.
+  - Debe ser mayor que 0.
+  - Debe ser menor o igual a 1000.0.
+- Campos con límite de longitud (`maxlength`) para evitar desbordes.
+
+#### 4) Borrado
+- Botón de borrar estandarizado en la tabla.
+- Confirmación antes de borrar (diálogo de confirmación).
+- Mensaje de borrado:
+  - Formato corto.
+  - El **nombre del elemento** aparece en **rojo intenso**.
+  - El resto del mensaje en **verde intenso**.
+  - Ejemplo conceptual:  
+    `xxxxxx borrado de Pla. correctamente.`
+    (donde `xxxxxx` va en rojo).
+
+#### 5) Criterios de estandarización definidos
+Estos criterios se replicarán en:
+- Tipos de Plato (T.P.)
+- Unidades de Medida (UM)
+- Ingredientes (Ing.)
+- Master de Recetas (M.R.)
+
+Reglas base:
+- Títulos y encabezados en color intenso.
+- Campos con ancho fijo y sin desbordes.
+- Enter para avanzar/guardar, ESC para abortar.
+- Mensajes de borrado con:
+  - Elemento en rojo.
+  - Texto explicativo en verde.
+- Confirmación antes de borrar.
+- SQLite como fuente viva de datos (JSON solo para backup/import/export).
+
+### Estado actual
+- **PLATOS**: cerrado por ahora, considerado estable y referencia de UI/UX.
+- **UM, Ingredientes, Tipos de Plato**: ya adaptados en gran parte al estándar, con ajustes finos pendientes/realizados durante esta fase.
+- **Siguiente foco**: revisión final de estandarización en todos los nomencladores y luego abordar la **captura del Master de Recetas** con este mismo patrón.
+
+---
+
 
 

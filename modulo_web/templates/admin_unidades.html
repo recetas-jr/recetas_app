@@ -1,124 +1,203 @@
 <!DOCTYPE html>
-<html>
-
+<html lang="es">
 <head>
-    <title>Nomenclador de Unidades de Medida</title>
-</head>
-<!--  -->
+    <meta charset="UTF-8">
+    <title>Nomenclador de Unidades de Medida (UM)</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f2f4f8;
+            margin: 0;
+            padding: 0;
+        }
 
-<body>
+        .container {
+            max-width: 700px;
+            margin: 20px auto;
+            background: white;
+            padding: 15px;
+            border-radius: 6px;
+        }
 
-    <h1>Nomenclador de Unidades de Medida</h1>
+        h2 { margin-top: 0; }
 
-    <table>
-        <tr>
-            <td valign="top" style="padding-right:40px;">
+        form {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            margin-bottom: 10px;
+            flex-wrap: wrap;
+        }
 
-                <h3>Agregar</h3>
+        input {
+            padding: 6px;
+            font-size: 14px;
+        }
 
-                {% if errores %}
-                  <div style="color:#b00020; font-weight:bold; margin-bottom:10px;">
-                    {% for e in errores %}
-                      <div>❌ {{ e }}</div>
-                {% endfor %}
-                  </div>
-                {% endif %}
+        /* Campo código más estrecho (1–2 letras) */
+        #codigo {
+            width: 60px;
+            max-width: 60px;
+            text-transform: uppercase;
+        }
 
-                <form method="post" id="formUM" autocomplete="off">
+        /* Descripción siempre en minúsculas */
+        #nombre {
+            width: 260px;
+            max-width: 260px;
+            text-transform: lowercase;
+        }
 
-                    Código:<br>
-                    <input type="text" id="codigo" name="codigo" size="2" maxlength="2"
-                        oninput="this.value = this.value.toUpperCase()" autocomplete="off" required autofocus>
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
 
-                    <div style="font-size:12px; color:#555;">ESC para salir</div>
+        th, td {
+            border: 1px solid #ddd;
+            padding: 6px;
+            text-align: left;
+        }
 
-                    <br>
+        th { background: #f0f0f0; }
 
-                    Nombre:<br>
-                    <input type="text" id="nombre" name="nombre" size="20" maxlength="25" autocomplete="off" required>
+        /* Columna Nombre en minúsculas */
+        td.col-nombre {
+            text-transform: lowercase;
+        }
 
-                    <div style="font-size:12px; color:#555;">Enter guarda</div>
+        /* Mensaje de borrado: verde intenso */
+        .flash-msg {
+            color: #0b9b0b;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
 
-                </form>
+        /* Solo el elemento en rojo intenso */
+        .flash-msg .item {
+            color: #cc0000;
+            font-weight: bold;
+        }
 
-            </td>
+        .errores {
+            color: #cc0000;
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
 
-            <td valign="top">
+        .btn-borrar {
+            background: #cc0000;
+            color: #fff;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
 
-                <h3>Unidades registradas</h3>
+        .btn-borrar:hover { background: #a80000; }
 
-                <div style="max-height:300px; overflow-y:auto; border:1px solid #999;">
-
-                    <table border="1" cellpadding="5" style="width:100%; border-collapse:collapse;">
-                        <tr>
-                            <th>ID</th>
-                            <th>Código</th>
-                            <th>Nombre</th>
-                            <th>Acciones</th>
-                        </tr>
-
-                        {% for u in unidades %}
-                        <tr>
-                            <td>{{ u.id }}</td>
-                            <td>{{ u.codigo }}</td>
-                            <td>{{ u.nombre }}</td>
-                            <td>
-                                <form method="post"
-                                      action="/admin/unidades/borrar/{{ u.id }}"
-                                      onsubmit="return confirm('¿Borrar unidad de medida?');"
-                                      style="display:inline;">
-                                    <button type="submit" style="border:none; background:none; cursor:pointer;">
-                                        🗑
-                                    </button>
-                                </form>
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </table>
-
-                </div>
-
-            </td>
-        </tr>
-    </table>
+        .ayuda {
+            font-size: 12px;
+            color: #555;
+            margin-left: 6px;
+        }
+    </style>
 
     <script>
-        // ENTER en Código -> pasar a Nombre (si hay valor)
-        document.getElementById("codigo").addEventListener("keydown", function (e) {
-            if (e.key === "Enter") {
-                e.preventDefault();
-                if (this.value.trim() !== "") {
-                    document.getElementById("nombre").focus();
+        function confirmarBorrado(nombre) {
+            return confirm("¿Seguro que desea borrar '" + nombre + "'?");
+        }
+
+        document.addEventListener("DOMContentLoaded", function () {
+            const codigo = document.getElementById("codigo");
+            const nombre = document.getElementById("nombre");
+            const form = document.getElementById("form-um");
+
+            // Enter en código -> pasa a nombre
+            codigo.addEventListener("keydown", function (e) {
+                if (e.key === "Enter") {
+                    e.preventDefault();
+                    nombre.focus();
                 }
-            }
-        });
+            });
 
-        // Clic en Nombre sin Código -> volver a Código
-        document.getElementById("nombre").addEventListener("focus", function () {
-            if (document.getElementById("codigo").value.trim() === "") {
-                alert("Debe teclear primero el código de la unidad de medida.");
-                document.getElementById("codigo").focus();
-            }
-        });
+            // Enter en nombre -> guarda
+            nombre.addEventListener("keydown", function (e) {
+                if (e.key === "Enter") {
+                    e.preventDefault();
+                    form.submit();
+                }
+            });
 
-        // ENTER en Nombre -> guardar
-        document.getElementById("nombre").addEventListener("keydown", function (e) {
-            if (e.key === "Enter") {
-                e.preventDefault();
-                document.getElementById("formUM").submit();
-            }
-        });
-
-        // ESC en cualquier campo -> cancelar captura
-        document.addEventListener("keydown", function (e) {
-            if (e.key === "Escape") {
-                document.getElementById("codigo").value = "";
-                document.getElementById("nombre").value = "";
-                document.activeElement.blur(); // perder foco
-            }
+            // ESC -> limpia y vuelve al código
+            document.addEventListener("keydown", function (e) {
+                if (e.key === "Escape") {
+                    codigo.value = "";
+                    nombre.value = "";
+                    codigo.focus();
+                }
+            });
         });
     </script>
+</head>
+<body>
+<div class="container">
 
+    <h2>Nomenclador de Unidades de Medida (UM)</h2>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+          <div class="flash-msg">{{ message|safe }}</div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+
+    {% if errores %}
+        <div class="errores">
+            <ul>
+            {% for e in errores %}
+                <li>{{ e }}</li>
+            {% endfor %}
+            </ul>
+        </div>
+    {% endif %}
+
+    <form id="form-um" method="post" action="/admin/unidades" autocomplete="off">
+        <label>Código:</label>
+        <input type="text" id="codigo" name="codigo" maxlength="2" placeholder="UM" autofocus>
+
+        <label>Nombre:</label>
+        <input type="text" id="nombre" name="nombre" placeholder="nombre de la unidad">
+
+        <span class="ayuda">&lt;enter para guardar&gt; | ESC aborta</span>
+    </form>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Código</th>
+                <th>Nombre</th>
+                <th>Acción</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for u in unidades %}
+            <tr>
+                <td>{{ u.codigo }}</td>
+                <td class="col-nombre">{{ u.nombre }}</td>
+                <td>
+                    <form method="post" action="/admin/unidades/borrar/{{ u.id }}" style="display:inline;"
+                          onsubmit="return confirmarBorrado('{{ u.codigo }} - {{ u.nombre }}');">
+                        <button type="submit" class="btn-borrar">Borrar</button>
+                    </form>
+                </td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+
+</div>
 </body>
-
 </html>

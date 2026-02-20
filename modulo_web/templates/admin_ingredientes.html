@@ -1,115 +1,196 @@
+<!-- Ruta: modulo_web/templates/admin_ingredientes.html -->
 <!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
     <title>Nomenclador de Ingredientes</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f2f4f8;
+            margin: 0;
+            padding: 0;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 20px auto;
+            background: white;
+            padding: 15px;
+            border-radius: 6px;
+        }
+
+        h2 { margin-top: 0; }
+
+        form.form-captura {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            margin-bottom: 10px;
+            flex-wrap: wrap;
+        }
+
+        input, select {
+            padding: 6px;
+            font-size: 14px;
+        }
+
+        #nombre {
+            width: 280px;
+            max-width: 280px;
+            text-transform: lowercase;
+        }
+
+        #unidad_id {
+            width: 240px;
+            max-width: 240px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+
+        th, td {
+            border: 1px solid #ddd;
+            padding: 6px;
+            text-align: left;
+        }
+
+        th { background: #f0f0f0; }
+
+        .flash-msg {
+            color: #0b9b0b;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .flash-msg .item {
+            color: #cc0000;
+            font-weight: bold;
+        }
+
+        .errores {
+            color: #cc0000;
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+
+        .btn-borrar {
+            background: #cc0000;
+            color: #fff;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .btn-borrar:hover { background: #a80000; }
+
+        .ayuda {
+            font-size: 12px;
+            color: #555;
+            margin-left: 6px;
+        }
+    </style>
+
+    <script>
+        function confirmarBorrado(nombre) {
+            return confirm("¿Seguro que desea borrar '" + nombre + "'?");
+        }
+
+        document.addEventListener("DOMContentLoaded", function () {
+            const nombre = document.getElementById("nombre");
+            const unidad = document.getElementById("unidad_id");
+            const form = document.getElementById("form-ingredientes");
+
+            nombre.addEventListener("keydown", function (e) {
+                if (e.key === "Enter") {
+                    e.preventDefault();
+                    unidad.focus();
+                }
+            });
+
+            unidad.addEventListener("keydown", function (e) {
+                if (e.key === "Enter") {
+                    e.preventDefault();
+                    form.submit();
+                }
+            });
+
+            document.addEventListener("keydown", function (e) {
+                if (e.key === "Escape") {
+                    nombre.value = "";
+                    unidad.value = "";
+                    nombre.focus();
+                }
+            });
+        });
+    </script>
 </head>
 <body>
+<div class="container">
 
-<h1>Nomenclador de Ingredientes</h1>
+    <h2>Nomenclador de Ingredientes</h2>
 
-<table>
-    <tr>
-        <td valign="top" style="padding-right:40px;">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+          <div class="flash-msg">{{ message|safe }}</div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
 
-            <h3>Agregar</h3>
+    {% if errores %}
+        <div class="errores">
+            <ul>
+            {% for e in errores %}
+                <li>{{ e }}</li>
+            {% endfor %}
+            </ul>
+        </div>
+    {% endif %}
 
-            {% if errores %}
-              <div style="color:#b00020; font-weight:bold; margin-bottom:10px;">
-                {% for e in errores %}
-                  <div>❌ {{ e }}</div>
-                {% endfor %}
-              </div>
-            {% endif %}
+    <form id="form-ingredientes" class="form-captura" method="post" action="/admin/ingredientes" autocomplete="off">
+        <label>Nombre:</label>
+        <input type="text" id="nombre" name="nombre" placeholder="nombre del ingrediente" autofocus>
 
-            <form method="post" id="formIng" autocomplete="off">
+        <label>UM:</label>
+        <select id="unidad_id" name="unidad_id">
+            <option value="">-- seleccione UM --</option>
+            {% for u in unidades %}
+                <option value="{{ u.id }}">{{ u.nombre }}</option>
+            {% endfor %}
+        </select>
 
-                Nombre:<br>
-                <input type="text" id="nombre" name="nombre" size="25" maxlength="50" autocomplete="off" required autofocus>
+        <span class="ayuda">&lt;enter para guardar&gt; | ESC aborta</span>
+    </form>
 
-                <br><br>
+    <table>
+        <thead>
+            <tr>
+                <th>Ingrediente</th>
+                <th>Unidad</th>
+                <th>Acción</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for i in ingredientes %}
+            <tr>
+                <td style="text-transform: lowercase;">{{ i.nombre }}</td>
+                <td style="text-transform: lowercase;">{{ i.unidad_nombre }}</td>
+                <td>
+                    <form method="post" action="/admin/ingredientes/borrar/{{ i.id }}" style="display:inline;"
+                          onsubmit="return confirmarBorrado('{{ i.nombre }}');">
+                        <button type="submit" class="btn-borrar">Borrar</button>
+                    </form>
+                </td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
 
-                Unidad de medida:<br>
-                <select name="unidad_id" id="unidad_id" required>
-                    <option value="">-- Seleccione --</option>
-                    {% for u in unidades %}
-                        <option value="{{ u.id }}">{{ u.nombre }}</option>
-                    {% endfor %}
-                </select>
-
-                <div style="font-size:12px; color:#555;">Enter guarda</div>
-
-            </form>
-
-        </td>
-
-        <td valign="top">
-
-            <h3>Ingredientes registrados</h3>
-
-            <div style="max-height:300px; overflow-y:auto; border:1px solid #999;">
-
-                <table border="1" cellpadding="5" style="width:100%; border-collapse:collapse;">
-                    <tr>
-                        <th>ID</th>
-                        <th>Nombre</th>
-                        <th>UM</th>
-                        <th>Acciones</th>
-                    </tr>
-
-                    {% for i in ingredientes %}
-                    <tr>
-                        <td>{{ i.id }}</td>
-                        <td>{{ i.nombre }}</td>
-                        <td>{{ i.unidad_nombre }}</td>
-                        <td>
-                            <form method="post"
-                                  action="/admin/ingredientes/borrar/{{ i.id }}"
-                                  onsubmit="return confirm('¿Borrar ingrediente?');"
-                                  style="display:inline;">
-                                <button type="submit" style="border:none; background:none; cursor:pointer;">
-                                    🗑
-                                </button>
-                            </form>
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </table>
-
-            </div>
-
-        </td>
-    </tr>
-</table>
-
-<script>
-    // ENTER en Nombre -> pasar a Unidad
-    document.getElementById("nombre").addEventListener("keydown", function (e) {
-        if (e.key === "Enter") {
-            e.preventDefault();
-            if (this.value.trim() !== "") {
-                document.getElementById("unidad_id").focus();
-            }
-        }
-    });
-
-    // ENTER en Unidad -> guardar
-    document.getElementById("unidad_id").addEventListener("keydown", function (e) {
-        if (e.key === "Enter") {
-            e.preventDefault();
-            document.getElementById("formIng").submit();
-        }
-    });
-
-    // ESC -> limpiar formulario
-    document.addEventListener("keydown", function (e) {
-        if (e.key === "Escape") {
-            document.getElementById("nombre").value = "";
-            document.getElementById("unidad_id").value = "";
-            document.getElementById("nombre").focus();
-        }
-    });
-</script>
-
+</div>
 </body>
 </html>

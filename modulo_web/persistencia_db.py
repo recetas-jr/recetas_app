@@ -81,6 +81,19 @@ def init_db():
     );
     """)
 
+    # Tabla: recetas_detalle
+    cur.execute("""
+    CREATE TABLE IF NOT EXISTS recetas_detalle (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        receta_id INTEGER NOT NULL,
+        preparacion TEXT,
+        elaboracion TEXT,
+        presentacion TEXT,
+        nutricion TEXT,
+        FOREIGN KEY (receta_id) REFERENCES recetas_maestro(id)
+    );
+    """)
+
     conn.commit()
     conn.close()
 
@@ -88,6 +101,24 @@ def init_db():
 # ==================================================
 # FUNCIONES DE LECTURA (DB → dicts)
 # ==================================================
+
+def db_cargar_tipos_plato():
+    conn = get_connection()
+    cur = conn.cursor()
+
+    cur.execute("""
+        SELECT id, nombre
+        FROM tipos_plato
+        ORDER BY nombre
+    """)
+    filas = cur.fetchall()
+    conn.close()
+
+    return [
+        {"id": f["id"], "nombre": f["nombre"]}
+        for f in filas
+    ]
+
 
 def db_cargar_platos():
     conn = get_connection()
@@ -131,11 +162,7 @@ def db_cargar_unidades():
     conn.close()
 
     return [
-        {
-            "id": f["id"],
-            "codigo": f["codigo"],
-            "nombre": f["nombre"]
-        }
+        {"id": f["id"], "codigo": f["codigo"], "nombre": f["nombre"]}
         for f in filas
     ]
 
@@ -154,11 +181,7 @@ def db_cargar_ingredientes():
     conn.close()
 
     return [
-        {
-            "id": f["id"],
-            "nombre": f["nombre"],
-            "unidad_id": f["unidad_id"]
-        }
+        {"id": f["id"], "nombre": f["nombre"], "unidad_id": f["unidad_id"]}
         for f in filas
     ]
 
@@ -197,10 +220,6 @@ def db_cargar_recetas_maestro_listado():
 
     return resultado
 
-
-# ==================================================
-# NUEVO: DETALLE DE RECETA DESDE SQLITE
-# ==================================================
 
 def db_cargar_receta_detalle(receta_id):
     conn = get_connection()
@@ -257,55 +276,6 @@ def db_cargar_receta_detalle(receta_id):
         })
 
     return receta
-
-
-# ==================================================
-# TIPOS DE PLATO — CRUD BÁSICO
-# ==================================================
-
-def db_cargar_tipos_plato():
-    conn = get_connection()
-    cur = conn.cursor()
-
-    cur.execute("""
-        SELECT id, nombre
-        FROM tipos_plato
-        ORDER BY nombre
-    """)
-
-    filas = cur.fetchall()
-    conn.close()
-
-    return [
-        {
-            "id": f["id"],
-            "nombre": f["nombre"]
-        }
-        for f in filas
-    ]
-
-
-def db_insertar_tipo_plato(nombre):
-    conn = get_connection()
-    cur = conn.cursor()
-
-    cur.execute(
-        "INSERT INTO tipos_plato (nombre) VALUES (?)",
-        (nombre.strip(),)
-    )
-
-    conn.commit()
-    conn.close()
-
-
-def db_borrar_tipo_plato(tipo_id):
-    conn = get_connection()
-    cur = conn.cursor()
-
-    cur.execute("DELETE FROM tipos_plato WHERE id = ?", (tipo_id,))
-
-    conn.commit()
-    conn.close()
 
 
 if __name__ == "__main__":

@@ -549,6 +549,90 @@ A partir de este punto:
 - Las nuevas funcionalidades (búsqueda, filtros, edición, etc.) se agregarán sobre esta base estable.
 - Cualquier cambio debe respetar el comportamiento de ENTER, ESC y las validaciones actuales.
 
+## Decisión — Estandarización de UI/UX en Nomencladores y Master
+
+**Fecha:** 2026-02-20  
+**Estado:** Aprobada y en aplicación progresiva
+
+### Contexto
+Durante la Fase XXIII se tomó **PLATOS** como módulo de referencia para definir un estándar visual y de comportamiento que debe aplicarse a:
+- Tipos de Plato (T.P.)
+- Unidades de Medida (UM)
+- Ingredientes (Ing.)
+- Listados
+- Master de Recetas (M.R.)
+
+El objetivo es:
+- Consistencia visual
+- Flujo de trabajo predecible con teclado
+- Evitar desbordes de texto
+- Reducir errores de captura
+- Mejorar velocidad operativa en call center / backoffice
+
+### Decisiones adoptadas
+
+#### 1) Estilo visual
+- Todos los **títulos de escaques** (labels de formularios) van en **color intenso** y **negrita**.
+- Todos los **encabezados de tablas** y **títulos de columnas** van en **color intenso** y **negrita**.
+- Todos los campos de texto y columnas tienen **ancho fijo**.
+- **Ningún texto debe desbordar** su escaque o columna:
+  - Si excede, se corta con “…” (ellipsis).
+- Las unidades o textos auxiliares (ej: “gramos”) se muestran como texto fijo junto al campo correspondiente.
+
+#### 2) Comportamiento con teclado (estándar global)
+- **Enter**:
+  - Avanza entre campos.
+  - En el último campo: **guarda**.
+- **ESC**:
+  - Aborta la captura.
+  - Limpia campos.
+  - Devuelve el foco al primer campo.
+- Texto de ayuda visible en formularios:
+  - `<enter para guardar> | ESC aborta` (en color intenso)
+
+#### 3) Validaciones
+- Campos obligatorios claramente validados.
+- Campos numéricos con:
+  - Validación de tipo (numérico).
+  - Rango permitido (ej: peso de ración > 0 y ≤ 1000.0).
+- Uso de `maxlength` para evitar entradas fuera de rango visual y funcional.
+
+#### 4) Borrado de registros
+- Todos los listados usan:
+  - Botón de borrar estandarizado.
+  - Confirmación previa al borrado.
+- Mensajes de borrado:
+  - Formato corto y consistente.
+  - El **nombre del elemento borrado** se muestra en **rojo intenso**.
+  - El resto del mensaje se muestra en **verde intenso**.
+  - Ejemplos de formato:
+    - `xxxxxx borrado de T.P. correctamente.`
+    - `yyyyyy borrado de UM correctamente.`
+    - `zzzzz borrado de Ing. correctamente.`
+    - `aaaaa borrado de Pla. correctamente.`
+    - `bbbbb borrado de M.R. correctamente.`
+
+#### 5) Persistencia de datos
+- **SQLite** se define como **fuente viva** del sistema.
+- **JSON** queda relegado exclusivamente a:
+  - Backup
+  - Importación / Exportación
+  - Recuperación de emergencia
+- El flujo normal de operación **no debe depender de JSON**.
+
+### Impacto
+- Todos los módulos existentes deben alinearse a este estándar.
+- El **Master de Recetas** debe diseñarse directamente bajo estas reglas, sin excepciones.
+- Se reduce la variabilidad de comportamiento entre pantallas.
+- Se mejora la usabilidad y la velocidad de captura.
+
+### Estado de aplicación
+- PLATOS: estándar aplicado y tomado como referencia.
+- UM, Ingredientes, Tipos de Plato: alineados progresivamente al estándar.
+- Pendiente: aplicar y consolidar el estándar en el **Master de Recetas**.
+
+---
+
 
 
 

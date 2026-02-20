@@ -355,3 +355,63 @@ Regla de interfaz que establece que:
 > Una receta no puede contener el mismo ingrediente más de una vez.
 
 Se valida en cliente durante la captura de la receta.
+
+## Actualización de Terminología — Fase XXIII
+
+**Fecha:** 2026-02-20
+
+### Siglas y abreviaturas estándar del sistema
+
+- **UM** — Unidad de Medida  
+  Unidad utilizada para medir ingredientes o cantidades (ej: gramos, ml, etc.).
+
+- **Ing.** — Ingrediente  
+  Elemento básico que compone una receta. Siempre asociado a una UM.
+
+- **Pla.** — Plato  
+  Representa el plato/receta base dentro del sistema (nomenclador de platos).
+
+- **T.P.** — Tipo de Plato  
+  Clasificación del plato (ej: entrada, principal, postre, etc.).
+
+- **M.R.** — Master de Recetas  
+  Registro maestro que define:
+  - Plato
+  - Raciones base
+  - Lista de ingredientes con cantidades
+  - Detalles: preparación, elaboración, presentación y nutrición.
+
+### Convenciones de uso en la interfaz
+
+- En mensajes del sistema, especialmente en **borrado**:
+  - El **nombre del elemento** se muestra en **rojo intenso**.
+  - El resto del mensaje se muestra en **verde intenso**.
+  - Ejemplos:
+    - `xxxxx borrado de UM correctamente.`
+    - `yyyyy borrado de Ing. correctamente.`
+    - `zzzzz borrado de Pla. correctamente.`
+    - `aaaaa borrado de T.P. correctamente.`
+    - `bbbbb borrado de M.R. correctamente.`
+
+- En formularios de captura:
+  - Los **títulos de los escaques** se muestran en color intenso y negrita.
+  - Los **encabezados de tablas** y **títulos de columnas** se muestran en color intenso y negrita.
+  - Texto de ayuda estándar:
+    - `<enter para guardar> | ESC aborta`
+
+### Convenciones de datos
+
+- **SQLite** es la **fuente viva** de datos del sistema.
+- **JSON** se utiliza únicamente para:
+  - Backup
+  - Importación / Exportación
+  - Recuperación de emergencia
+
+### Convenciones de visualización
+
+- Todos los campos y columnas tienen **ancho fijo**.
+- **Ningún texto debe desbordar** su escaque o columna:
+  - Si excede el ancho, se corta con “…” (ellipsis).
+- Las unidades de medida visibles en pantalla se muestran como **texto descriptivo** (ej: “gramos”), no como código interno.
+
+---

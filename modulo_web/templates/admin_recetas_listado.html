@@ -24,6 +24,18 @@
             color: #666;
             font-size: 12px;
         }
+        .icon-deco {
+            margin-left: 6px;
+        }
+        .leyenda {
+            margin-bottom: 8px;
+            font-size: 13px;
+            color: #333;
+        }
+        .leyenda .icon {
+            font-weight: bold;
+            margin-right: 6px;
+        }
     </style>
 </head>
 <body style="font-family: Arial, sans-serif; background:#f2f4f8; margin:0; padding:12px;">
@@ -35,11 +47,20 @@
     font-weight:bold;
     border-radius:6px;
     margin-bottom:12px;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
 ">
-    📋 LISTADO — RECETAS MASTER
+    <span>📋 LISTADO — RECETAS MASTER</span>
+    <a href="/admin/recetas/nueva" style="background:#1f6feb;color:white;padding:6px 12px;border-radius:4px;text-decoration:none;font-weight:bold;">➕ Nueva receta</a>
 </div>
 
 <div style="background:white; padding:15px; border-radius:6px; max-width:1100px;">
+
+    <!-- Leyenda -->
+    <div class="leyenda">
+        <span class="icon">🎨</span> Tiene decoración
+    </div>
 
     <!-- Buscador -->
     <div class="buscador-wrap">
@@ -69,7 +90,12 @@
                     <td>{{ r.plato_id }}</td>
                     <td class="col-plato">{{ r.plato_nombre }}</td>
                     <td align="right">{{ r.raciones_base }}</td>
-                    <td align="right">{{ r.cantidad_ingredientes | default(0) }}</td>
+                    <td align="right">
+                        {{ r.cantidad_ingredientes | default(0) }}
+                        {% if r.tiene_decoracion %}
+                            <span class="icon-deco" title="Tiene decoración">🎨</span>
+                        {% endif %}
+                    </td>
                     <td align="center">
                         <form method="post"
                               action="/admin/recetas/borrar/{{ r.id }}"
@@ -90,11 +116,6 @@
         </table>
     </div>
 
-    <div style="margin-top:12px;">
-        <form method="get" action="/admin/recetas">
-            <button type="submit">⬅️ Volver a Captura</button>
-        </form>
-    </div>
 </div>
 
 <script>

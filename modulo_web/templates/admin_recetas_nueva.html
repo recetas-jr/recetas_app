@@ -10,25 +10,25 @@
         .fila { display:flex; gap:10px; align-items:center; margin-bottom:8px; flex-wrap:wrap; }
         .campo { display:flex; align-items:center; gap:6px; }
         label { font-weight:bold; }
-        input, select, textarea { padding:6px; font-size:14px; box-sizing:border-box; }
+        input, select, textarea, button { padding:6px; font-size:14px; box-sizing:border-box; }
         textarea { width:100%; min-height:90px; }
         .hint { color:#0b9b0b; font-weight:bold; font-size:12px; margin:4px 0 10px 0; }
         .error { color:#cc0000; font-weight:bold; margin-bottom:10px; }
         .ok { color:#0b9b0b; font-weight:bold; margin-bottom:10px; }
-        .btn { padding:6px 12px; border-radius:4px; border:none; cursor:pointer; }
+        .btn { padding:6px 12px; border-radius:4px; border:none; cursor:pointer; text-decoration:none; display:inline-block; }
         .btn-prim { background:#1f6feb; color:#fff; }
         .btn-sec { background:#777; color:#fff; }
         .tabla { width:100%; border-collapse:collapse; margin-top:10px; }
         .tabla th, .tabla td { border:1px solid #ddd; padding:6px; }
         .tabla th { background:#f0f0f0; font-weight:bold; }
-        .col-qty { width:80px; text-align:right; }
-        .col-rol { width:80px; text-align:right; }
+        .col-qty { width:120px; text-align:right; }
+        .col-rol { width:120px; text-align:right; }
         .col-um { width:140px; color:#333; }
         .row-actions { text-align:center; }
         .btn-borrar { background:#cc0000; color:#fff; }
         .oculta { display:none; }
 
-        /* Modal selector de platos */
+        /* Modal */
         .modal-backdrop {
             position:fixed; inset:0; background:rgba(0,0,0,.35); display:none; align-items:center; justify-content:center;
         }
@@ -40,12 +40,35 @@
         .modal th, .modal td { border:1px solid #ddd; padding:6px; }
         .modal th { background:#f0f0f0; }
         .modal .actions { text-align:right; margin-top:8px; }
+
+        /* Quitar flechas de inputs type=number */
+        input[type=number]::-webkit-outer-spin-button,
+        input[type=number]::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        input[type=number] {
+            -moz-appearance: textfield; /* Firefox */
+        }
+
+        /* Campo o botón con foco en violeta claro */
+        input:focus,
+        textarea:focus,
+        select:focus,
+        button:focus {
+            outline: none;
+            background-color: #f2e9ff;
+            border: 2px solid #8b5cf6;
+        }
     </style>
 </head>
 <body>
 <div class="container">
 
-    <h2>Master de Recetas — Nueva</h2>
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+        <h2>Master de Recetas — Nueva</h2>
+        <a href="/admin/recetas/listado" class="btn btn-sec">📋 Ir al listado</a>
+    </div>
 
     {% with messages = get_flashed_messages(with_categories=true) %}
       {% if messages %}
@@ -74,7 +97,7 @@
         <div class="fila">
             <div class="campo">
                 <label>Raciones base:</label>
-                <input type="text" id="raciones" name="raciones_base" maxlength="3" style="width:70px; text-align:right;">
+                <input type="number" id="raciones" name="raciones_base" min="1" step="1" placeholder="0" style="width:70px; text-align:right;">
             </div>
         </div>
 
@@ -105,6 +128,7 @@
                     <th class="col-qty">Cantidad</th>
                     <th class="col-um">UM</th>
                     <th class="col-rol">Rol</th>
+                    <th class="col-um">UM</th>
                     <th class="row-actions">Acción</th>
                 </tr>
             </thead>
@@ -112,7 +136,7 @@
                 <!-- FILA PLANTILLA (OCULTA) -->
                 <tr class="fila-ingrediente oculta" id="fila-plantilla">
                     <td>
-                        <select class="ing-select" name="ing_id[]">
+                        <select class="ing-select" name="ingrediente_id[]">
                             <option value="">-- seleccione ingrediente --</option>
                             {% for i in ingredientes %}
                                 <option value="{{ i.id }}" data-um="{{ i.unidad_nombre }}">{{ i.nombre }}</option>
@@ -120,13 +144,16 @@
                         </select>
                     </td>
                     <td class="col-qty">
-                        <input type="text" class="ing-cantidad" name="cantidad[]" value="0" maxlength="3" style="width:70px; text-align:right;">
+                        <input type="number" class="ing-cantidad" name="cantidad[]" min="0" step="0.01" placeholder="0" style="width:70px; text-align:right;">
                     </td>
                     <td class="col-um">
                         <span class="ing-um">—</span>
                     </td>
                     <td class="col-rol">
-                        <input type="text" class="ing-rol" name="ing_rol[]" value="0" maxlength="3" style="width:70px; text-align:right;">
+                        <input type="number" class="ing-rol" name="rol[]" min="0" step="0.01" placeholder="0" style="width:70px; text-align:right;">
+                    </td>
+                    <td class="col-um">
+                        <span class="rol-um">—</span>
                     </td>
                     <td class="row-actions">
                         <button type="button" class="btn btn-borrar">Borrar</button>
@@ -189,7 +216,6 @@
     const platoNombre = document.getElementById("plato_nombre");
     const platoId = document.getElementById("plato_id");
 
-    // Selector de platos
     btnBuscar.addEventListener("click", function(){
         modal.style.display = "flex";
     });
@@ -205,7 +231,6 @@
         });
     });
 
-    // RACIONES: Enter solo pasa a PREPARACION
     raciones.addEventListener("keydown", function(e){
         if(e.key === "Enter"){
             e.preventDefault();
@@ -213,7 +238,6 @@
         }
     });
 
-    // Textos: Shift+Enter salta
     function bindShiftJump(from, to){
         from.addEventListener("keydown", function(e){
             if(e.key === "Enter" && e.shiftKey){
@@ -226,7 +250,6 @@
     bindShiftJump(elaboracion, presentacion);
     bindShiftJump(presentacion, nutricion);
 
-    // Shift+Enter en NUTRICION crea primera fila
     nutricion.addEventListener("keydown", function(e){
         if(e.key === "Enter" && e.shiftKey){
             e.preventDefault();
@@ -243,19 +266,38 @@
         fila.querySelector(".ing-select").focus();
     }
 
+    function ingredienteYaUsado(ingId, filaActual){
+        if(!ingId) return false;
+        const filas = tbody.querySelectorAll("tr:not(#fila-plantilla)");
+        for(const f of filas){
+            if(f === filaActual) continue;
+            const sel = f.querySelector(".ing-select");
+            if(sel && sel.value === ingId){
+                return true;
+            }
+        }
+        return false;
+    }
+
     function prepararFila(fila){
         const sel = fila.querySelector(".ing-select");
         const qty = fila.querySelector(".ing-cantidad");
         const rol = fila.querySelector(".ing-rol");
         const umSpan = fila.querySelector(".ing-um");
+        const rolUmSpan = fila.querySelector(".rol-um");
         const btnBorrar = fila.querySelector(".btn-borrar");
 
-        sel.addEventListener("change", function(){
+        function actualizarUM(){
             const opt = sel.options[sel.selectedIndex];
-            umSpan.textContent = opt ? (opt.getAttribute("data-um") || "—") : "—";
+            const um = opt ? (opt.getAttribute("data-um") || "—") : "—";
+            umSpan.textContent = um;
+            rolUmSpan.textContent = um;
+        }
+
+        sel.addEventListener("change", function(){
+            actualizarUM();
         });
 
-        // Enter en INGREDIENTE -> CANTIDAD
         sel.addEventListener("keydown", function(e){
             if(e.key === "Enter"){
                 e.preventDefault();
@@ -263,7 +305,6 @@
             }
         });
 
-        // Enter en CANTIDAD -> ROL (y nunca submit)
         qty.addEventListener("keydown", function(e){
             if(e.key === "Enter"){
                 e.preventDefault();
@@ -271,10 +312,18 @@
             }
         });
 
-        // Enter en ROL -> nueva fila
+        // 👇 AQUÍ va la validación de duplicidad al dar Enter en ROL
         rol.addEventListener("keydown", function(e){
             if(e.key === "Enter"){
                 e.preventDefault();
+
+                const ingId = sel.value;
+                if(ingredienteYaUsado(ingId, fila)){
+                    alert("Ese ingrediente ya está en la receta.");
+                    sel.focus();
+                    return;
+                }
+
                 crearFilaYEnfocarIngrediente();
             }
         });
@@ -282,9 +331,10 @@
         btnBorrar.addEventListener("click", function(){
             fila.remove();
         });
+
+        actualizarUM();
     }
 
-    // Cancelar
     document.getElementById("btn-cancelar").addEventListener("click", function(){
         window.location.href = "/admin/recetas/nueva";
     });

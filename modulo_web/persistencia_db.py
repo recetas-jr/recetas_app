@@ -1,5 +1,3 @@
-# C:\Users\jrmon\Documents\recetas_app\modulo_web\persistencia_db.py
-
 import sqlite3
 from pathlib import Path
 
@@ -24,7 +22,6 @@ def init_db():
     # TABLAS BASE
     # ----------------------------
 
-    # Tabla: tipos_plato
     cur.execute("""
     CREATE TABLE IF NOT EXISTS tipos_plato (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -32,7 +29,6 @@ def init_db():
     );
     """)
 
-    # Tabla: platos
     cur.execute("""
     CREATE TABLE IF NOT EXISTS platos (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -45,7 +41,6 @@ def init_db():
     );
     """)
 
-    # Tabla: unidades
     cur.execute("""
     CREATE TABLE IF NOT EXISTS unidades (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -54,7 +49,6 @@ def init_db():
     );
     """)
 
-    # Tabla: ingredientes
     cur.execute("""
     CREATE TABLE IF NOT EXISTS ingredientes (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -69,7 +63,6 @@ def init_db():
     # TABLAS DEL MASTER DE RECETAS
     # ----------------------------
 
-    # Tabla: recetas_maestro (cabecera)
     cur.execute("""
     CREATE TABLE IF NOT EXISTS recetas_maestro (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -79,20 +72,18 @@ def init_db():
     );
     """)
 
-    # Tabla: recetas_ingredientes (detalle de ingredientes)
     cur.execute("""
     CREATE TABLE IF NOT EXISTS recetas_ingredientes (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         receta_id INTEGER NOT NULL,
         ingrediente_id INTEGER NOT NULL,
         cantidad REAL NOT NULL,
-        rol TEXT NOT NULL,
+        rol REAL NOT NULL,
         FOREIGN KEY (receta_id) REFERENCES recetas_maestro(id),
         FOREIGN KEY (ingrediente_id) REFERENCES ingredientes(id)
     );
     """)
 
-    # Tabla: recetas_detalle (textos largos)
     cur.execute("""
     CREATE TABLE IF NOT EXISTS recetas_detalle (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -110,67 +101,7 @@ def init_db():
 
 
 # ==================================================
-# FUNCIONES DE ESCRITURA
-# ==================================================
-
-def db_crear_receta(plato_id, raciones_base, textos, ingredientes):
-    """
-    textos: dict con claves: preparacion, elaboracion, presentacion, nutricion
-    ingredientes: lista de dicts con claves: ingrediente_id, cantidad, rol
-    """
-    conn = get_connection()
-    try:
-        cur = conn.cursor()
-        conn.execute("BEGIN")
-
-        # Insert cabecera
-        cur.execute(
-            "INSERT INTO recetas_maestro (plato_id, raciones_base) VALUES (?, ?)",
-            (int(plato_id), int(raciones_base))
-        )
-        receta_id = cur.lastrowid
-
-        # Insert textos largos
-        cur.execute(
-            """
-            INSERT INTO recetas_detalle (receta_id, preparacion, elaboracion, presentacion, nutricion)
-            VALUES (?, ?, ?, ?, ?)
-            """,
-            (
-                receta_id,
-                textos.get("preparacion", ""),
-                textos.get("elaboracion", ""),
-                textos.get("presentacion", ""),
-                textos.get("nutricion", ""),
-            )
-        )
-
-        # Insert ingredientes
-        for it in ingredientes:
-            cur.execute(
-                """
-                INSERT INTO recetas_ingredientes (receta_id, ingrediente_id, cantidad, rol)
-                VALUES (?, ?, ?, ?)
-                """,
-                (
-                    receta_id,
-                    int(it["ingrediente_id"]),
-                    float(it["cantidad"]),
-                    it["rol"],
-                )
-            )
-
-        conn.commit()
-        return receta_id
-    except Exception:
-        conn.rollback()
-        raise
-    finally:
-        conn.close()
-
-
-# ==================================================
-# FUNCIONES DE LECTURA (DB → dicts)
+# FUNCIONES DE LECTURA
 # ==================================================
 
 def db_cargar_tipos_plato():
@@ -254,13 +185,15 @@ def db_cargar_recetas_maestro_listado():
     conn = get_connection()
     cur = conn.cursor()
 
+    # 🔴 AQUÍ calculamos si hay decoración: MAX(CASE WHEN rol > 0 THEN 1 ELSE 0 END)
     cur.execute("""
         SELECT
             r.id,
             r.plato_id,
             p.nombre AS plato_nombre,
             r.raciones_base,
-            COUNT(ri.id) AS cantidad_ingredientes
+            COUNT(ri.id) AS cantidad_ingredientes,
+            COALESCE(MAX(CASE WHEN ri.rol > 0 THEN 1 ELSE 0 END), 0) AS tiene_decoracion
         FROM recetas_maestro r
         JOIN platos p ON p.id = r.plato_id
         LEFT JOIN recetas_ingredientes ri ON ri.receta_id = r.id
@@ -278,7 +211,8 @@ def db_cargar_recetas_maestro_listado():
             "plato_id": f["plato_id"],
             "plato_nombre": f["plato_nombre"],
             "raciones_base": f["raciones_base"],
-            "cantidad_ingredientes": f["cantidad_ingredientes"]
+            "cantidad_ingredientes": f["cantidad_ingredientes"],
+            "tiene_decoracion": bool(f["tiene_decoracion"])
         })
 
     return resultado
@@ -288,7 +222,6 @@ def db_cargar_receta_detalle(receta_id):
     conn = get_connection()
     cur = conn.cursor()
 
-    # 1) Cabecera + plato
     cur.execute("""
         SELECT
             r.id,
@@ -321,7 +254,6 @@ def db_cargar_receta_detalle(receta_id):
         "ingredientes": []
     }
 
-    # 2) Textos largos
     cur.execute("""
         SELECT preparacion, elaboracion, presentacion, nutricion
         FROM recetas_detalle
@@ -336,7 +268,6 @@ def db_cargar_receta_detalle(receta_id):
             "nutricion": fila_txt["nutricion"] or ""
         }
 
-    # 3) Ingredientes
     cur.execute("""
         SELECT
             ri.ingrediente_id,

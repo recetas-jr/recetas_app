@@ -53,7 +53,7 @@ def admin_recetas_listado():
     return render_template("admin_recetas_listado.html", recetas=recetas_listado)
 
 # ==================================================
-# NUEVA RECETA (MASTER)
+# NUEVA RECETA (MASTER) — BACKEND BLINDADO
 # ==================================================
 
 @app.route("/admin/recetas/nueva", methods=["GET", "POST"])
@@ -69,6 +69,34 @@ def admin_recetas_nueva():
             flash("Debe seleccionar un plato.", "error")
             return render_template("admin_recetas_nueva.html", platos=platos, ingredientes=ingredientes)
 
+        # --- BLOQUEO: receta duplicada por plato (mensaje con colores) ---
+        try:
+            conn = get_connection()
+            cur = conn.cursor()
+            cur.execute("""
+                SELECT p.nombre
+                FROM recetas_maestro r
+                JOIN platos p ON p.id = r.plato_id
+                WHERE r.plato_id = ?
+            """, (int(plato_id),))
+            fila = cur.fetchone()
+            if fila:
+                nombre_plato = fila["nombre"]
+                conn.close()
+                flash(
+                    f"<span style='color:#0b5d1e; font-weight:bold;'>LA RECETA </span>"
+                    f"<span style='color:#cc0000; font-weight:bold;'>{nombre_plato}</span>"
+                    f"<span style='color:#0b5d1e; font-weight:bold;'> YA EXISTE</span>",
+                    "error"
+                )
+                return render_template("admin_recetas_nueva.html", platos=platos, ingredientes=ingredientes)
+            conn.close()
+        except Exception as e:
+            print("ERROR verificando duplicado de receta:", e)
+            flash("Error verificando duplicado de receta.", "error")
+            return render_template("admin_recetas_nueva.html", platos=platos, ingredientes=ingredientes)
+
+        # --- Validación raciones ---
         try:
             raciones_base_int = int(raciones_base)
             if raciones_base_int <= 0:
@@ -82,37 +110,53 @@ def admin_recetas_nueva():
         cantidades = request.form.getlist("cantidad[]")
         roles = request.form.getlist("rol[]")
 
+        # --- Validaciones de ingredientes ---
+        vistos = set()
         filas_validas = []
 
         for i in range(len(ingredientes_ids)):
-            ing_id = ingredientes_ids[i].strip()
-            cant = cantidades[i].strip()
-            rol = roles[i].strip()
+            ing_id = (ingredientes_ids[i] or "").strip()
+            cant_txt = (cantidades[i] or "").strip()
+            rol_txt = (roles[i] or "").strip()
 
+            # Si no hay ingrediente seleccionado, saltamos la fila
             if not ing_id:
                 continue
 
-            try:
-                cant_f = float(cant)
-            except:
-                continue
+            # Duplicados de ingrediente
+            if ing_id in vistos:
+                flash("No se permiten ingredientes duplicados en la receta.", "error")
+                return render_template("admin_recetas_nueva.html", platos=platos, ingredientes=ingredientes)
+            vistos.add(ing_id)
 
+            # Cantidad obligatoria > 0
             try:
-                rol_f = float(rol) if rol else 0.0
+                cant_f = float(cant_txt)
             except:
-                rol_f = 0.0
-
-            # -----------------------------
-            # 🔒 VALIDACIONES IMPORTANTES
-            # -----------------------------
+                flash("La cantidad debe ser numérica.", "error")
+                return render_template("admin_recetas_nueva.html", platos=platos, ingredientes=ingredientes)
 
             if cant_f <= 0:
-                continue
-
-            # ❌ ROL no puede ser mayor que CANTIDAD
-            if rol_f > cant_f:
-                flash("El Rol no puede ser mayor que la Cantidad en un ingrediente.", "error")
+                flash("La cantidad debe ser mayor que 0 en todos los ingredientes.", "error")
                 return render_template("admin_recetas_nueva.html", platos=platos, ingredientes=ingredientes)
+
+            # Rol opcional, pero numérico y >= 0 y <= cantidad
+            if rol_txt == "":
+                rol_f = 0.0
+            else:
+                try:
+                    rol_f = float(rol_txt)
+                except:
+                    flash("El rol debe ser numérico.", "error")
+                    return render_template("admin_recetas_nueva.html", platos=platos, ingredientes=ingredientes)
+
+                if rol_f < 0:
+                    flash("El rol no puede ser negativo.", "error")
+                    return render_template("admin_recetas_nueva.html", platos=platos, ingredientes=ingredientes)
+
+                if rol_f > cant_f:
+                    flash("El rol no puede ser mayor que la cantidad.", "error")
+                    return render_template("admin_recetas_nueva.html", platos=platos, ingredientes=ingredientes)
 
             filas_validas.append((int(ing_id), cant_f, rol_f))
 
@@ -120,18 +164,17 @@ def admin_recetas_nueva():
             flash("La receta debe tener al menos un ingrediente con cantidad > 0.", "error")
             return render_template("admin_recetas_nueva.html", platos=platos, ingredientes=ingredientes)
 
+        # --- Guardado en BD ---
         try:
             conn = get_connection()
             cur = conn.cursor()
 
-            # Insert cabecera
             cur.execute(
                 "INSERT INTO recetas_maestro (plato_id, raciones_base) VALUES (?, ?)",
                 (int(plato_id), raciones_base_int)
             )
             receta_id = cur.lastrowid
 
-            # Insert ingredientes
             for (ing_id, cant_f, rol_f) in filas_validas:
                 cur.execute(
                     "INSERT INTO recetas_ingredientes (receta_id, ingrediente_id, cantidad, rol) VALUES (?, ?, ?, ?)",
@@ -151,7 +194,7 @@ def admin_recetas_nueva():
     return render_template("admin_recetas_nueva.html", platos=platos, ingredientes=ingredientes)
 
 # ==================================================
-# BORRAR RECETA (CASCADE MANUAL)
+# BORRAR RECETA
 # ==================================================
 
 @app.route("/admin/recetas/borrar/<int:receta_id>", methods=["POST"])
@@ -160,22 +203,13 @@ def borrar_receta(receta_id):
         conn = get_connection()
         cur = conn.cursor()
 
-        cur.execute("""
-            SELECT p.nombre AS plato_nombre
-            FROM recetas_maestro r
-            JOIN platos p ON p.id = r.plato_id
-            WHERE r.id = ?
-        """, (receta_id,))
-        fila = cur.fetchone()
-        nombre_plato = fila["plato_nombre"] if fila else "receta"
-
         cur.execute("DELETE FROM recetas_ingredientes WHERE receta_id = ?", (receta_id,))
         cur.execute("DELETE FROM recetas_detalle WHERE receta_id = ?", (receta_id,))
         cur.execute("DELETE FROM recetas_maestro WHERE id = ?", (receta_id,))
 
         conn.commit()
         conn.close()
-        flash(f"<span class='item'>{nombre_plato}</span> borrado del M.R.", "ok")
+        flash("Receta borrada correctamente.", "ok")
 
     except Exception as e:
         print("ERROR borrando receta:", e)

@@ -1,3 +1,5 @@
+# Archivo: modulo_web/persistencia_db.py
+
 import sqlite3
 from pathlib import Path
 
@@ -101,6 +103,59 @@ def init_db():
 
 
 # ==================================================
+# FUNCIONES DE ESCRITURA
+# ==================================================
+
+def db_crear_receta(plato_id, raciones_base, textos, ingredientes):
+    conn = get_connection()
+    try:
+        cur = conn.cursor()
+        conn.execute("BEGIN")
+
+        cur.execute(
+            "INSERT INTO recetas_maestro (plato_id, raciones_base) VALUES (?, ?)",
+            (int(plato_id), int(raciones_base))
+        )
+        receta_id = cur.lastrowid
+
+        cur.execute(
+            """
+            INSERT INTO recetas_detalle (receta_id, preparacion, elaboracion, presentacion, nutricion)
+            VALUES (?, ?, ?, ?, ?)
+            """,
+            (
+                receta_id,
+                textos.get("preparacion", ""),
+                textos.get("elaboracion", ""),
+                textos.get("presentacion", ""),
+                textos.get("nutricion", ""),
+            )
+        )
+
+        for it in ingredientes:
+            cur.execute(
+                """
+                INSERT INTO recetas_ingredientes (receta_id, ingrediente_id, cantidad, rol)
+                VALUES (?, ?, ?, ?)
+                """,
+                (
+                    receta_id,
+                    int(it["ingrediente_id"]),
+                    float(it["cantidad"]),
+                    float(it["rol"]),
+                )
+            )
+
+        conn.commit()
+        return receta_id
+    except Exception:
+        conn.rollback()
+        raise
+    finally:
+        conn.close()
+
+
+# ==================================================
 # FUNCIONES DE LECTURA
 # ==================================================
 
@@ -182,10 +237,14 @@ def db_cargar_ingredientes():
 
 
 def db_cargar_recetas_maestro_listado():
+    """
+    Devuelve listado de recetas con:
+    - cantidad_ingredientes
+    - tiene_decoracion = 1 SOLO si existe algún ingrediente con rol > 0
+    """
     conn = get_connection()
     cur = conn.cursor()
 
-    # 🔴 AQUÍ calculamos si hay decoración: MAX(CASE WHEN rol > 0 THEN 1 ELSE 0 END)
     cur.execute("""
         SELECT
             r.id,
@@ -193,7 +252,12 @@ def db_cargar_recetas_maestro_listado():
             p.nombre AS plato_nombre,
             r.raciones_base,
             COUNT(ri.id) AS cantidad_ingredientes,
-            COALESCE(MAX(CASE WHEN ri.rol > 0 THEN 1 ELSE 0 END), 0) AS tiene_decoracion
+            MAX(
+                CASE
+                    WHEN CAST(IFNULL(ri.rol, 0) AS REAL) > 0 THEN 1
+                    ELSE 0
+                END
+            ) AS tiene_decoracion
         FROM recetas_maestro r
         JOIN platos p ON p.id = r.plato_id
         LEFT JOIN recetas_ingredientes ri ON ri.receta_id = r.id
@@ -212,7 +276,7 @@ def db_cargar_recetas_maestro_listado():
             "plato_nombre": f["plato_nombre"],
             "raciones_base": f["raciones_base"],
             "cantidad_ingredientes": f["cantidad_ingredientes"],
-            "tiene_decoracion": bool(f["tiene_decoracion"])
+            "tiene_decoracion": f["tiene_decoracion"] if f["tiene_decoracion"] is not None else 0
         })
 
     return resultado
@@ -299,3 +363,5 @@ def db_cargar_receta_detalle(receta_id):
 
 if __name__ == "__main__":
     init_db()
+
+# Fin del archivo: modulo_web/persistencia_db.py

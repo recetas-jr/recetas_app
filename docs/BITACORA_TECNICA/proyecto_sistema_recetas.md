@@ -1221,4 +1221,83 @@ Reglas base:
 ---
 
 
+## 📌 Fase: Afinado del Master de Recetas (UI, validaciones y estabilidad)
+
+**Fecha:** 2026-02-21  
+**Rama:** `fase-xix-master-web`
+
+### 🎯 Objetivo
+Mejorar la ergonomía del formulario **Master de Recetas**, reforzar validaciones críticas y estabilizar el flujo de captura, **sin romper** funcionalidades ya correctas.
+
+---
+
+### 🖥️ Cambios en la Interfaz (UI / UX)
+
+- Se implementó la **Variante B** del Master:
+  - Distribución de los textos en **dos columnas**: Preparación / Elaboración y Presentación / Nutrición.
+  - Reducción de la altura de los textareas para que **la parte inferior del formulario sea visible** sin tanto scroll.
+  - Aprovechamiento del ancho de pantalla para mejorar la lectura y escritura.
+
+- Se añadió una **barra de acciones fija (sticky)** en la parte superior derecha con:
+  - `Guardar receta`
+  - `Ir al Listado`
+  - `Cancelar`
+  - Los botones permanecen visibles al hacer scroll, mejorando la ergonomía y velocidad de operación.
+
+- Se aplicó **resaltado violeta claro al foco** en inputs, selects, textareas y botones para mejorar la orientación visual del operador.
+
+- Se ajustó el campo **Raciones base** a un ancho reducido (pendiente de ajuste fino en siguiente iteración para permitir 3 cifras con comodidad).
+
+---
+
+### ✅ Validaciones y Flujo de Captura
+
+- **Cantidad**:
+  - Debe ser **numérica y mayor que 0**.
+  - No se permite salir del campo con `Enter` si el valor es inválido.
+
+- **Rol**:
+  - Debe ser **numérico y >= 0**.
+  - Puede ser **igual o menor que Cantidad** (se permite igualdad).
+  - No puede ser mayor que Cantidad.
+  - Rol = 0 indica que el ingrediente **no participa en decoración**.
+
+- **Detección de duplicados de ingredientes**:
+  - Al presionar `Enter` en **Rol**, se verifica si el ingrediente ya existe en la receta.
+  - Si está duplicado:
+    - Se muestra mensaje de error con el **nombre del ingrediente**.
+    - El selector de esa fila se limpia y queda con foco.
+    - No se crea nueva fila.
+
+- **Flujo de Enter**:
+  - Ingrediente → Cantidad → Rol → (si todo es válido) nueva fila.
+  - Si Cantidad o Rol son inválidos, el foco **no avanza** y se muestra mensaje.
+
+---
+
+### 🎨 Decoración en el Listado de Recetas
+
+- Se definió que una receta **tiene decoración** solo si:
+  - Existe **al menos un ingrediente con Rol > 0**.
+- El listado muestra un **icono de decoración** únicamente en ese caso.
+- Se agregó una **leyenda visual**: “Tiene decoración”.
+
+---
+
+### 🧱 Estabilidad y Control de Cambios
+
+- Se hizo énfasis en:
+  - Ajustes **quirúrgicos** para no romper funciones existentes.
+  - Separación clara entre cambios de **UI** y **lógica de negocio**.
+- Se realizó un **commit de checkpoint** con:
+  > `Checkpoint: Master de Recetas (UI, validaciones, listado y persistencia)`
+
+---
+
+### 📌 Pendientes Inmediatos
+
+- Ajustar ligeramente el ancho del campo **Raciones base** para permitir 3 cifras cómodamente.
+- Revisar y **reparar la migración** de base de datos con foco en consistencia y compatibilidad.
+- Continuar fortaleciendo la documentación técnica del proyecto.
+
 

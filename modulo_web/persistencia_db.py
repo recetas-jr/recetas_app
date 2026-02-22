@@ -1,8 +1,12 @@
+# C:\Users\jrmon\Documents\recetas_app\modulo_web\persistencia_db.py
+
 import sqlite3
 from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parent
 DB_PATH = BASE_DIR / "recetas.db"
+
+print("DEBUG DB_PATH en runtime:", DB_PATH)
 
 
 def get_connection():
@@ -15,6 +19,10 @@ def get_connection():
 def init_db():
     conn = get_connection()
     cur = conn.cursor()
+
+    # ----------------------------
+    # TABLAS BASE
+    # ----------------------------
 
     # Tabla: tipos_plato
     cur.execute("""
@@ -32,6 +40,7 @@ def init_db():
         tipo_plato_id INTEGER,
         activo INTEGER NOT NULL DEFAULT 1,
         peso_racion REAL,
+        foto TEXT,
         FOREIGN KEY (tipo_plato_id) REFERENCES tipos_plato(id)
     );
     """)
@@ -56,19 +65,21 @@ def init_db():
     );
     """)
 
-    # Tabla: recetas_maestro
+    # ----------------------------
+    # TABLAS DEL MASTER DE RECETAS
+    # ----------------------------
+
+    # Tabla: recetas_maestro (cabecera)
     cur.execute("""
     CREATE TABLE IF NOT EXISTS recetas_maestro (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         plato_id INTEGER NOT NULL,
         raciones_base INTEGER NOT NULL,
-        fecha_creacion TEXT,
-        activo INTEGER NOT NULL DEFAULT 1,
         FOREIGN KEY (plato_id) REFERENCES platos(id)
     );
     """)
 
-    # Tabla: recetas_ingredientes
+    # Tabla: recetas_ingredientes (detalle de ingredientes)
     cur.execute("""
     CREATE TABLE IF NOT EXISTS recetas_ingredientes (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -81,11 +92,11 @@ def init_db():
     );
     """)
 
-    # Tabla: recetas_detalle
+    # Tabla: recetas_detalle (textos largos)
     cur.execute("""
     CREATE TABLE IF NOT EXISTS recetas_detalle (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
-        receta_id INTEGER NOT NULL,
+        receta_id INTEGER NOT NULL UNIQUE,
         preparacion TEXT,
         elaboracion TEXT,
         presentacion TEXT,
@@ -96,6 +107,66 @@ def init_db():
 
     conn.commit()
     conn.close()
+
+
+# ==================================================
+# FUNCIONES DE ESCRITURA
+# ==================================================
+
+def db_crear_receta(plato_id, raciones_base, textos, ingredientes):
+    """
+    textos: dict con claves: preparacion, elaboracion, presentacion, nutricion
+    ingredientes: lista de dicts con claves: ingrediente_id, cantidad, rol
+    """
+    conn = get_connection()
+    try:
+        cur = conn.cursor()
+        conn.execute("BEGIN")
+
+        # Insert cabecera
+        cur.execute(
+            "INSERT INTO recetas_maestro (plato_id, raciones_base) VALUES (?, ?)",
+            (int(plato_id), int(raciones_base))
+        )
+        receta_id = cur.lastrowid
+
+        # Insert textos largos
+        cur.execute(
+            """
+            INSERT INTO recetas_detalle (receta_id, preparacion, elaboracion, presentacion, nutricion)
+            VALUES (?, ?, ?, ?, ?)
+            """,
+            (
+                receta_id,
+                textos.get("preparacion", ""),
+                textos.get("elaboracion", ""),
+                textos.get("presentacion", ""),
+                textos.get("nutricion", ""),
+            )
+        )
+
+        # Insert ingredientes
+        for it in ingredientes:
+            cur.execute(
+                """
+                INSERT INTO recetas_ingredientes (receta_id, ingrediente_id, cantidad, rol)
+                VALUES (?, ?, ?, ?)
+                """,
+                (
+                    receta_id,
+                    int(it["ingrediente_id"]),
+                    float(it["cantidad"]),
+                    it["rol"],
+                )
+            )
+
+        conn.commit()
+        return receta_id
+    except Exception:
+        conn.rollback()
+        raise
+    finally:
+        conn.close()
 
 
 # ==================================================
@@ -114,10 +185,7 @@ def db_cargar_tipos_plato():
     filas = cur.fetchall()
     conn.close()
 
-    return [
-        {"id": f["id"], "nombre": f["nombre"]}
-        for f in filas
-    ]
+    return [{"id": f["id"], "nombre": f["nombre"]} for f in filas]
 
 
 def db_cargar_platos():
@@ -130,6 +198,7 @@ def db_cargar_platos():
             p.nombre,
             p.activo,
             p.peso_racion,
+            p.foto,
             t.nombre AS tipo_plato
         FROM platos p
         LEFT JOIN tipos_plato t ON p.tipo_plato_id = t.id
@@ -147,7 +216,8 @@ def db_cargar_platos():
             "nombre": f["nombre"],
             "tipo_plato": f["tipo_plato"] or "",
             "activo": f["activo"],
-            "peso_racion": f["peso_racion"] if f["peso_racion"] is not None else 0.0
+            "peso_racion": f["peso_racion"] if f["peso_racion"] is not None else 0.0,
+            "foto": f["foto"]
         })
 
     return resultado
@@ -161,10 +231,7 @@ def db_cargar_unidades():
     filas = cur.fetchall()
     conn.close()
 
-    return [
-        {"id": f["id"], "codigo": f["codigo"], "nombre": f["nombre"]}
-        for f in filas
-    ]
+    return [{"id": f["id"], "codigo": f["codigo"], "nombre": f["nombre"]} for f in filas]
 
 
 def db_cargar_ingredientes():
@@ -180,10 +247,7 @@ def db_cargar_ingredientes():
     filas = cur.fetchall()
     conn.close()
 
-    return [
-        {"id": f["id"], "nombre": f["nombre"], "unidad_id": f["unidad_id"]}
-        for f in filas
-    ]
+    return [{"id": f["id"], "nombre": f["nombre"], "unidad_id": f["unidad_id"]} for f in filas]
 
 
 def db_cargar_recetas_maestro_listado():
@@ -200,7 +264,6 @@ def db_cargar_recetas_maestro_listado():
         FROM recetas_maestro r
         JOIN platos p ON p.id = r.plato_id
         LEFT JOIN recetas_ingredientes ri ON ri.receta_id = r.id
-        WHERE r.activo = 1
         GROUP BY r.id, r.plato_id, p.nombre, r.raciones_base
         ORDER BY p.nombre
     """)
@@ -225,16 +288,17 @@ def db_cargar_receta_detalle(receta_id):
     conn = get_connection()
     cur = conn.cursor()
 
-    # 1) Cargar cabecera de receta + plato
+    # 1) Cabecera + plato
     cur.execute("""
         SELECT
             r.id,
             r.plato_id,
             r.raciones_base,
-            p.nombre AS plato_nombre
+            p.nombre AS plato_nombre,
+            p.foto AS plato_foto
         FROM recetas_maestro r
         JOIN platos p ON p.id = r.plato_id
-        WHERE r.id = ? AND r.activo = 1
+        WHERE r.id = ?
     """, (receta_id,))
 
     fila = cur.fetchone()
@@ -245,17 +309,40 @@ def db_cargar_receta_detalle(receta_id):
     receta = {
         "id": fila["id"],
         "plato_id": fila["plato_id"],
-        "raciones_base": fila["raciones_base"],
         "plato_nombre": fila["plato_nombre"],
+        "plato_foto": fila["plato_foto"],
+        "raciones_base": fila["raciones_base"],
+        "textos": {
+            "preparacion": "",
+            "elaboracion": "",
+            "presentacion": "",
+            "nutricion": ""
+        },
         "ingredientes": []
     }
 
-    # 2) Cargar ingredientes de la receta
+    # 2) Textos largos
+    cur.execute("""
+        SELECT preparacion, elaboracion, presentacion, nutricion
+        FROM recetas_detalle
+        WHERE receta_id = ?
+    """, (receta_id,))
+    fila_txt = cur.fetchone()
+    if fila_txt:
+        receta["textos"] = {
+            "preparacion": fila_txt["preparacion"] or "",
+            "elaboracion": fila_txt["elaboracion"] or "",
+            "presentacion": fila_txt["presentacion"] or "",
+            "nutricion": fila_txt["nutricion"] or ""
+        }
+
+    # 3) Ingredientes
     cur.execute("""
         SELECT
             ri.ingrediente_id,
             i.nombre AS ingrediente_nombre,
             ri.cantidad,
+            ri.rol,
             u.codigo AS unidad_codigo
         FROM recetas_ingredientes ri
         JOIN ingredientes i ON i.id = ri.ingrediente_id
@@ -272,6 +359,7 @@ def db_cargar_receta_detalle(receta_id):
             "ingrediente_id": f["ingrediente_id"],
             "nombre": f["ingrediente_nombre"],
             "cantidad": f["cantidad"],
+            "rol": f["rol"],
             "unidad": f["unidad_codigo"]
         })
 

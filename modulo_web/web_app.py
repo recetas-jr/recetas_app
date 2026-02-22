@@ -1,7 +1,6 @@
-# modulo_web/web_app.py
+# Archivo: C:\Users\jrmon\Documents\recetas_app\modulo_web\web_app.py
 
 from flask import Flask, render_template, request, redirect, flash
-
 from modulo_web.persistencia_db import (
     db_cargar_platos,
     db_cargar_unidades,
@@ -377,6 +376,90 @@ def borrar_ingrediente(ingrediente_id):
 def admin_recetas_listado():
     recetas_listado = db_cargar_recetas_maestro_listado()
     return render_template("admin_recetas_listado.html", recetas=recetas_listado)
+
+# ==================================================
+# NUEVA RECETA (MASTER)
+# ==================================================
+
+@app.route("/admin/recetas/nueva", methods=["GET", "POST"])
+def admin_recetas_nueva():
+    platos = db_cargar_platos()
+    ingredientes = cargar_ingredientes_con_unidad()
+
+    if request.method == "POST":
+        plato_id = request.form.get("plato_id", "").strip()
+        raciones_base = request.form.get("raciones_base", "").strip()
+
+        if not plato_id:
+            flash("Debe seleccionar un plato.", "error")
+            return render_template("admin_recetas_nueva.html", platos=platos, ingredientes=ingredientes)
+
+        try:
+            raciones_base_int = int(raciones_base)
+            if raciones_base_int <= 0:
+                flash("Raciones base debe ser mayor que 0.", "error")
+                return render_template("admin_recetas_nueva.html", platos=platos, ingredientes=ingredientes)
+        except:
+            flash("Raciones base debe ser numérico.", "error")
+            return render_template("admin_recetas_nueva.html", platos=platos, ingredientes=ingredientes)
+
+        ingredientes_ids = request.form.getlist("ingrediente_id[]")
+        cantidades = request.form.getlist("cantidad[]")
+        roles = request.form.getlist("rol[]")
+
+        filas_validas = []
+        for i in range(len(ingredientes_ids)):
+            ing_id = ingredientes_ids[i].strip()
+            cant = cantidades[i].strip()
+            rol = roles[i].strip()
+
+            if not ing_id:
+                continue
+
+            try:
+                cant_f = float(cant)
+            except:
+                continue
+
+            try:
+                rol_f = float(rol) if rol else 0.0
+            except:
+                rol_f = 0.0
+
+            if cant_f > 0:
+                filas_validas.append((int(ing_id), cant_f, rol_f))
+
+        if not filas_validas:
+            flash("La receta debe tener al menos un ingrediente con cantidad > 0.", "error")
+            return render_template("admin_recetas_nueva.html", platos=platos, ingredientes=ingredientes)
+
+        try:
+            conn = get_connection()
+            cur = conn.cursor()
+
+            cur.execute(
+                "INSERT INTO recetas_maestro (plato_id, raciones_base, fecha_creacion, activo) VALUES (?, ?, datetime('now'), 1)",
+                (int(plato_id), raciones_base_int)
+            )
+            receta_id = cur.lastrowid
+
+            for (ing_id, cant_f, rol_f) in filas_validas:
+                cur.execute(
+                    "INSERT INTO recetas_ingredientes (receta_id, ingrediente_id, cantidad, rol) VALUES (?, ?, ?, ?)",
+                    (receta_id, ing_id, cant_f, rol_f)
+                )
+
+            conn.commit()
+            conn.close()
+
+            flash("Receta creada correctamente.", "ok")
+            return redirect("/admin/recetas/listado")
+
+        except Exception as e:
+            print("ERROR guardando receta:", e)
+            flash("Error al guardar la receta.", "error")
+
+    return render_template("admin_recetas_nueva.html", platos=platos, ingredientes=ingredientes)
 
 # ==================================================
 # BORRAR RECETA (CASCADE MANUAL)

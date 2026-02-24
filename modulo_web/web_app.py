@@ -85,6 +85,90 @@ def borrar_tipo_plato(tipo_id):
     return redirect("/admin/tipos_plato")
 
 # ==================================================
+# ADMIN UNIDADES DE MEDIDA (UM)
+# ==================================================
+
+@app.route("/admin/unidades", methods=["GET", "POST"])
+def admin_unidades():
+    errores = []
+
+    if request.method == "POST":
+        codigo = (request.form.get("codigo") or "").strip().upper()
+        nombre = (request.form.get("nombre") or "").strip().lower()
+
+        if not codigo:
+            errores.append("El código es obligatorio.")
+        elif len(codigo) > 2:
+            errores.append("El código no puede tener más de 2 caracteres.")
+
+        if not nombre:
+            errores.append("El nombre es obligatorio.")
+
+        if not errores:
+            try:
+                conn = get_connection()
+                cur = conn.cursor()
+
+                # Verificar duplicados (código o nombre)
+                cur.execute(
+                    "SELECT id FROM unidades WHERE LOWER(codigo) = LOWER(?) OR LOWER(nombre) = LOWER(?)",
+                    (codigo, nombre)
+                )
+                existe = cur.fetchone()
+                if existe:
+                    conn.close()
+                    errores.append("Ya existe una unidad con ese código o nombre.")
+                else:
+                    cur.execute(
+                        "INSERT INTO unidades (codigo, nombre) VALUES (?, ?)",
+                        (codigo, nombre)
+                    )
+                    conn.commit()
+                    conn.close()
+                    flash(f"Unidad '<span class='item'>{codigo} - {nombre}</span>' creada correctamente.", "ok")
+                    return redirect("/admin/unidades")
+
+            except Exception as e:
+                print("ERROR creando unidad:", e)
+                errores.append("Error al crear la unidad.")
+
+    unidades = db_cargar_unidades()
+    return render_template("admin_unidades.html", unidades=unidades, errores=errores)
+
+
+@app.route("/admin/unidades/borrar/<int:unidad_id>", methods=["POST"])
+def borrar_unidad(unidad_id):
+    try:
+        conn = get_connection()
+        cur = conn.cursor()
+
+        # Verificar si está en uso por algún ingrediente
+        cur.execute("SELECT COUNT(*) as c FROM ingredientes WHERE unidad_id = ?", (unidad_id,))
+        fila = cur.fetchone()
+        if fila and fila["c"] > 0:
+            conn.close()
+            flash("No se puede borrar la unidad porque está en uso por algún ingrediente.", "error")
+            return redirect("/admin/unidades")
+
+        # Obtener nombre para mensaje
+        cur.execute("SELECT codigo, nombre FROM unidades WHERE id = ?", (unidad_id,))
+        fila_nombre = cur.fetchone()
+        codigo = fila_nombre["codigo"] if fila_nombre else ""
+        nombre = fila_nombre["nombre"] if fila_nombre else ""
+
+        cur.execute("DELETE FROM unidades WHERE id = ?", (unidad_id,))
+        conn.commit()
+        conn.close()
+
+        flash(f"Unidad '<span class='item'>{codigo} - {nombre}</span>' borrada correctamente.", "ok")
+
+    except Exception as e:
+        print("ERROR borrando unidad:", e)
+        flash("No se pudo borrar la unidad.", "error")
+
+    return redirect("/admin/unidades")
+
+# ==================================================
 # UTILIDAD — INGREDIENTES CON UNIDAD
 # ==================================================
 

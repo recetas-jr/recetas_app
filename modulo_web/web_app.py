@@ -276,6 +276,91 @@ def cargar_ingredientes_con_unidad():
 
     return resultado
 
+
+# ==================================================
+# ADMIN PLATOS
+# ==================================================
+
+@app.route("/admin/platos", methods=["GET", "POST"])
+def admin_platos():
+    errores = []
+
+    if request.method == "POST":
+        nombre = (request.form.get("nombre") or "").strip()
+        tipo_plato_id = (request.form.get("tipo_plato_id") or "").strip()
+
+        if not nombre:
+            errores.append("El nombre del plato es obligatorio.")
+
+        if not tipo_plato_id:
+            errores.append("Debe seleccionar un tipo de plato.")
+
+        if not errores:
+            try:
+                conn = get_connection()
+                cur = conn.cursor()
+
+                # Verificar duplicado por nombre (case-insensitive)
+                cur.execute("SELECT id FROM platos WHERE LOWER(nombre) = LOWER(?)", (nombre,))
+                existe = cur.fetchone()
+                if existe:
+                    conn.close()
+                    errores.append("Ese plato ya existe.")
+                else:
+                    cur.execute(
+                        "INSERT INTO platos (nombre, tipo_plato_id) VALUES (?, ?)",
+                        (nombre, int(tipo_plato_id))
+                    )
+                    conn.commit()
+                    conn.close()
+                    flash(f"Plato '<span class='item'>{nombre}</span>' creado correctamente.", "ok")
+                    return redirect("/admin/platos")
+
+            except Exception as e:
+                print("ERROR creando plato:", e)
+                errores.append("Error al crear el plato.")
+
+    platos = db_cargar_platos()
+    tipos_plato = db_cargar_tipos_plato()
+    return render_template(
+        "admin_platos.html",
+        platos=platos,
+        tipos_plato=tipos_plato,
+        errores=errores
+    )
+
+
+@app.route("/admin/platos/borrar/<int:plato_id>", methods=["POST"])
+def borrar_plato(plato_id):
+    try:
+        conn = get_connection()
+        cur = conn.cursor()
+
+        # Verificar si está en uso por alguna receta
+        cur.execute("SELECT COUNT(*) as c FROM recetas_maestro WHERE plato_id = ?", (plato_id,))
+        fila = cur.fetchone()
+        if fila and fila["c"] > 0:
+            conn.close()
+            flash("No se puede borrar el plato porque está en uso por alguna receta.", "error")
+            return redirect("/admin/platos")
+
+        # Obtener nombre para mensaje
+        cur.execute("SELECT nombre FROM platos WHERE id = ?", (plato_id,))
+        fila_nombre = cur.fetchone()
+        nombre = fila_nombre["nombre"] if fila_nombre else ""
+
+        cur.execute("DELETE FROM platos WHERE id = ?", (plato_id,))
+        conn.commit()
+        conn.close()
+
+        flash(f"Plato '<span class='item'>{nombre}</span>' borrado correctamente.", "ok")
+
+    except Exception as e:
+        print("ERROR borrando plato:", e)
+        flash("No se pudo borrar el plato.", "error")
+
+    return redirect("/admin/platos")
+
 # ==================================================
 # INDEX
 # ==================================================

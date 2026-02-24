@@ -168,6 +168,91 @@ def borrar_unidad(unidad_id):
 
     return redirect("/admin/unidades")
 
+
+# ==================================================
+# ADMIN INGREDIENTES
+# ==================================================
+
+@app.route("/admin/ingredientes", methods=["GET", "POST"])
+def admin_ingredientes():
+    errores = []
+
+    if request.method == "POST":
+        nombre = (request.form.get("nombre") or "").strip().lower()
+        unidad_id = (request.form.get("unidad_id") or "").strip()
+
+        if not nombre:
+            errores.append("El nombre del ingrediente es obligatorio.")
+
+        if not unidad_id:
+            errores.append("Debe seleccionar una unidad de medida.")
+
+        if not errores:
+            try:
+                conn = get_connection()
+                cur = conn.cursor()
+
+                # Verificar duplicado por nombre (case-insensitive)
+                cur.execute("SELECT id FROM ingredientes WHERE LOWER(nombre) = LOWER(?)", (nombre,))
+                existe = cur.fetchone()
+                if existe:
+                    conn.close()
+                    errores.append("Ese ingrediente ya existe.")
+                else:
+                    cur.execute(
+                        "INSERT INTO ingredientes (nombre, unidad_id) VALUES (?, ?)",
+                        (nombre, int(unidad_id))
+                    )
+                    conn.commit()
+                    conn.close()
+                    flash(f"Ingrediente '<span class='item'>{nombre}</span>' creado correctamente.", "ok")
+                    return redirect("/admin/ingredientes")
+
+            except Exception as e:
+                print("ERROR creando ingrediente:", e)
+                errores.append("Error al crear el ingrediente.")
+
+    ingredientes = db_cargar_ingredientes()
+    unidades = db_cargar_unidades()
+    return render_template(
+        "admin_ingredientes.html",
+        ingredientes=ingredientes,
+        unidades=unidades,
+        errores=errores
+    )
+
+
+@app.route("/admin/ingredientes/borrar/<int:ingrediente_id>", methods=["POST"])
+def borrar_ingrediente(ingrediente_id):
+    try:
+        conn = get_connection()
+        cur = conn.cursor()
+
+        # Verificar si está en uso en alguna receta
+        cur.execute("SELECT COUNT(*) as c FROM recetas_ingredientes WHERE ingrediente_id = ?", (ingrediente_id,))
+        fila = cur.fetchone()
+        if fila and fila["c"] > 0:
+            conn.close()
+            flash("No se puede borrar el ingrediente porque está en uso en alguna receta.", "error")
+            return redirect("/admin/ingredientes")
+
+        # Obtener nombre para mensaje
+        cur.execute("SELECT nombre FROM ingredientes WHERE id = ?", (ingrediente_id,))
+        fila_nombre = cur.fetchone()
+        nombre = fila_nombre["nombre"] if fila_nombre else ""
+
+        cur.execute("DELETE FROM ingredientes WHERE id = ?", (ingrediente_id,))
+        conn.commit()
+        conn.close()
+
+        flash(f"Ingrediente '<span class='item'>{nombre}</span>' borrado correctamente.", "ok")
+
+    except Exception as e:
+        print("ERROR borrando ingrediente:", e)
+        flash("No se pudo borrar el ingrediente.", "error")
+
+    return redirect("/admin/ingredientes")
+
 # ==================================================
 # UTILIDAD — INGREDIENTES CON UNIDAD
 # ==================================================

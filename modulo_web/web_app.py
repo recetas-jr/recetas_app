@@ -11,6 +11,79 @@ from modulo_web.persistencia_db import (
 app = Flask(__name__)
 app.secret_key = "recetas_app_clave_segura_temporal"
 
+#==================================================
+# ADMIN TIPOS DE PLATO
+# ==================================================
+
+@app.route("/admin/tipos_plato", methods=["GET", "POST"])
+def admin_tipos_plato():
+    errores = []
+
+    if request.method == "POST":
+        nombre = (request.form.get("nombre") or "").strip()
+
+        if not nombre:
+            errores.append("El nombre no puede estar vacío.")
+        elif len(nombre) > 40:
+            errores.append("El nombre no puede tener más de 40 caracteres.")
+
+        if not errores:
+            try:
+                conn = get_connection()
+                cur = conn.cursor()
+
+                # Verificar duplicado (case-insensitive)
+                cur.execute("SELECT id FROM tipos_plato WHERE LOWER(nombre) = LOWER(?)", (nombre,))
+                existe = cur.fetchone()
+                if existe:
+                    conn.close()
+                    errores.append("Ese tipo de plato ya existe.")
+                else:
+                    cur.execute("INSERT INTO tipos_plato (nombre) VALUES (?)", (nombre,))
+                    conn.commit()
+                    conn.close()
+                    flash(f"Tipo de plato '<span class='item'>{nombre}</span>' creado correctamente.", "ok")
+                    return redirect("/admin/tipos_plato")
+
+            except Exception as e:
+                print("ERROR creando tipo de plato:", e)
+                errores.append("Error al crear el tipo de plato.")
+
+    tipos = db_cargar_tipos_plato()
+    return render_template("admin_tipos_plato.html", tipos=tipos, errores=errores)
+
+
+@app.route("/admin/tipos_plato/borrar/<int:tipo_id>", methods=["POST"])
+def borrar_tipo_plato(tipo_id):
+    try:
+        conn = get_connection()
+        cur = conn.cursor()
+
+        # Verificar si está en uso por algún plato
+        cur.execute("SELECT COUNT(*) as c FROM platos WHERE tipo_plato_id = ?", (tipo_id,))
+        fila = cur.fetchone()
+        if fila and fila["c"] > 0:
+            conn.close()
+            flash("No se puede borrar el tipo de plato porque está en uso.", "error")
+            return redirect("/admin/tipos_plato")
+
+        # Obtener nombre para mensaje
+        cur.execute("SELECT nombre FROM tipos_plato WHERE id = ?", (tipo_id,))
+        fila_nombre = cur.fetchone()
+        nombre = fila_nombre["nombre"] if fila_nombre else ""
+
+        cur.execute("DELETE FROM tipos_plato WHERE id = ?", (tipo_id,))
+        conn.commit()
+        conn.close()
+
+        flash(f"Tipo de plato '<span class='item'>{nombre}</span>' borrado correctamente.", "ok")
+
+    except Exception as e:
+        print("ERROR borrando tipo de plato:", e)
+        flash("No se pudo borrar el tipo de plato.", "error")
+
+    return redirect("/admin/tipos_plato")
+
 # ==================================================
 # UTILIDAD — INGREDIENTES CON UNIDAD
 # ==================================================

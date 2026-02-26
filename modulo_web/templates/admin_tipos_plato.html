@@ -94,6 +94,19 @@
             color: #555;
             margin-left: 6px;
         }
+
+        /* =========================================
+                  FOCO VIOLETA ESTÁNDAR
+           ========================================= */
+
+        input:focus,
+        select:focus,
+        textarea:focus {
+            outline: none;
+            background-color: #f3e8ff;      /* violeta claro */
+            border: 2px solid #5b21b6;      /* violeta oscuro intenso */
+        }
+        
     </style>
 
     <script>
@@ -127,7 +140,7 @@
         <div class="errores">
             <ul>
             {% for e in errores %}
-                <li>{{ e }}</li>
+                <li>{{ e|safe }}</li>
             {% endfor %}
             </ul>
         </div>

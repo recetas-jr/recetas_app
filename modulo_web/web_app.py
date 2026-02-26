@@ -37,7 +37,12 @@ def admin_tipos_plato():
                 existe = cur.fetchone()
                 if existe:
                     conn.close()
-                    errores.append("Ese tipo de plato ya existe.")
+                    errores.append(
+                        f"⚠️ "
+                        f"<span style='color:#cc0000; font-weight:bold;'>{nombre}</span> "
+                        f"<span style='color:#0b5d1e; font-weight:bold;'>ya existe en</span> "
+                        f"<span style='color:#cc0000; font-weight:bold;'>TIPO DE PLATO</span>"
+                    )
                 else:
                     cur.execute("INSERT INTO tipos_plato (nombre) VALUES (?)", (nombre,))
                     conn.commit()
@@ -63,8 +68,20 @@ def borrar_tipo_plato(tipo_id):
         cur.execute("SELECT COUNT(*) as c FROM platos WHERE tipo_plato_id = ?", (tipo_id,))
         fila = cur.fetchone()
         if fila and fila["c"] > 0:
+            # Obtener nombre para mensaje
+            cur.execute("SELECT nombre FROM tipos_plato WHERE id = ?", (tipo_id,))
+            fila_nombre = cur.fetchone()
+            nombre = fila_nombre["nombre"] if fila_nombre else ""
+
             conn.close()
-            flash("No se puede borrar el tipo de plato porque está en uso.", "error")
+
+            flash(
+                f"⚠️ "
+                f"<span style='color:#cc0000; font-weight:bold;'>{nombre}</span> "
+                f"<span style='color:#0b5d1e; font-weight:bold;'>no se borra por estar en uso en</span> "
+                f"<span style='color:#cc0000; font-weight:bold;'>NOMENCLADOR DE PLATO</span>",
+                "error"
+            )
             return redirect("/admin/tipos_plato")
 
         # Obtener nombre para mensaje
@@ -253,6 +270,7 @@ def borrar_ingrediente(ingrediente_id):
 
     return redirect("/admin/ingredientes")
 
+
 # ==================================================
 # UTILIDAD — INGREDIENTES CON UNIDAD
 # ==================================================
@@ -361,6 +379,7 @@ def borrar_plato(plato_id):
 
     return redirect("/admin/platos")
 
+
 # ==================================================
 # INDEX
 # ==================================================
@@ -370,6 +389,7 @@ def index():
     recetas = db_cargar_recetas_maestro_listado()
     return render_template("index.html", recetas=recetas)
 
+
 # ==================================================
 # ADMIN RECETAS — LISTADO
 # ==================================================
@@ -378,6 +398,7 @@ def index():
 def admin_recetas_listado():
     recetas_listado = db_cargar_recetas_maestro_listado()
     return render_template("admin_recetas_listado.html", recetas=recetas_listado)
+
 
 # ==================================================
 # NUEVA RECETA (MASTER) — BACKEND BLINDADO
@@ -520,6 +541,7 @@ def admin_recetas_nueva():
 
     return render_template("admin_recetas_nueva.html", platos=platos, ingredientes=ingredientes)
 
+
 # ==================================================
 # BORRAR RECETA
 # ==================================================
@@ -543,6 +565,7 @@ def borrar_receta(receta_id):
         flash("No se pudo borrar la receta.", "error")
 
     return redirect("/admin/recetas/listado")
+
 
 # ==================================================
 # EJECUCIÓN

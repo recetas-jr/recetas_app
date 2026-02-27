@@ -1,4 +1,4 @@
-<!-- Ruta: modulo_web/templates/admin_ingredientes.html -->
+<!-- Archivo: modulo_web/templates/admin_ingredientes.html -->
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -33,6 +33,15 @@
         input, select {
             padding: 6px;
             font-size: 14px;
+        }
+
+        /* FOCO VIOLETA ESTÁNDAR */
+        input:focus,
+        select:focus,
+        textarea:focus {
+            outline: none;
+            background-color: #f3e8ff;
+            border: 2px solid #5b21b6;
         }
 
         #nombre {
@@ -96,37 +105,47 @@
     </style>
 
     <script>
-        function confirmarBorrado(nombre) {
-            return confirm("¿Seguro que desea borrar '" + nombre + "'?");
-        }
+    function confirmarBorrado(nombre) {
+        return confirm("¿Seguro que desea borrar '" + nombre + "'?");
+    }
 
-        document.addEventListener("DOMContentLoaded", function () {
-            const nombre = document.getElementById("nombre");
-            const unidad = document.getElementById("unidad_id");
-            const form = document.getElementById("form-ingredientes");
+    document.addEventListener("DOMContentLoaded", function () {
+        const nombre = document.getElementById("nombre");
+        const unidad = document.getElementById("unidad_id");
+        const form = document.getElementById("form-ingredientes");
 
-            nombre.addEventListener("keydown", function (e) {
-                if (e.key === "Enter") {
-                    e.preventDefault();
-                    unidad.focus();
-                }
-            });
-
-            unidad.addEventListener("keydown", function (e) {
-                if (e.key === "Enter") {
-                    e.preventDefault();
-                    form.submit();
-                }
-            });
-
-            document.addEventListener("keydown", function (e) {
-                if (e.key === "Escape") {
-                    nombre.value = "";
-                    unidad.value = "";
-                    nombre.focus();
-                }
-            });
+        /* Enter en nombre → pasa a UM */
+        nombre.addEventListener("keydown", function (e) {
+            if (e.key === "Enter") {
+                e.preventDefault();
+                unidad.focus();
+            }
         });
+
+        /* Enter en UM → validar antes de enviar */
+        unidad.addEventListener("keydown", function (e) {
+            if (e.key === "Enter") {
+                e.preventDefault();
+
+                if (unidad.value === "") {
+                    // No permitir envío si no hay UM seleccionada
+                    unidad.focus();
+                    return;
+                }
+
+                form.submit();
+            }
+        });
+
+        /* ESC limpia y vuelve a nombre */
+        document.addEventListener("keydown", function (e) {
+            if (e.key === "Escape") {
+                nombre.value = "";
+                unidad.value = "";
+                nombre.focus();
+            }
+        });
+    });
     </script>
 </head>
 <body>
@@ -146,7 +165,7 @@
         <div class="errores">
             <ul>
             {% for e in errores %}
-                <li>{{ e }}</li>
+                <li>{{ e|safe }}</li>
             {% endfor %}
             </ul>
         </div>
@@ -194,3 +213,5 @@
 </div>
 </body>
 </html>
+<!-- Fin de archivo: modulo_web/templates/admin_ingredientes.html -->
+<!-- Probar en: http://127.0.0.1:5000/admin/ingredientes -->

@@ -223,6 +223,7 @@ def admin_ingredientes():
         nombre = (request.form.get("nombre") or "").strip().lower()
         unidad_id = (request.form.get("unidad_id") or "").strip()
 
+        # VALIDACIONES
         if not nombre:
             errores.append("El nombre del ingrediente es obligatorio.")
 
@@ -234,11 +235,21 @@ def admin_ingredientes():
                 conn = get_connection()
                 cur = conn.cursor()
 
-                cur.execute("SELECT id FROM ingredientes WHERE LOWER(nombre) = LOWER(?)", (nombre,))
+                # Verificar duplicado
+                cur.execute(
+                    "SELECT id FROM ingredientes WHERE LOWER(nombre) = LOWER(?)",
+                    (nombre,)
+                )
                 existe = cur.fetchone()
+
                 if existe:
                     conn.close()
-                    errores.append("Ese ingrediente ya existe.")
+                    errores.append(
+                        f"⚠️ "
+                        f"<span style='color:#cc0000; font-weight:bold;'>{nombre}</span> "
+                        f"<span style='color:#0b5d1e; font-weight:bold;'>ya existe en</span> "
+                        f"<span style='color:#cc0000; font-weight:bold;'>NOMENCLADOR DE INGREDIENTES</span>"
+                    )
                 else:
                     cur.execute(
                         "INSERT INTO ingredientes (nombre, unidad_id) VALUES (?, ?)",
@@ -246,15 +257,20 @@ def admin_ingredientes():
                     )
                     conn.commit()
                     conn.close()
-                    flash(f"Ingrediente '<span class='item'>{nombre}</span>' creado correctamente.", "ok")
+
+                    flash(
+                        f"Ingrediente '<span class='item'>{nombre}</span>' creado correctamente.",
+                        "ok"
+                    )
                     return redirect("/admin/ingredientes")
 
             except Exception as e:
                 print("ERROR creando ingrediente:", e)
                 errores.append("Error al crear el ingrediente.")
 
-    ingredientes = db_cargar_ingredientes()
+    ingredientes = cargar_ingredientes_con_unidad()
     unidades = db_cargar_unidades()
+
     return render_template(
         "admin_ingredientes.html",
         ingredientes=ingredientes,
@@ -262,36 +278,49 @@ def admin_ingredientes():
         errores=errores
     )
 
-
 @app.route("/admin/ingredientes/borrar/<int:ingrediente_id>", methods=["POST"])
 def borrar_ingrediente(ingrediente_id):
     try:
         conn = get_connection()
         cur = conn.cursor()
 
-        cur.execute("SELECT COUNT(*) as c FROM recetas_ingredientes WHERE ingrediente_id = ?", (ingrediente_id,))
-        fila = cur.fetchone()
-        if fila and fila["c"] > 0:
-            conn.close()
-            flash("No se puede borrar el ingrediente porque está en uso en alguna receta.", "error")
-            return redirect("/admin/ingredientes")
-
+        # Obtener nombre antes de cualquier validación
         cur.execute("SELECT nombre FROM ingredientes WHERE id = ?", (ingrediente_id,))
         fila_nombre = cur.fetchone()
         nombre = fila_nombre["nombre"] if fila_nombre else ""
+
+        # Verificar si está en uso
+        cur.execute(
+            "SELECT COUNT(*) as c FROM recetas_ingredientes WHERE ingrediente_id = ?",
+            (ingrediente_id,)
+        )
+        fila = cur.fetchone()
+
+        if fila and fila["c"] > 0:
+            conn.close()
+            flash(
+                f"⚠️ "
+                f"<span style='color:#cc0000; font-weight:bold;'>{nombre}</span> "
+                f"<span style='color:#0b5d1e; font-weight:bold;'>no se borra por estar en uso en</span> "
+                f"<span style='color:#cc0000; font-weight:bold;'>RECETAS</span>",
+                "error"
+            )
+            return redirect("/admin/ingredientes")
 
         cur.execute("DELETE FROM ingredientes WHERE id = ?", (ingrediente_id,))
         conn.commit()
         conn.close()
 
-        flash(f"Ingrediente '<span class='item'>{nombre}</span>' borrado correctamente.", "ok")
+        flash(
+            f"Ingrediente '<span class='item'>{nombre}</span>' borrado correctamente.",
+            "ok"
+        )
 
     except Exception as e:
         print("ERROR borrando ingrediente:", e)
         flash("No se pudo borrar el ingrediente.", "error")
 
     return redirect("/admin/ingredientes")
-
 
 # ==================================================
 # UTILIDAD — INGREDIENTES CON UNIDAD

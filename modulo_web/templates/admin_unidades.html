@@ -34,7 +34,16 @@
             font-size: 14px;
         }
 
-        /* Campo código más estrecho (1–2 letras) */
+        /* FOCO VIOLETA ESTÁNDAR */
+        input:focus,
+        select:focus,
+        textarea:focus {
+            outline: none;
+            background-color: #f3e8ff;
+            border: 2px solid #5b21b6;
+        }
+
+        /* Campo código más estrecho (solo letras 1–2) */
         #codigo {
             width: 60px;
             max-width: 60px;
@@ -62,19 +71,16 @@
 
         th { background: #f0f0f0; }
 
-        /* Columna Nombre en minúsculas */
         td.col-nombre {
             text-transform: lowercase;
         }
 
-        /* Mensaje de borrado: verde intenso */
         .flash-msg {
             color: #0b9b0b;
             font-weight: bold;
             margin-bottom: 10px;
         }
 
-        /* Solo el elemento en rojo intenso */
         .flash-msg .item {
             color: #cc0000;
             font-weight: bold;
@@ -110,11 +116,25 @@
         }
 
         document.addEventListener("DOMContentLoaded", function () {
+
             const codigo = document.getElementById("codigo");
             const nombre = document.getElementById("nombre");
             const form = document.getElementById("form-um");
 
-            // Enter en código -> pasa a nombre
+            /* FORZAR FOCO SIEMPRE AL CARGAR */
+            if (codigo) {
+                codigo.focus();
+            }
+
+            /* SOLO LETRAS EN CÓDIGO */
+            codigo.addEventListener("input", function () {
+                this.value = this.value
+                    .toUpperCase()
+                    .replace(/[^A-Z]/g, '')
+                    .slice(0, 2);
+            });
+
+            /* Enter en código -> pasa a nombre */
             codigo.addEventListener("keydown", function (e) {
                 if (e.key === "Enter") {
                     e.preventDefault();
@@ -122,7 +142,7 @@
                 }
             });
 
-            // Enter en nombre -> guarda
+            /* Enter en nombre -> guarda */
             nombre.addEventListener("keydown", function (e) {
                 if (e.key === "Enter") {
                     e.preventDefault();
@@ -130,7 +150,7 @@
                 }
             });
 
-            // ESC -> limpia y vuelve al código
+            /* ESC -> limpia y vuelve al código */
             document.addEventListener("keydown", function (e) {
                 if (e.key === "Escape") {
                     codigo.value = "";
@@ -158,7 +178,7 @@
         <div class="errores">
             <ul>
             {% for e in errores %}
-                <li>{{ e }}</li>
+                <li>{{ e|safe }}</li>
             {% endfor %}
             </ul>
         </div>

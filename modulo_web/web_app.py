@@ -32,7 +32,6 @@ def admin_tipos_plato():
                 conn = get_connection()
                 cur = conn.cursor()
 
-                # Verificar duplicado (case-insensitive)
                 cur.execute("SELECT id FROM tipos_plato WHERE LOWER(nombre) = LOWER(?)", (nombre,))
                 existe = cur.fetchone()
                 if existe:
@@ -64,15 +63,12 @@ def borrar_tipo_plato(tipo_id):
         conn = get_connection()
         cur = conn.cursor()
 
-        # Verificar si está en uso por algún plato
         cur.execute("SELECT COUNT(*) as c FROM platos WHERE tipo_plato_id = ?", (tipo_id,))
         fila = cur.fetchone()
         if fila and fila["c"] > 0:
-            # Obtener nombre para mensaje
             cur.execute("SELECT nombre FROM tipos_plato WHERE id = ?", (tipo_id,))
             fila_nombre = cur.fetchone()
             nombre = fila_nombre["nombre"] if fila_nombre else ""
-
             conn.close()
 
             flash(
@@ -84,7 +80,6 @@ def borrar_tipo_plato(tipo_id):
             )
             return redirect("/admin/tipos_plato")
 
-        # Obtener nombre para mensaje
         cur.execute("SELECT nombre FROM tipos_plato WHERE id = ?", (tipo_id,))
         fila_nombre = cur.fetchone()
         nombre = fila_nombre["nombre"] if fila_nombre else ""
@@ -100,6 +95,7 @@ def borrar_tipo_plato(tipo_id):
         flash("No se pudo borrar el tipo de plato.", "error")
 
     return redirect("/admin/tipos_plato")
+
 
 # ==================================================
 # ADMIN UNIDADES DE MEDIDA (UM)
@@ -126,24 +122,46 @@ def admin_unidades():
                 conn = get_connection()
                 cur = conn.cursor()
 
-                # Verificar duplicados (código o nombre)
+                # DUPLICADO POR CÓDIGO
                 cur.execute(
-                    "SELECT id FROM unidades WHERE LOWER(codigo) = LOWER(?) OR LOWER(nombre) = LOWER(?)",
-                    (codigo, nombre)
+                    "SELECT codigo FROM unidades WHERE LOWER(codigo) = LOWER(?)",
+                    (codigo,)
                 )
-                existe = cur.fetchone()
-                if existe:
+                existe_codigo = cur.fetchone()
+
+                if existe_codigo:
                     conn.close()
-                    errores.append("Ya existe una unidad con ese código o nombre.")
-                else:
-                    cur.execute(
-                        "INSERT INTO unidades (codigo, nombre) VALUES (?, ?)",
-                        (codigo, nombre)
+                    errores.append(
+                        f"⚠️ "
+                        f"<span style='color:#cc0000; font-weight:bold;'>CÓDIGO {codigo}</span> "
+                        f"<span style='color:#0b5d1e; font-weight:bold;'>ya existe en</span> "
+                        f"<span style='color:#cc0000; font-weight:bold;'>NOMENCLADOR DE UNIDADES</span>"
                     )
-                    conn.commit()
-                    conn.close()
-                    flash(f"Unidad '<span class='item'>{codigo} - {nombre}</span>' creada correctamente.", "ok")
-                    return redirect("/admin/unidades")
+                else:
+                    # DUPLICADO POR DESCRIPCIÓN
+                    cur.execute(
+                        "SELECT nombre FROM unidades WHERE LOWER(nombre) = LOWER(?)",
+                        (nombre,)
+                    )
+                    existe_nombre = cur.fetchone()
+
+                    if existe_nombre:
+                        conn.close()
+                        errores.append(
+                            f"⚠️ "
+                            f"<span style='color:#cc0000; font-weight:bold;'>DESCRIPCIÓN {nombre}</span> "
+                            f"<span style='color:#0b5d1e; font-weight:bold;'>ya existe en</span> "
+                            f"<span style='color:#cc0000; font-weight:bold;'>NOMENCLADOR DE UNIDADES</span>"
+                        )
+                    else:
+                        cur.execute(
+                            "INSERT INTO unidades (codigo, nombre) VALUES (?, ?)",
+                            (codigo, nombre)
+                        )
+                        conn.commit()
+                        conn.close()
+                        flash(f"Unidad '<span class='item'>{codigo} - {nombre}</span>' creada correctamente.", "ok")
+                        return redirect("/admin/unidades")
 
             except Exception as e:
                 print("ERROR creando unidad:", e)
@@ -159,19 +177,26 @@ def borrar_unidad(unidad_id):
         conn = get_connection()
         cur = conn.cursor()
 
-        # Verificar si está en uso por algún ingrediente
-        cur.execute("SELECT COUNT(*) as c FROM ingredientes WHERE unidad_id = ?", (unidad_id,))
-        fila = cur.fetchone()
-        if fila and fila["c"] > 0:
-            conn.close()
-            flash("No se puede borrar la unidad porque está en uso por algún ingrediente.", "error")
-            return redirect("/admin/unidades")
-
-        # Obtener nombre para mensaje
+        # Obtener primero datos de la unidad
         cur.execute("SELECT codigo, nombre FROM unidades WHERE id = ?", (unidad_id,))
         fila_nombre = cur.fetchone()
         codigo = fila_nombre["codigo"] if fila_nombre else ""
         nombre = fila_nombre["nombre"] if fila_nombre else ""
+
+        # Verificar si está en uso
+        cur.execute("SELECT COUNT(*) as c FROM ingredientes WHERE unidad_id = ?", (unidad_id,))
+        fila = cur.fetchone()
+
+        if fila and fila["c"] > 0:
+            conn.close()
+            flash(
+                f"⚠️ "
+                f"<span style='color:#cc0000; font-weight:bold;'>{codigo} - {nombre}</span> "
+                f"<span style='color:#0b5d1e; font-weight:bold;'>no se borra por estar en uso en</span> "
+                f"<span style='color:#cc0000; font-weight:bold;'>NOMENCLADOR DE INGREDIENTES</span>",
+                "error"
+            )
+            return redirect("/admin/unidades")
 
         cur.execute("DELETE FROM unidades WHERE id = ?", (unidad_id,))
         conn.commit()
@@ -209,7 +234,6 @@ def admin_ingredientes():
                 conn = get_connection()
                 cur = conn.cursor()
 
-                # Verificar duplicado por nombre (case-insensitive)
                 cur.execute("SELECT id FROM ingredientes WHERE LOWER(nombre) = LOWER(?)", (nombre,))
                 existe = cur.fetchone()
                 if existe:
@@ -245,7 +269,6 @@ def borrar_ingrediente(ingrediente_id):
         conn = get_connection()
         cur = conn.cursor()
 
-        # Verificar si está en uso en alguna receta
         cur.execute("SELECT COUNT(*) as c FROM recetas_ingredientes WHERE ingrediente_id = ?", (ingrediente_id,))
         fila = cur.fetchone()
         if fila and fila["c"] > 0:
@@ -253,7 +276,6 @@ def borrar_ingrediente(ingrediente_id):
             flash("No se puede borrar el ingrediente porque está en uso en alguna receta.", "error")
             return redirect("/admin/ingredientes")
 
-        # Obtener nombre para mensaje
         cur.execute("SELECT nombre FROM ingredientes WHERE id = ?", (ingrediente_id,))
         fila_nombre = cur.fetchone()
         nombre = fila_nombre["nombre"] if fila_nombre else ""
@@ -318,7 +340,6 @@ def admin_platos():
                 conn = get_connection()
                 cur = conn.cursor()
 
-                # Verificar duplicado por nombre (case-insensitive)
                 cur.execute("SELECT id FROM platos WHERE LOWER(nombre) = LOWER(?)", (nombre,))
                 existe = cur.fetchone()
                 if existe:
@@ -354,7 +375,6 @@ def borrar_plato(plato_id):
         conn = get_connection()
         cur = conn.cursor()
 
-        # Verificar si está en uso por alguna receta
         cur.execute("SELECT COUNT(*) as c FROM recetas_maestro WHERE plato_id = ?", (plato_id,))
         fila = cur.fetchone()
         if fila and fila["c"] > 0:
@@ -362,7 +382,6 @@ def borrar_plato(plato_id):
             flash("No se puede borrar el plato porque está en uso por alguna receta.", "error")
             return redirect("/admin/platos")
 
-        # Obtener nombre para mensaje
         cur.execute("SELECT nombre FROM platos WHERE id = ?", (plato_id,))
         fila_nombre = cur.fetchone()
         nombre = fila_nombre["nombre"] if fila_nombre else ""
@@ -401,7 +420,7 @@ def admin_recetas_listado():
 
 
 # ==================================================
-# NUEVA RECETA (MASTER) — BACKEND BLINDADO
+# NUEVA RECETA (MASTER)
 # ==================================================
 
 @app.route("/admin/recetas/nueva", methods=["GET", "POST"])
@@ -417,7 +436,6 @@ def admin_recetas_nueva():
             flash("Debe seleccionar un plato.", "error")
             return render_template("admin_recetas_nueva.html", platos=platos, ingredientes=ingredientes)
 
-        # --- BLOQUEO: receta duplicada por plato (mensaje con colores) ---
         try:
             conn = get_connection()
             cur = conn.cursor()
@@ -444,7 +462,6 @@ def admin_recetas_nueva():
             flash("Error verificando duplicado de receta.", "error")
             return render_template("admin_recetas_nueva.html", platos=platos, ingredientes=ingredientes)
 
-        # --- Validación raciones ---
         try:
             raciones_base_int = int(raciones_base)
             if raciones_base_int <= 0:
@@ -458,7 +475,6 @@ def admin_recetas_nueva():
         cantidades = request.form.getlist("cantidad[]")
         roles = request.form.getlist("rol[]")
 
-        # --- Validaciones de ingredientes ---
         vistos = set()
         filas_validas = []
 
@@ -467,17 +483,14 @@ def admin_recetas_nueva():
             cant_txt = (cantidades[i] or "").strip()
             rol_txt = (roles[i] or "").strip()
 
-            # Si no hay ingrediente seleccionado, saltamos la fila
             if not ing_id:
                 continue
 
-            # Duplicados de ingrediente
             if ing_id in vistos:
                 flash("No se permiten ingredientes duplicados en la receta.", "error")
                 return render_template("admin_recetas_nueva.html", platos=platos, ingredientes=ingredientes)
             vistos.add(ing_id)
 
-            # Cantidad obligatoria > 0
             try:
                 cant_f = float(cant_txt)
             except:
@@ -488,7 +501,6 @@ def admin_recetas_nueva():
                 flash("La cantidad debe ser mayor que 0 en todos los ingredientes.", "error")
                 return render_template("admin_recetas_nueva.html", platos=platos, ingredientes=ingredientes)
 
-            # Rol opcional, pero numérico y >= 0 y <= cantidad
             if rol_txt == "":
                 rol_f = 0.0
             else:
@@ -512,7 +524,6 @@ def admin_recetas_nueva():
             flash("La receta debe tener al menos un ingrediente con cantidad > 0.", "error")
             return render_template("admin_recetas_nueva.html", platos=platos, ingredientes=ingredientes)
 
-        # --- Guardado en BD ---
         try:
             conn = get_connection()
             cur = conn.cursor()

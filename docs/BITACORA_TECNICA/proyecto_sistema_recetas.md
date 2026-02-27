@@ -1301,3 +1301,27 @@ Mejorar la ergonomía del formulario **Master de Recetas**, reforzar validacione
 - Continuar fortaleciendo la documentación técnica del proyecto.
 
 
+## Cierre Nomenclador: UNIDADES DE MEDIDA (UM)
+
+RAMA: master-ui-final-estable  
+COMMIT: 19cb03c  
+FECHA: 26/02/2026  
+
+### Estado
+Nomenclador cerrado, validado y blindado.
+
+### Mejoras implementadas
+- Restricción de código a solo letras (máx. 2)
+- Validación backend con expresión regular
+- Separación de duplicidad por código y descripción
+- Mensajes estandarizados con formato institucional
+- Integridad referencial con NOMENCLADOR DE INGREDIENTES
+- Foco violeta estándar
+- Autofocus post-operación
+- Identificación de archivo y URL al final del template
+
+### Resultado
+Bloque estable, congelado y versionado.
+No se permiten modificaciones sin nueva fase.
+
+

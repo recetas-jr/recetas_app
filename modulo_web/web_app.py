@@ -411,7 +411,7 @@ def admin_platos():
 
                     flash(
                         f"Plato '<span class='item'>{nombre}</span>' creado correctamente.",
-                        "ok"
+                        "platos"
                     )
                     return redirect("/admin/platos")
 
@@ -456,7 +456,7 @@ def borrar_plato(plato_id):
                 f"<span style='color:#cc0000; font-weight:bold;'>{nombre}</span> "
                 f"<span style='color:#0b5d1e; font-weight:bold;'>no se borra por estar en uso en</span> "
                 f"<span style='color:#cc0000; font-weight:bold;'>RECETAS</span>",
-                "error"
+                "platos"
             )
             return redirect("/admin/platos")
 
@@ -466,15 +466,17 @@ def borrar_plato(plato_id):
 
         flash(
             f"Plato '<span class='item'>{nombre}</span>' borrado correctamente.",
-            "ok"
+            "platos"
         )
 
     except Exception as e:
         print("ERROR borrando plato:", e)
-        flash("No se pudo borrar el plato.", "error")
+        flash(
+            "No se pudo borrar el plato.",
+            "platos"
+        )
 
     return redirect("/admin/platos")
-
 
 # ==================================================
 # INDEX
@@ -620,7 +622,7 @@ def admin_recetas_nueva():
             conn.commit()
             conn.close()
 
-            flash("Receta creada correctamente.", "ok")
+            flash("Receta creada correctamente.", "recetas")
             return redirect("/admin/recetas/listado")
 
         except Exception as e:
@@ -646,7 +648,7 @@ def borrar_receta(receta_id):
 
         conn.commit()
         conn.close()
-        flash("Receta borrada correctamente.", "ok")
+        flash("Receta borrada correctamente.", "recetas")
 
     except Exception as e:
         print("ERROR borrando receta:", e)

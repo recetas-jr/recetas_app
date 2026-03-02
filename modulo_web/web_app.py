@@ -512,7 +512,14 @@ def admin_recetas_nueva():
         raciones_base = request.form.get("raciones_base", "").strip()
 
         if not plato_id:
-            flash("Debe seleccionar un plato.", "error")
+            flash(
+                f"⚠️ "
+                f"<span style='color:#0b5d1e; font-weight:bold;'>Debe seleccionar un</span> "
+                f"<span style='color:#cc0000; font-weight:bold;'>PLATO</span> "
+                f"<span style='color:#0b5d1e; font-weight:bold;'>en</span> "
+                f"<span style='color:#cc0000; font-weight:bold;'>RECETAS</span>",
+                "recetas"
+            )
             return render_template("admin_recetas_nueva.html", platos=platos, ingredientes=ingredientes)
 
         try:
@@ -529,10 +536,11 @@ def admin_recetas_nueva():
                 nombre_plato = fila["nombre"]
                 conn.close()
                 flash(
-                    f"<span style='color:#0b5d1e; font-weight:bold;'>LA RECETA </span>"
-                    f"<span style='color:#cc0000; font-weight:bold;'>{nombre_plato}</span>"
-                    f"<span style='color:#0b5d1e; font-weight:bold;'> YA EXISTE</span>",
-                    "error"
+                    f"⚠️ "
+                    f"<span style='color:#cc0000; font-weight:bold;'>{nombre_plato}</span> "
+                    f"<span style='color:#0b5d1e; font-weight:bold;'>ya existe en</span> "
+                    f"<span style='color:#cc0000; font-weight:bold;'>RECETAS</span>",
+                    "recetas"
                 )
                 return render_template("admin_recetas_nueva.html", platos=platos, ingredientes=ingredientes)
             conn.close()
@@ -544,10 +552,22 @@ def admin_recetas_nueva():
         try:
             raciones_base_int = int(raciones_base)
             if raciones_base_int <= 0:
-                flash("Raciones base debe ser mayor que 0.", "error")
+                flash(
+                    f"⚠️ "
+                    f"<span style='color:#cc0000; font-weight:bold;'>RACIONES BASE</span> "
+                    f"<span style='color:#0b5d1e; font-weight:bold;'>debe ser mayor que 0 en</span> "
+                    f"<span style='color:#cc0000; font-weight:bold;'>RECETAS</span>",
+                    "recetas"
+                )
                 return render_template("admin_recetas_nueva.html", platos=platos, ingredientes=ingredientes)
         except:
-            flash("Raciones base debe ser numérico.", "error")
+            flash(
+                f"⚠️ "
+                f"<span style='color:#cc0000; font-weight:bold;'>RACIONES BASE</span> "
+                f"<span style='color:#0b5d1e; font-weight:bold;'>debe ser un valor numérico en</span> "
+                f"<span style='color:#cc0000; font-weight:bold;'>RECETAS</span>",
+                "recetas"
+            )
             return render_template("admin_recetas_nueva.html", platos=platos, ingredientes=ingredientes)
 
         ingredientes_ids = request.form.getlist("ingrediente_id[]")

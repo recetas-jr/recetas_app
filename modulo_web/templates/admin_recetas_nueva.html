@@ -116,10 +116,11 @@
         <div class="fila">
             <div class="campo">
                 <label>Raciones base:</label>
-                <!-- COMENTARIO: Un poquito más ancho para 3 cifras -->
                 <input type="text" id="raciones" name="raciones_base" maxlength="3" style="width:55px; text-align:right;">
             </div>
         </div>
+
+        <div id="msg-js" class="msg-js" style="display:none;"></div>
 
         <div class="textos-grid">
             <div class="texto-bloque">
@@ -147,9 +148,7 @@
             </div>
         </div>
 
-        <h3 class="titulo-ingredientes">Ingredientes</h3>
-        <div id="msg-js" class="msg-js" style="display:none;"></div>
-
+        
         <table class="tabla">
             <thead>
                 <tr>
@@ -269,10 +268,48 @@
     raciones.addEventListener("keydown", function(e){
         if(e.key === "Enter"){
             e.preventDefault();
+
+            const val = (raciones.value || "").trim();
+
+            if(val === ""){
+                showMsg(
+                    "<span style='color:#cc0000; font-weight:bold;'>RACIONES BASE</span> " +
+                    "<span style='color:#0b5d1e; font-weight:bold;'>es obligatorio en</span> " +
+                    "<span style='color:#cc0000; font-weight:bold;'>RECETAS</span>"
+                );
+                raciones.focus();
+                raciones.select();
+                return;
+            }
+  
+            if(!/^\d+$/.test(val)){
+                showMsg(
+                    "<span style='color:#cc0000; font-weight:bold;'>RACIONES BASE</span> " +
+                    "<span style='color:#0b5d1e; font-weight:bold;'>debe ser numérico en</span> " +
+                    "<span style='color:#cc0000; font-weight:bold;'>RECETAS</span>"
+                );
+                raciones.focus();
+                raciones.select();
+                return;
+            }
+
+            const num = parseInt(val, 10);
+
+            if(num <= 0){
+                showMsg(
+                    "<span style='color:#cc0000; font-weight:bold;'>RACIONES BASE</span> " +
+                    "<span style='color:#0b5d1e; font-weight:bold;'>debe ser mayor que 0 en</span> " +
+                    "<span style='color:#cc0000; font-weight:bold;'>RECETAS</span>"
+                );
+                raciones.focus();
+                raciones.select();
+                return;
+            }
+
+            clearMsg();
             preparacion.focus();
         }
     });
-
     function bindShiftJump(from, to){
         from.addEventListener("keydown", function(e){
             if(e.key === "Enter" && e.shiftKey){

@@ -252,3 +252,32 @@ servir como referencia para la arquitectura general
 Este documento actúa como representación visual de la arquitectura del sistema recetas_app.
 
 docs/arquitectura/MAPA_ARQUITECTONICO_RECETAS_APP.md
+
+DIAGRAMA GENERAL DEL SISTEMA
+
+El sistema recetas_app se organiza en capas funcionales que separan la interacción del usuario, la lógica del sistema y la persistencia de datos.
+
+INTERFAZ WEB (UI)
+modulo_web/
+        │
+        ▼
+LOGICA DE APLICACION
+validaciones / procesos
+        │
+        ▼
+MODELO DE DATOS
+SQLite + nomencladores
+        │
+        ▼
+DOCUMENTACION + CONTROL
+Git + docs/
+
+Este esquema resume la arquitectura del sistema:
+
+La interfaz web permite la interacción del usuario.
+
+La lógica de aplicación gestiona validaciones y procesos del sistema.
+
+El modelo de datos almacena la información en SQLite.
+
+La documentación y control garantizan trazabilidad mediante Git y los documentos técnicos del proyecto.

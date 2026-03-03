@@ -159,3 +159,51 @@ orientar futuras ampliaciones del sistema
 servir como referencia para desarrolladores
 
 Este documento constituye una guía estructural del sistema recetas_app.
+
+FOCO OPERATIVO DEL SISTEMA (MASTER)
+
+El punto central de funcionamiento del sistema se encuentra en el MASTER de RECETAS, que coordina la interacción entre la interfaz, la lógica de negocio y la base de datos.
+
+★ FOCO DEL MASTER ★
+        │
+        ▼
+BASE DE DATOS
+SQLite
+        │
+        ▼
+DOCUMENTACION + CONTROL
+Git + docs/
+
+El MASTER constituye el núcleo operativo del sistema, donde se ejecutan las principales reglas de negocio y validaciones.
+
+ESTRUCTURA DE LA CAPA LÓGICA
+
+La capa lógica del sistema se encarga de procesar las acciones del usuario y aplicar las reglas del sistema.
+
+CAPA LOGICA
+ ├ gestion de recetas
+ ├ validaciones
+ ├ control de ingredientes
+ └ reglas del sistema
+
+Responsabilidades principales:
+
+Gestión de creación y edición de recetas.
+
+Validación de datos introducidos por el usuario.
+
+Control de ingredientes asociados a cada receta.
+
+Aplicación de reglas de negocio del sistema.
+
+FUNCIONES PRINCIPALES DEL SISTEMA
+
+Las funciones clave de la lógica del sistema incluyen:
+
+validar_ingrediente()
+guardar_receta()
+calcular_raciones()
+validar_raciones_base()
+verificar_integridad_referencial()
+
+Estas funciones garantizan la coherencia de los datos y el correcto funcionamiento del sistema.

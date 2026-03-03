@@ -415,3 +415,149 @@ Se valida en cliente durante la captura de la receta.
 - Las unidades de medida visibles en pantalla se muestran como **texto descriptivo** (ej: “gramos”), no como código interno.
 
 ---
+
+VIII-GLOSARIO OPERATIVO DEL SISTEMA — RECETAS_APP
+1. Propósito del documento
+
+Este documento forma parte del glosario del sistema recetas_app y tiene como objetivo definir los principales términos operativos utilizados dentro del proyecto.
+
+El glosario permite:
+
+mantener coherencia terminológica
+
+facilitar la comprensión del sistema
+
+evitar ambigüedades en la documentación
+
+establecer definiciones comunes para el desarrollo del proyecto
+
+Este documento complementa el glosario general del sistema.
+
+2. Receta
+
+Una receta es la entidad principal del sistema.
+
+Representa la descripción estructurada de una preparación culinaria.
+
+Una receta puede contener:
+
+nombre
+
+descripción
+
+categoría
+
+raciones base
+
+ingredientes
+
+Cada receta puede tener múltiples ingredientes asociados.
+
+3. Ingrediente
+
+Un ingrediente es un componente que forma parte de una receta.
+
+Cada ingrediente se define mediante:
+
+nombre del ingrediente
+
+cantidad
+
+unidad de medida
+
+Los ingredientes se relacionan con las recetas mediante registros en los archivos de datos del sistema.
+
+4. Cantidad
+
+La cantidad representa el valor numérico asociado a un ingrediente dentro de una receta.
+
+La cantidad indica cuánto del ingrediente se utiliza.
+
+Ejemplos de cantidades:
+
+50
+100
+250
+1
+2
+
+Las cantidades deben ser siempre valores positivos.
+
+5. Unidad de medida
+
+La unidad de medida indica la forma en que se expresa la cantidad de un ingrediente.
+
+Ejemplos de unidades utilizadas en el sistema:
+
+g
+kg
+ml
+l
+taza
+cucharada
+
+Las unidades forman parte de un nomenclador del sistema.
+
+6. Raciones base
+
+Las raciones base indican el número de porciones para las cuales está diseñada una receta.
+
+Este valor permite calcular la proporción de ingredientes necesaria para preparar la receta.
+
+Las raciones base deben ser siempre mayores que cero.
+
+7. Nomenclador
+
+Un nomenclador es una lista controlada de valores válidos dentro del sistema.
+
+En el sistema recetas_app existen nomencladores para:
+
+ingredientes
+
+unidades de medida
+
+categorías de recetas
+
+Los nomencladores permiten mantener consistencia en los datos.
+
+8. Persistencia de datos
+
+La persistencia de datos es el mecanismo mediante el cual el sistema guarda la información.
+
+En el sistema recetas_app la persistencia se realiza mediante archivos JSON.
+
+Estos archivos almacenan información sobre:
+
+recetas
+
+ingredientes
+
+unidades de medida
+
+9. Validación
+
+La validación es el proceso mediante el cual el sistema verifica que los datos introducidos sean correctos antes de guardarlos.
+
+Las validaciones permiten:
+
+evitar errores en los datos
+
+mantener la integridad de la información
+
+garantizar coherencia en el sistema
+
+10. Interfaz web
+
+La interfaz web es el componente del sistema que permite al usuario interactuar con la aplicación.
+
+Mediante la interfaz web el usuario puede:
+
+visualizar recetas
+
+crear recetas
+
+editar recetas
+
+gestionar ingredientes
+
+La interfaz web constituye el punto de acceso principal al sistema.

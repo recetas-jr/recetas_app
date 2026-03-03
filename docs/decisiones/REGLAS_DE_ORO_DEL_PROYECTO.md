@@ -265,4 +265,113 @@ Todo lo demás sigue igual.
 
 Estado: DEFINIDA — VIGENTE
 
+VI-REGLAS DE BLINDAJE DEL MAPA ARQUITECTONICO — RECETAS_APP
+1. Propósito del documento
 
+Este documento establece las reglas de protección del mapa arquitectónico del sistema recetas_app.
+
+Su objetivo es garantizar que la arquitectura del sistema se mantenga estable y coherente a lo largo del tiempo.
+
+El blindaje arquitectónico permite:
+
+evitar modificaciones desordenadas
+
+preservar la estructura del sistema
+
+mantener coherencia en el desarrollo
+
+2. Importancia del blindaje arquitectónico
+
+El mapa arquitectónico define la estructura general del sistema.
+
+Modificar esta estructura sin control puede provocar:
+
+pérdida de coherencia del sistema
+
+errores en el funcionamiento
+
+dificultades en el mantenimiento
+
+Por esta razón, el mapa arquitectónico debe considerarse un documento estructural del proyecto.
+
+3. Principios de protección arquitectónica
+
+La arquitectura del sistema debe regirse por los siguientes principios.
+
+Estabilidad estructural
+
+La estructura general del sistema no debe modificarse sin una justificación clara.
+
+Coherencia funcional
+
+Las modificaciones deben respetar las funciones y relaciones existentes.
+
+Documentación obligatoria
+
+Cualquier cambio relevante en la arquitectura debe quedar documentado.
+
+4. Reglas para modificaciones arquitectónicas
+
+Cuando sea necesario modificar la arquitectura del sistema se deben seguir estas reglas.
+
+Analizar el impacto del cambio.
+
+Verificar las dependencias entre componentes.
+
+Actualizar la documentación arquitectónica.
+
+Registrar el cambio en la bitácora del proyecto.
+
+Estas reglas permiten mantener control sobre la evolución del sistema.
+
+5. Cambios permitidos
+
+Se consideran modificaciones aceptables aquellas que:
+
+mejoran la organización del sistema
+
+corrigen inconsistencias estructurales
+
+optimizan el funcionamiento del sistema
+
+Siempre que estos cambios se encuentren debidamente documentados.
+
+6. Cambios que requieren revisión
+
+Las siguientes modificaciones deben evaluarse cuidadosamente.
+
+cambios en la estructura de datos
+
+cambios en el flujo general del sistema
+
+eliminación de componentes del sistema
+
+cambios en las relaciones entre módulos
+
+Estos cambios pueden afectar directamente la estabilidad del sistema.
+
+7. Registro de cambios arquitectónicos
+
+Toda modificación arquitectónica debe registrarse en la documentación del proyecto.
+
+El registro debe incluir:
+
+descripción del cambio
+
+motivo del cambio
+
+impacto en el sistema
+
+fecha de la modificación
+
+Esto permite mantener un historial claro de la evolución del sistema.
+
+8. Responsabilidad del mantenimiento arquitectónico
+
+El mantenimiento de la arquitectura del sistema es responsabilidad del desarrollo del proyecto.
+
+La documentación arquitectónica debe mantenerse actualizada para reflejar el estado real del sistema.
+
+Esto garantiza que el proyecto pueda evolucionar de manera controlada.
+
+docs/decisiones/REGLAS_DE_ORO_DEL_PROYECTO.md

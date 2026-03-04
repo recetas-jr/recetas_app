@@ -9,6 +9,9 @@ from modulo_web.persistencia_db import (
 )
 
 app = Flask(__name__)
+
+print("WEB_APP CARGADO DESDE:", __file__)
+
 app.secret_key = "recetas_app_clave_segura_temporal"
 
 #==================================================
@@ -483,7 +486,11 @@ def borrar_plato(plato_id):
 # ==================================================
 
 @app.route("/", methods=["GET"])
-def index():
+def portada():
+    return render_template("portada.html")
+
+@app.route("/recetas", methods=["GET"])
+def catalogo_publico():
     recetas = db_cargar_recetas_maestro_listado()
     return render_template("index.html", recetas=recetas)
 

@@ -40,3 +40,27 @@ base de datos
 reglas del sistema
 Este es el documento más técnico de los cuatro.
 
+Commando para listar todos los documentos del Sistema Recetas:
+dir /s /b *.md
+
+Commando para listar solo documentos versionados en el proyecto. Solo muestra documentos que están en Git. Evita archivos temporales:
+git ls-files *.md
+
+Commando para generar una lista automática:
+
+dir /s /b docs\*.md > lista_documentos.txt
+Esto crea un archivo:
+lista_documentos.txt con todos los documentos que se abre en CMD
+
+Commandos generales:
+dir      → listar archivos
+/s       → buscar en todas las carpetas
+/b       → formato simple
+*.md     → solo archivos Markdown
+
+Para limpiar la pantalla de CMD o POWERSHELL:
+cls
+
+
+
+

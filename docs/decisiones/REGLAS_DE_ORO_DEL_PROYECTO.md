@@ -374,4 +374,55 @@ La documentación arquitectónica debe mantenerse actualizada para reflejar el e
 
 Esto garantiza que el proyecto pueda evolucionar de manera controlada.
 
+Regla de Oro: Estandarización Formal de Documentos Técnicos
+
+Todo documento técnico oficial del sistema debe cumplir con un formato estructural mínimo.
+
+Encabezado obligatorio
+
+Cada documento debe iniciar con el siguiente bloque:
+
+SISTEMA: recetas_app
+DOCUMENTO: <nombre del documento>
+FECHA: <fecha de creación o actualización>
+FASE: <fase del proyecto>
+
+Este encabezado permite:
+
+identificar rápidamente el contexto del documento
+
+ubicarlo dentro de la evolución del sistema
+
+evitar ambigüedades históricas
+
+profesionalizar la documentación
+
+Cierre obligatorio
+
+Todo documento técnico debe finalizar con:
+
+FIN DEL DOCUMENTO
+Ruta: <ruta completa dentro del proyecto>
+
+Ejemplo:
+
+FIN DEL DOCUMENTO
+Ruta: docs/decisiones/REGLAS_DE_ORO_DEL_PROYECTO.md
+Objetivo de esta regla
+
+Garantizar trazabilidad documental.
+
+Evitar documentos incompletos.
+
+Mantener coherencia estructural.
+
+Elevar el estándar profesional del proyecto.
+
+Estado: DEFINIDA — VIGENTE
+
+Y al final del archivo (si aún no lo tiene), asegúrate de que quede:
+
+FIN DEL DOCUMENTO
+Ruta: docs/decisiones/REGLAS_DE_ORO_DEL_PROYECTO.md
+
 docs/decisiones/REGLAS_DE_ORO_DEL_PROYECTO.md

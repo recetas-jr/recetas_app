@@ -94,12 +94,16 @@
                         {% endif %}
                     </td>
                     <td align="center">
+
+                        <a href="/receta/{{ r.id }}" title="Ver receta pública">👁️</a>
+
                         <form method="post"
-                              action="/admin/recetas/borrar/{{ r.id }}"
-                              onsubmit="return confirm('¿Seguro que desea borrar esta receta?');"
-                              style="display:inline;">
-                            <button type="submit">🗑️</button>
+                            action="/admin/recetas/borrar/{{ r.id }}"
+                            onsubmit="return confirm('¿Seguro que desea borrar esta receta?');"
+                            style="display:inline;">
+                          <button type="submit">🗑️</button>
                         </form>
+
                     </td>
                 </tr>
                 {% else %}

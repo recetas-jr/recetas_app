@@ -8,14 +8,12 @@
 
 <body>
     <div class="container">
-        <a href="/" class="btn-volver">← Volver</a>
-        <h1>{{ receta.nombre }}</h1>
+        <a href="/recetas" class="btn-volver">← Volver</a>
+        <h1>{{ receta.plato_nombre }}</h1>
         <div class="tabs">
-            <button id="btn-ficha" class="tab-active" onclick="mostrarFicha()">
-                Página I — Ficha técnica
-            </button>
+            
             <button id="btn-proceso" onclick="mostrarProceso()">
-                Página II — Procedimiento
+                Guía para su prepapración
             </button>
         </div>
 
@@ -28,20 +26,33 @@
                 <div class="racion-base">
                     Raciones base de la receta:
                     <strong>{{ receta.raciones_base }}</strong>
+                    {% if raciones_solicitadas %}
+                    <p>
+                        Raciones solicitadas: <strong>{{ raciones_solicitadas }}</strong>
+                    </p>
+                    {% endif %}
                 </div>
 
-                <div class="raciones-calculo">
-                    <form method="post">
-                        <label>
-                            Calcular para:
-                            <input type="number" name="raciones" value="{{ raciones }}" min="1">
-                        </label>
-                        <button type="submit">Recalcular</button>
-                    </form>
-                </div>
+                <form method="POST">
+
+                    <label>Raciones a solicitar:</label>
+
+                    <input
+                         type="number"
+                         name="raciones"
+                         min="1"
+                         required
+                         style="width:80px"
+                    >
+
+                    <span style="color:green;">
+                        &lt;enter&gt; recalcula 🧮
+                    </span>
+
+                </form>
+
             </div>
-
-            <h3>Ingredientes</h3>
+            
 
             <table class="tabla-ingredientes">
                 <thead>
@@ -53,7 +64,7 @@
                     </tr>
                 </thead>
                 <tbody>
-                    {% for i in ingredientes %}
+                    {% for i in receta.ingredientes %}
                     <tr>
                         <td>{{ i.nombre }}</td>
                         <td>{{ i.cantidad }}</td>
@@ -75,34 +86,30 @@
                     Preparación
                 </button>
                 <div class="acordeon-panel">
-                    <p>{{ receta.preparacion }}</p>
+                    <p>{{ receta.textos.preparacion }}</p>
                 </div>
 
                 <button class="acordeon-btn" onclick="toggleAcordeon(this)">
                     Elaboración
                 </button>
                 <div class="acordeon-panel">
-                    <p>{{ receta.elaboracion }}</p>
+                    <p>{{ receta.textos.elaboracion }}</p>
                 </div>
 
                 <button class="acordeon-btn" onclick="toggleAcordeon(this)">
                     Presentación
                 </button>
                 <div class="acordeon-panel">
-                    <p>{{ receta.presentacion }}</p>
+                    <p>{{ receta.textos.presentacion }}</p>
                 </div>
 
                 <button class="acordeon-btn" onclick="toggleAcordeon(this)">
                     Nutrición (por ración)
                 </button>
                 <div class="acordeon-panel">
-                    <ul>
-                        <li>Proteínas: {{ receta.nutricion.proteinas }}</li>
-                        <li>Carbohidratos: {{ receta.nutricion.carbohidratos }}</li>
-                        <li>Grasas: {{ receta.nutricion.grasas }}</li>
-                        <li>Fibra: {{ receta.nutricion.fibra }}</li>
-                        <li>Sodio: {{ receta.nutricion.sodio }}</li>
-                    </ul>
+                    
+                    <p>{{ receta.textos.nutricion }}</p>
+                    
                 </div>
 
             </div>

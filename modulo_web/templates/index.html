@@ -24,17 +24,16 @@
             <thead>
                 <tr>
                     <th>Plato</th>
-                    <th>Tipo</th>
-                    <th>Peso ración</th>
-                    <th></th>
+                    <th>Raciones base</th>
+                    <th>Ingredientes</th>
                 </tr>
             </thead>
             <tbody>
             {% for r in recetas %}
                 <tr>
-                    <td>{{ r.nombre }}</td>
-                    <td>{{ r.tipo_plato }}</td>
-                    <td>{{ r.peso_racion }} g</td>
+                    <td>{{ r.plato_nombre }}</td>
+                    <td>{{ r.raciones_base }}</td>
+                    <td>{{ r.cantidad_ingredientes }}</td>
                     <td>
                         <a class="btn-ver" href="/receta/{{ r.id }}">Ver</a>
                     </td>

@@ -494,6 +494,47 @@ def catalogo_publico():
     recetas = db_cargar_recetas_maestro_listado()
     return render_template("index.html", recetas=recetas)
 
+@app.route("/receta/<int:receta_id>", methods=["GET", "POST"])
+def receta_detalle(receta_id):
+
+    from modulo_web.persistencia_db import db_cargar_receta_detalle
+
+    receta = db_cargar_receta_detalle(receta_id)
+    raciones_solicitadas = None
+
+    if request.method == "POST":
+        try:
+            raciones_solicitadas = int(request.form.get("raciones"))
+        except:
+            raciones_solicitadas = None
+
+    # =========================================
+    # RECÁLCULO DE INGREDIENTES
+    # =========================================
+
+    if raciones_solicitadas and receta["raciones_base"] > 0:
+
+        factor = raciones_solicitadas / receta["raciones_base"]
+
+        for ing in receta["ingredientes"]:
+            ing["cantidad"] = round(float(ing["cantidad"]) * factor, 2)
+            ing["rol"] = round(float(ing["rol"]) * factor, 2)
+
+    if not receta:
+        return "Receta no encontrada", 404
+
+        
+
+    if not receta:
+        return "Receta no encontrada", 404
+
+    return render_template(
+        "receta_detalle.html",
+        receta=receta,
+        raciones_solicitadas=raciones_solicitadas,
+        raciones_base=receta["raciones_base"]
+    )
+
 
 # ==================================================
 # ADMIN RECETAS — LISTADO

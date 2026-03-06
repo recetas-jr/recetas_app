@@ -114,6 +114,12 @@
         const unidad = document.getElementById("unidad_id");
         const form = document.getElementById("form-ingredientes");
 
+        /* ===== RESTAURAR ÚLTIMA UM USADA ===== */
+        const ultimaUM = localStorage.getItem("ultima_um");
+        if (ultimaUM) {
+            unidad.value = ultimaUM;
+        }
+
         /* Enter en nombre → pasa a UM */
         nombre.addEventListener("keydown", function (e) {
             if (e.key === "Enter") {
@@ -128,13 +134,17 @@
                 e.preventDefault();
 
                 if (unidad.value === "") {
-                    // No permitir envío si no hay UM seleccionada
                     unidad.focus();
                     return;
                 }
 
                 form.submit();
             }
+        });
+
+        /* ===== GUARDAR LA ÚLTIMA UM SELECCIONADA ===== */
+        unidad.addEventListener("change", function () {
+            localStorage.setItem("ultima_um", unidad.value);
         });
 
         /* ESC limpia y vuelve a nombre */

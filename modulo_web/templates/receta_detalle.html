@@ -11,10 +11,11 @@
         <a href="/recetas" class="btn-volver">← Volver</a>
         <h1>{{ receta.plato_nombre }}</h1>
         <div class="tabs">
-            
-            <button id="btn-proceso" onclick="mostrarProceso()">
-                Guía para su prepapración
-            </button>
+    
+            <a href="{{ url_for('receta_preparacion', receta_id=receta.id) }}" class="btn">
+                Guía para su preparación
+            </a>
+
         </div>
 
         <div id="tab-ficha">

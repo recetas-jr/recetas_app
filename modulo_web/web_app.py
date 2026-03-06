@@ -1,10 +1,11 @@
-from flask import Flask, render_template, request, redirect, flash
+from flask import Flask, render_template, request, redirect, flash, abort
 from modulo_web.persistencia_db import (
     db_cargar_platos,
     db_cargar_unidades,
     db_cargar_ingredientes,
     db_cargar_recetas_maestro_listado,
     db_cargar_tipos_plato,
+    db_cargar_receta_detalle,
     get_connection
 )
 
@@ -497,8 +498,6 @@ def catalogo_publico():
 @app.route("/receta/<int:receta_id>", methods=["GET", "POST"])
 def receta_detalle(receta_id):
 
-    from modulo_web.persistencia_db import db_cargar_receta_detalle
-
     receta = db_cargar_receta_detalle(receta_id)
     raciones_solicitadas = None
 
@@ -534,6 +533,20 @@ def receta_detalle(receta_id):
         raciones_solicitadas=raciones_solicitadas,
         raciones_base=receta["raciones_base"]
     )
+
+@app.route("/receta/<int:receta_id>/preparacion")
+def receta_preparacion(receta_id):
+
+    receta = db_cargar_receta_detalle(receta_id)
+
+    if not receta:
+        abort(404)
+
+    return render_template(
+        "receta_preparacion.html",
+        receta=receta
+    )
+
 
 
 # ==================================================
@@ -730,4 +743,10 @@ def borrar_receta(receta_id):
 # ==================================================
 
 if __name__ == "__main__":
+
+    print("\n=== RUTAS REGISTRADAS ===")
+    for rule in app.url_map.iter_rules():
+        print(rule)
+    print("=========================\n")
+
     app.run(debug=True)

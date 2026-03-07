@@ -338,7 +338,7 @@ def db_cargar_receta_detalle(receta_id):
             i.nombre AS ingrediente_nombre,
             ri.cantidad,
             ri.rol,
-            u.codigo AS unidad_codigo
+            u.nombre AS unidad_nombre
         FROM recetas_ingredientes ri
         JOIN ingredientes i ON i.id = ri.ingrediente_id
         JOIN unidades u ON u.id = i.unidad_id
@@ -355,7 +355,7 @@ def db_cargar_receta_detalle(receta_id):
             "nombre": f["ingrediente_nombre"],
             "cantidad": f["cantidad"],
             "rol": f["rol"],
-            "unidad": f["unidad_codigo"]
+            "unidad_nombre": f["unidad_nombre"]
         })
 
     return receta

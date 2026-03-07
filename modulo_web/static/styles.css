@@ -80,7 +80,8 @@ input {
 /* ===== FOCO ACTIVO (UX NOMENCLADORES) ===== */
 input:focus {
     outline: none;
-    border: 2px solid red !important;
+    border: 2px solid #5b21b6;
+    background-color: #f3e8ff;
 }
 
 /* ===== Botón volver ===== */
@@ -227,5 +228,88 @@ input[type=number] {
 /* Evitar cambios con la rueda del mouse */
 input[type=number] {
     overscroll-behavior: contain;
+}
+
+
+
+.tabla-ingredientes {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 15px;
+}
+
+.tabla-ingredientes th {
+    background: #efe6d6;
+    border-bottom: 2px solid #c8bda8;
+    padding: 6px 8px;
+}
+
+.tabla-ingredientes td {
+    padding: 6px 8px;
+}
+
+.tabla-ingredientes tr:nth-child(even) {
+    background: #faf6ef;
+}
+
+.col-text {
+    text-align: left;
+}
+
+.col-num {
+    text-align: right;
+}
+
+
+.tabla-ingredientes {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 15px;
+}
+
+.tabla-ingredientes th {
+    background: #efe6d6;
+    border-bottom: 2px solid #c8bda8;
+    padding: 6px 8px;
+}
+
+.tabla-ingredientes td {
+    padding: 6px 8px;
+}
+
+.tabla-ingredientes tr:nth-child(even) {
+    background: #faf6ef;
+}
+
+.col-text {
+    text-align: left;
+}
+
+.col-num {
+    text-align: right;
+}
+
+.total-col {
+    background: #e6efe2;
+    font-weight: bold;
+}
+
+.col-ingrediente {
+    width: 40%;
+}
+
+.titulo-receta {
+    
+    font-weight: bold;
+}
+
+.etiqueta-receta {
+    color: #8B1E2D;
+    font-weight: bold;
+}
+
+.titulo-receta .nombre-plato {
+    color: #2e7d32 !important;
+    font-weight: bold;
 }
 

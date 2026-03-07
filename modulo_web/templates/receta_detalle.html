@@ -8,8 +8,11 @@
 
 <body>
     <div class="container">
-        <a href="/recetas" class="btn-volver">← Volver</a>
-        <h1>{{ receta.plato_nombre }}</h1>
+        <a href="/recetas" class="btn-volver">← Quiero ver más recetas</a>
+        <h1 class="titulo-receta" style="color:blue;">
+        <span class="etiqueta-receta">RECETA DE LA ABUELA:</span>
+        <span class="nombre-plato">{{ receta.plato_nombre }}</span>
+        </h1>
         <div class="tabs">
     
             <a href="{{ url_for('receta_preparacion', receta_id=receta.id) }}" class="btn">
@@ -56,25 +59,58 @@
             
 
             <table class="tabla-ingredientes">
+
                 <thead>
-                    <tr>
-                        <th>Ingrediente</th>
-                        <th>Cantidad</th>
-                        <th>Unidad</th>
-                        <th>Rol</th>
-                    </tr>
+                <tr>
+
+                <th class="col-text col-ingrediente">INGREDIENTE</th>
+
+                <th class="col-text">UM</th>
+
+                <th class="col-num">
+                <div style="text-align:center">(*)</div>
+                <div style="text-align:center">CANTIDAD/BASE</div>
+                </th>
+
+                <th class="col-num">
+                <div style="text-align:center">(**)</div>
+                <div style="text-align:center">CANTIDAD/DECO</div>
+                </th>
+
+                <th class="col-num total-col">
+                <div style="text-align:center">TOTAL</div>
+                <div style="text-align:center">INGREDIENTE</div>
+                </th>
+
+                </tr>
                 </thead>
+
                 <tbody>
-                    {% for i in receta.ingredientes %}
+                {% for ing in receta["ingredientes"] %}
+
                     <tr>
-                        <td>{{ i.nombre }}</td>
-                        <td>{{ i.cantidad }}</td>
-                        <td>{{ i.unidad }}</td>
-                        <td>{{ i.rol }}</td>
+                        <td class="col-text">{{ ing.nombre }}</td>
+
+                        <td class="col-text">{{ ing.unidad_nombre }}</td>
+
+                        <td class="col-num">
+                            {{ "%.1f"|format(ing.cantidad - (ing.rol|float)) }}
+                        </td>
+
+                        <td class="col-num">
+                            {{ "%.1f"|format(ing.rol|float) }}
+                        </td>
+
+                        <td class="col-num total-col">
+                            <strong>{{ "%.1f"|format(ing.cantidad) }}</strong>
+                        </td>
                     </tr>
-                    {% endfor %}
+
+                {% endfor %}
                 </tbody>
+
             </table>
+
 
 
         </div>

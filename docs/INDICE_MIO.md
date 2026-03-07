@@ -61,6 +61,45 @@ dir      → listar archivos
 Para limpiar la pantalla de CMD o POWERSHELL:
 cls
 
+PENDIENTE:
+Si quieres, en el siguiente paso te puedo enseñar un pequeño truco que usan los desarrolladores veteranos para que cada respaldo USB quede ligado exactamente a un commit de Git.
+Eso hace que restaurar el sistema sea casi instantáneo.
+
+PENDIENTE:
+Si quieres, en el siguiente paso puedo mostrarte una mejora muy pequeña del código que hace el cálculo aún más seguro (es solo una línea), pero muy elegante desde el punto de vista técnico.
+
+PENDIENTE:
+Confirmación matemática
+
+Tu modelo sigue cumpliendo:
+
+BASE + DECO = TOTAL
+
+y el recalculo se hace siempre con:
+
+factor = raciones_solicitadas / raciones_base
+
+Si quieres, puedo mostrarte un detalle muy importante del código que tienes ahora mismo, porque el sistema no está usando exactamente este modelo, y hay una pequeña diferencia matemática que conviene aclarar antes de seguir avanzando.
+
+PENDIENTE:
+Si quieres, en el siguiente paso también puedo darte el mapa completo de rutas del sistema recetas_app para que lo tengas documentado. Es muy útil cuando el proyecto empieza a crecer.
+
+PENDIENTE:
+Colega, ahora que vemos la pantalla completa, aparece un detalle interesante de diseño:
+
+La tabla ahora tiene 5 columnas, y eso cambia ligeramente el equilibrio visual de la hoja.
+
+Hay una pequeña mejora de tipografía que puede hacer que esta tabla se vea mucho más elegante dentro de la página, sin cambiar nada del sistema.
+Si quieres, te la muestro porque encaja muy bien con el estilo de recetario que estás construyendo.
+
+PENDIENTE:
+Si quieres, en el siguiente paso te muestro cómo quedaría esta tabla exactamente dentro de la hoja blanca del recetario con el fondo beige del sistema. Ahí es donde realmente empieza a verse elegante.
+
+PENDIENTE:
+Porque el siguiente ajuste que podemos hacer (si quieres) es convertir esa tabla en algo que parezca literalmente una página de libro de cocina antiguo. Y eso queda espectacular.
+
+PENDIENTE:
+
 
 
 

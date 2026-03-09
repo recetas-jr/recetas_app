@@ -714,6 +714,172 @@ def admin_recetas_nueva():
 
 
 # ==================================================
+# EDITAR RECETA (MASTER)
+# ==================================================
+
+@app.route("/admin/recetas/editar/<int:receta_id>", methods=["GET","POST"])
+def admin_recetas_editar(receta_id):
+
+    platos = db_cargar_platos()
+    ingredientes = cargar_ingredientes_con_unidad()
+
+    # ==================================================
+    # GUARDAR CAMBIOS DE RECETA
+    # ==================================================
+
+    if request.method == "POST":
+
+        plato_id = request.form.get("plato_id", "").strip()
+        raciones_base = request.form.get("raciones_base", "").strip()
+
+        if not plato_id:
+            flash("Debe seleccionar un plato.", "error")
+            return redirect(f"/admin/recetas/editar/{receta_id}")
+
+        try:
+            raciones_base_int = int(raciones_base)
+            if raciones_base_int <= 0:
+                flash("RACIONES BASE debe ser mayor que 0.", "error")
+                return redirect(f"/admin/recetas/editar/{receta_id}")
+        except:
+            flash("RACIONES BASE debe ser numérico.", "error")
+            return redirect(f"/admin/recetas/editar/{receta_id}")
+
+        ingredientes_ids = request.form.getlist("ingrediente_id[]")
+        cantidades = request.form.getlist("cantidad[]")
+        roles = request.form.getlist("rol[]")
+
+        vistos = set()
+        filas_validas = []
+
+        for i in range(len(ingredientes_ids)):
+
+            ing_id = (ingredientes_ids[i] or "").strip()
+            cant_txt = (cantidades[i] or "").strip()
+            rol_txt = (roles[i] or "").strip()
+
+            if not ing_id:
+                continue
+
+            if ing_id in vistos:
+                flash("No se permiten ingredientes duplicados.", "error")
+                return redirect(f"/admin/recetas/editar/{receta_id}")
+
+            vistos.add(ing_id)
+
+            try:
+                cant_f = float(cant_txt)
+            except:
+                flash("La cantidad debe ser numérica.", "error")
+                return redirect(f"/admin/recetas/editar/{receta_id}")
+
+            if cant_f <= 0:
+                flash("La cantidad debe ser mayor que 0.", "error")
+                return redirect(f"/admin/recetas/editar/{receta_id}")
+
+            if rol_txt == "":
+                rol_f = 0.0
+            else:
+                try:
+                    rol_f = float(rol_txt)
+                except:
+                    flash("El rol debe ser numérico.", "error")
+                    return redirect(f"/admin/recetas/editar/{receta_id}")
+
+                if rol_f < 0:
+                    flash("El rol no puede ser negativo.", "error")
+                    return redirect(f"/admin/recetas/editar/{receta_id}")
+
+                if rol_f > cant_f:
+                    flash("El rol no puede ser mayor que la cantidad.", "error")
+                    return redirect(f"/admin/recetas/editar/{receta_id}")
+
+            filas_validas.append((int(ing_id), cant_f, rol_f))
+
+        if not filas_validas:
+            flash("La receta no puede quedar sin ingredientes.", "error")
+            return redirect(f"/admin/recetas/editar/{receta_id}")
+
+        try:
+            conn = get_connection()
+            cur = conn.cursor()
+
+            cur.execute(
+                "UPDATE recetas_maestro SET plato_id=?, raciones_base=? WHERE id=?",
+                (int(plato_id), raciones_base_int, receta_id)
+            )
+
+            cur.execute(
+                "DELETE FROM recetas_ingredientes WHERE receta_id=?",
+                (receta_id,)
+            )
+
+            for ing_id, cant_f, rol_f in filas_validas:
+                cur.execute(
+                    "INSERT INTO recetas_ingredientes (receta_id, ingrediente_id, cantidad, rol) VALUES (?,?,?,?)",
+                    (receta_id, ing_id, cant_f, rol_f)
+                )
+
+            conn.commit()
+            conn.close()
+
+            flash("Receta actualizada correctamente.", "recetas")
+
+            return redirect("/admin/recetas/listado")
+
+        except Exception as e:
+            print("ERROR actualizando receta:", e)
+            flash("Error al actualizar la receta.", "error")
+            return redirect(f"/admin/recetas/editar/{receta_id}")
+
+    try:
+        conn = get_connection()
+        cur = conn.cursor()
+
+        # CABECERA DE RECETA
+        cur.execute("""
+            SELECT
+                r.id,
+                r.plato_id,
+                r.raciones_base,
+                p.nombre as plato_nombre
+            FROM recetas_maestro r
+            JOIN platos p ON p.id = r.plato_id
+            WHERE r.id = ?
+        """, (receta_id,))
+
+        receta = cur.fetchone()
+
+        if not receta:
+            flash("Receta no encontrada.", "error")
+            return redirect("/admin/recetas/listado")
+
+        # INGREDIENTES DE LA RECETA
+        cur.execute("""
+            SELECT ingrediente_id, cantidad, rol
+            FROM recetas_ingredientes
+            WHERE receta_id = ?
+            ORDER BY id
+        """, (receta_id,))
+
+        ingredientes_receta = cur.fetchall()
+
+        conn.close()
+
+    except Exception as e:
+        print("ERROR cargando receta:", e)
+        flash("Error cargando receta.", "error")
+        return redirect("/admin/recetas/listado")
+
+    return render_template(
+        "admin_recetas_nueva.html",
+        platos=platos,
+        ingredientes=ingredientes,
+        receta=receta,
+        ingredientes_receta=ingredientes_receta
+    )
+
+# ==================================================
 # BORRAR RECETA
 # ==================================================
 

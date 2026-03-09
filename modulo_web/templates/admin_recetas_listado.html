@@ -76,7 +76,7 @@
                     <th>Nombre Plato</th>
                     <th width="80" style="text-align:right;">Raciones</th>
                     <th width="110" style="text-align:right;"># Ingred.</th>
-                    <th width="60" style="text-align:center;">🗑️</th>
+                    <th width="90" style="text-align:center;">Acciones</th>
                 </tr>
             </thead>
             <tbody>
@@ -96,6 +96,8 @@
                     <td align="center">
 
                         <a href="/receta/{{ r.id }}" title="Ver receta pública">👁️</a>
+
+                        <a href="/admin/recetas/editar/{{ r.id }}" title="Editar receta">✏️</a>
 
                         <form method="post"
                             action="/admin/recetas/borrar/{{ r.id }}"

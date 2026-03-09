@@ -100,6 +100,8 @@ Porque el siguiente ajuste que podemos hacer (si quieres) es convertir esa tabla
 
 PENDIENTE:
 
+>>> exit() <------- con esto se sale al prompt normal
+
 
 
 

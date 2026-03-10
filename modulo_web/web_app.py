@@ -732,6 +732,12 @@ def admin_recetas_editar(receta_id):
         plato_id = request.form.get("plato_id", "").strip()
         raciones_base = request.form.get("raciones_base", "").strip()
 
+        # NUEVO: textos de la receta
+        preparacion = request.form.get("preparacion", "").strip()
+        elaboracion = request.form.get("elaboracion", "").strip()
+        presentacion = request.form.get("presentacion", "").strip()
+        nutricion = request.form.get("nutricion", "").strip()
+
         if not plato_id:
             flash("Debe seleccionar un plato.", "error")
             return redirect(f"/admin/recetas/editar/{receta_id}")
@@ -804,19 +810,43 @@ def admin_recetas_editar(receta_id):
             conn = get_connection()
             cur = conn.cursor()
 
+            # ACTUALIZAR CABECERA + TEXTOS
             cur.execute(
-                "UPDATE recetas_maestro SET plato_id=?, raciones_base=? WHERE id=?",
-                (int(plato_id), raciones_base_int, receta_id)
+                """
+                UPDATE recetas_maestro
+                SET plato_id=?,
+                    raciones_base=?,
+                    preparacion=?,
+                    elaboracion=?,
+                    presentacion=?,
+                    nutricion=?
+                WHERE id=?
+                """,
+                (
+                    int(plato_id),
+                    raciones_base_int,
+                    preparacion,
+                    elaboracion,
+                    presentacion,
+                    nutricion,
+                    receta_id
+                )
             )
 
+            # BORRAR INGREDIENTES ANTERIORES
             cur.execute(
                 "DELETE FROM recetas_ingredientes WHERE receta_id=?",
                 (receta_id,)
             )
 
+            # INSERTAR INGREDIENTES NUEVOS
             for ing_id, cant_f, rol_f in filas_validas:
                 cur.execute(
-                    "INSERT INTO recetas_ingredientes (receta_id, ingrediente_id, cantidad, rol) VALUES (?,?,?,?)",
+                    """
+                    INSERT INTO recetas_ingredientes
+                    (receta_id, ingrediente_id, cantidad, rol)
+                    VALUES (?,?,?,?)
+                    """,
                     (receta_id, ing_id, cant_f, rol_f)
                 )
 
@@ -832,16 +862,23 @@ def admin_recetas_editar(receta_id):
             flash("Error al actualizar la receta.", "error")
             return redirect(f"/admin/recetas/editar/{receta_id}")
 
+    # ==================================================
+    # CARGAR RECETA PARA EDICIÓN
+    # ==================================================
+
     try:
         conn = get_connection()
         cur = conn.cursor()
 
-        # CABECERA DE RECETA
         cur.execute("""
             SELECT
                 r.id,
                 r.plato_id,
                 r.raciones_base,
+                r.preparacion,
+                r.elaboracion,
+                r.presentacion,
+                r.nutricion,
                 p.nombre as plato_nombre
             FROM recetas_maestro r
             JOIN platos p ON p.id = r.plato_id
@@ -854,7 +891,6 @@ def admin_recetas_editar(receta_id):
             flash("Receta no encontrada.", "error")
             return redirect("/admin/recetas/listado")
 
-        # INGREDIENTES DE LA RECETA
         cur.execute("""
             SELECT ingrediente_id, cantidad, rol
             FROM recetas_ingredientes
@@ -872,7 +908,7 @@ def admin_recetas_editar(receta_id):
         return redirect("/admin/recetas/listado")
 
     return render_template(
-        "admin_recetas_nueva.html",
+        "admin_recetas_editar.html",
         platos=platos,
         ingredientes=ingredientes,
         receta=receta,

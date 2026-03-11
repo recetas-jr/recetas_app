@@ -464,4 +464,133 @@ El sistema también sirve como base futura para:
 
 ---
 
-# FIN DEL DOCUMENTO docs/ARQUITECTURA_DEL_SISTEMA.md
+
+Actualización del Modelo de Datos
+
+Las siguientes modificaciones reflejan la evolución reciente del modelo de datos del sistema recetas_app y garantizan que la documentación permanezca alineada con la estructura real de la base de datos SQLite utilizada por el sistema.
+
+Tabla recetas_maestro
+
+La tabla recetas_maestro define las recetas del sistema.
+
+Contiene tanto la información estructural de la receta como los textos culinarios asociados.
+
+Campos
+
+id
+
+plato_id
+
+raciones_base
+
+preparacion
+
+elaboracion
+
+presentacion
+
+nutricion
+
+Nota de evolución del sistema
+
+En versiones anteriores del sistema, los textos culinarios se almacenaban en la tabla recetas_detalle.
+Tras la evolución del modelo de datos, estos campos fueron integrados directamente en recetas_maestro para simplificar la estructura y mejorar la coherencia del modelo.
+
+Tabla recetas_detalle
+
+La tabla recetas_detalle se considera actualmente una tabla histórica del sistema.
+
+En versiones anteriores contenía los textos culinarios de las recetas:
+
+preparacion
+
+elaboracion
+
+presentacion
+
+nutricion
+
+Tras la evolución del modelo de datos, estos campos fueron integrados directamente en la tabla recetas_maestro.
+
+Actualmente esta tabla se mantiene únicamente por motivos de compatibilidad con versiones anteriores del sistema.
+
+Relación entre entidades del sistema
+
+El modelo relacional actual del sistema puede representarse de la siguiente forma:
+
+TIPO_PLATO
+│
+└───∞
+PLATOS
+│
+└───1
+RECETAS_MAESTRO
+│
+└───∞
+RECETAS_INGREDIENTES
+│
+└───1
+INGREDIENTES
+│
+└───1
+UNIDADES
+
+Este esquema refleja la estructura real implementada en la base de datos SQLite del sistema.
+
+Modelo Relacional del Sistema
+
+El sistema utiliza un modelo de datos relacional normalizado.
+
+Este modelo separa claramente las entidades principales del dominio gastronómico:
+
+platos
+
+recetas
+
+ingredientes
+
+unidades de medida
+
+Las relaciones entre estas entidades se gestionan mediante claves foráneas, lo que permite mantener una estructura de datos consistente y extensible.
+
+Ventajas del modelo
+
+El diseño relacional del sistema permite:
+
+evitar duplicación de datos
+
+mantener integridad referencial
+
+facilitar el mantenimiento del sistema
+
+permitir ampliaciones funcionales sin alterar la arquitectura base
+
+Evolución funcional prevista
+
+La estructura actual del modelo de datos permite implementar futuras funcionalidades del sistema, tales como:
+
+cálculo dinámico de raciones
+
+escandallo de recetas
+
+análisis nutricional
+
+planificación de producción gastronómica
+
+Estado de la Documentación
+
+La documentación técnica del proyecto incluye actualmente:
+
+START_HERE — punto de entrada al sistema
+
+INDICE — estructura documental del proyecto
+
+MAPA_DEL_SISTEMA — visión global del sistema
+
+ARQUITECTURA_DEL_SISTEMA — descripción técnica del sistema
+
+Este nivel de documentación proporciona una visión clara tanto del funcionamiento del sistema como de su arquitectura interna.
+
+Fin del documento
+
+docs/ARQUITECTURA_DEL_SISTEMA.md

@@ -83,5 +83,8 @@ data_compartida/
 recetas_maestro.json
 bitácora de desarrollo.txt
 recetas.db
+*_backup.*
+BACKUP_*
+copy
 
 modulo_web/recetas.db

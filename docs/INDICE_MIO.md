@@ -102,6 +102,20 @@ PENDIENTE:
 
 >>> exit() <------- con esto se sale al prompt normal
 
+SALVA: ----web_app.py en web_app_backup.py ------
+copy /Y web_app.py web_app_backup.py
+
+RESTAURA: -----web_app_backup.py en web_app.py -------
+copy /Y web_app_backup.py web_app.py
+
+SALVA: -----modulo_web\templates\admin_recetas_editar.html en modulo_web\templates\admin_recetas_editar_backup.html -------
+
+copy /Y modulo_web\templates\admin_recetas_editar.html modulo_web\templates\admin_recetas_editar_backup.html
+
+RESTAURA: ----- modulo_web\templates\admin_recetas_editar_backup.html en modulo_web\templates\admin_recetas_editar.html------
+
+copy modulo_web\templates\admin_recetas_editar_backup.html modulo_web\templates\admin_recetas_editar.html
+
 
 
 

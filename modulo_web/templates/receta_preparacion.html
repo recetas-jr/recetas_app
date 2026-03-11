@@ -17,7 +17,22 @@ RUTA: recetas_app/modulo_web/templates/
 <h3>{{ receta.plato_nombre }}</h3>
 
 <div style="margin-top:20px;">
-    <p>Aquí aparecerá la guía paso a paso de preparación.</p>
+
+<h4>Preparación</h4>
+<div style="white-space: pre-line;">
+{{ receta.preparacion }}
+</div>
+
+<h4>Elaboración</h4>
+<div style="white-space: pre-line;">
+{{ receta.elaboracion }}
+</div>
+
+<h4>Presentación</h4>
+<div style="white-space: pre-line;">
+{{ receta.presentacion }}
+</div>
+
 </div>
 
 </body>

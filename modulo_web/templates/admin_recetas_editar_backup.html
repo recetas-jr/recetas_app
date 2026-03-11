@@ -10,18 +10,6 @@
 
 body { font-family: Arial, sans-serif; background:#f2f4f8; margin:0; padding:0; }
 
-/* quitar flechas en campos numéricos */
-
-input::-webkit-outer-spin-button,
-input::-webkit-inner-spin-button{
--webkit-appearance:none;
-margin:0;
-}
-
-input[type=number]{
--moz-appearance:textfield;
-}
-
 .container{
     max-width:1250px;
     margin:20px auto;
@@ -66,13 +54,6 @@ textarea{
 }
 
 .btn-prim{ background:#1f6feb; color:#fff; }
-
-.btn-prim:focus{
-background:#ff6b00;
-color:#fff;
-box-shadow:0 0 10px rgba(255,107,0,0.9);
-transform:scale(1.05);
-}
 .btn-sec{ background:#777; color:#fff; }
 
 .tabla{
@@ -90,13 +71,8 @@ transform:scale(1.05);
     background:#f0f0f0;
 }
 
-.ing-cantidad,
-.ing-rol{
-text-align:right;
-}
-
-.col-qty{ width:120px; text-align:right; }
-.col-rol{ width:120px; text-align:right; }
+.col-qty{ width:120px; }
+.col-rol{ width:120px; }
 .col-um{ width:140px; }
 
 .row-actions{ text-align:center; }
@@ -151,57 +127,6 @@ border-bottom:1px solid #e6e6e6;
 margin-bottom:10px;
 }
 
-.tabla-scroll{
-max-height:350px;
-overflow-y:auto;
-border:1px solid #ddd;
-}
-
-.tabla thead th{
-position:sticky;
-top:0;
-background:#f0f0f0;
-z-index:2;
-}
-
-.flash-msg{
-background:#d4edda;
-color:#155724;
-padding:10px 14px;
-border-radius:6px;
-margin-bottom:10px;
-font-weight:bold;
-transition:opacity 0.4s ease;
-}
-
-.flash-msg.oculto{
-opacity:0;
-}
-
-.flash-msg{
-padding:10px 14px;
-border-radius:6px;
-margin-bottom:10px;
-font-weight:bold;
-}
-
-/* éxito */
-
-.flash-msg.ok,
-.flash-msg.recetas{
-background:#d4edda;
-color:#155724;
-border:1px solid #c3e6cb;
-}
-
-/* error */
-
-.flash-msg.error{
-background:#f8d7da;
-color:#721c24;
-border:1px solid #f5c6cb;
-}
-
 </style>
 </head>
 
@@ -210,14 +135,6 @@ border:1px solid #f5c6cb;
 <div class="container">
 
 <h2>EDITANDO RECETA MASTER</h2>
-
-{% with messages = get_flashed_messages(with_categories=true) %}
-{% if messages %}
-    {% for category, message in messages %}
-            <div class="flash-msg {{ category }}">{{ message }}</div>
-    {% endfor %}
-{% endif %}
-{% endwith %}
 
 <div class="acciones-top">
 
@@ -296,7 +213,6 @@ style="width:80px;">
 + Añadir ingrediente
 </button>
 
-<div class="tabla-scroll">
 <table class="tabla">
 
 <thead>
@@ -344,7 +260,6 @@ data-um="{{ ing.unidad_nombre }}"
 <input
 type="number"
 step="0.01"
-min="0.01"
 class="ing-cantidad"
 name="cantidad[]"
 value="{{ item.cantidad|int if item.cantidad == item.cantidad|int else item.cantidad }}">
@@ -386,7 +301,6 @@ Borrar
 </tbody>
 
 </table>
-</div>div>
 
 </form>
 
@@ -519,43 +433,6 @@ rol.addEventListener("focus",activarFila)
 
 sel.addEventListener("change",function(){
 
-
-/* detectar ingrediente duplicado */
-
-const valor=sel.value
-
-let repetido=false
-
-document.querySelectorAll(".ing-select").forEach(s=>{
-
-if(s!==sel && s.value===valor && valor!==""){
-repetido=true
-}
-
-})
-
-if(repetido){
-
-const nombre = sel.options[sel.selectedIndex].text
-
-const msg = document.createElement("div")
-msg.className = "flash-msg"
-msg.innerHTML =
-"<span style='color:#cc0000;font-weight:bold'>" +
-nombre +
-"</span> " +
-"<span style='color:#0b5d1e;font-weight:bold'>ya aparece en la receta editada</span>"
-
-const container = document.querySelector(".container")
-container.insertBefore(msg, container.firstChild)
-
-sel.value=""
-sel.focus()
-
-return
-
-}
-
 const opcion=sel.options[sel.selectedIndex]
 const unidad=opcion.dataset.um
 
@@ -597,14 +474,6 @@ const sigSel=siguiente.querySelector(".ing-select")
 
 if(sigSel){
 sigSel.focus()
-}
-
-}else{
-
-const btnGuardar=document.querySelector('button[form="form-master"]')
-
-if(btnGuardar){
-btnGuardar.focus()
 }
 
 }
@@ -655,7 +524,7 @@ tr.innerHTML=`
 </td>
 
 <td class="col-qty">
-<input type="number" step="0.01" min="0.01" class="ing-cantidad" name="cantidad[]" value="">
+<input type="number" step="0.01" class="ing-cantidad" name="cantidad[]" value="">
 </td>
 
 <td class="col-um">
@@ -683,49 +552,6 @@ activarEventosFila(tr)
 tr.querySelector(".ing-select").focus()
 
 })
-
-/* ===============================
-LIMPIAR MENSAJES AL SIGUIENTE INPUT
-=============================== */
-
-function limpiarMensajes(){
-
-const msgs=document.querySelectorAll(".flash-msg, .errores")
-
-msgs.forEach(m=>{
-m.style.display="none"
-})
-
-}
-
-document.querySelectorAll("input,select,textarea").forEach(el=>{
-el.addEventListener("keydown",limpiarMensajes)
-el.addEventListener("change",limpiarMensajes)
-})
-
-/* ===============================
-AUTO DESAPARICIÓN DEL MENSAJE
-=============================== */
-
-const flash=document.getElementById("flash-msg")
-
-if(flash){
-
-setTimeout(()=>{
-flash.classList.add("oculto")
-},2500)
-
-document.addEventListener("keydown",()=>{
-flash.classList.add("oculto")
-})
-
-document.addEventListener("click",()=>{
-flash.classList.add("oculto")
-})
-
-}
-
-
 
 </script>
 

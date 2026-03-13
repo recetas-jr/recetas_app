@@ -1,171 +1,314 @@
+<!--
+ARCHIVO: receta_detalle.html
+RUTA: recetas_app/modulo_web/templates/
+-->
+
+<!DOCTYPE html>
 <html>
 
 <head>
-    <title>{{ receta.nombre }}</title>
 
-    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+<title>Receta</title>
+
+<style>
+
+body{
+font-family: Arial, sans-serif;
+background:#f2f4f8;
+margin:0;
+padding:0;
+}
+
+.container{
+max-width:900px;
+margin:40px auto;
+background:#ffffff;
+padding:20px 25px;
+border-radius:10px;
+box-shadow:0 0 10px rgba(0,0,0,0.08);
+}
+
+h2{
+margin-top:0;
+}
+
+.titulo-receta{
+font-size:22px;
+font-weight:bold;
+margin-bottom:10px;
+}
+
+.raciones{
+margin-bottom:20px;
+}
+
+/* =========================
+BOTONES DE ACCION
+========================= */
+
+.boton-accion{
+
+display:block;
+
+width:fit-content;
+
+margin:16px 0;
+
+padding:12px 28px;
+
+font-size:16px;
+font-weight:bold;
+
+color:white;
+
+background:linear-gradient(90deg,#28a745,#34c759);
+
+border-radius:40px;
+
+text-decoration:none;
+
+letter-spacing:0.3px;
+
+box-shadow:0 4px 10px rgba(0,0,0,0.18);
+
+transition:all 0.2s ease;
+
+}
+
+.boton-accion:hover{
+
+transform:scale(1.04);
+
+box-shadow:0 6px 14px rgba(0,0,0,0.25);
+
+}
+
+/* =========================
+QUITAR FLECHAS INPUT NUMBER
+========================= */
+
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button{
+-webkit-appearance:none;
+margin:0;
+}
+
+input[type=number]{
+-moz-appearance:textfield;
+}
+
+/* =========================
+RESALTADO MORADO INPUT
+========================= */
+
+input:focus{
+
+outline:none;
+
+background:#f3e8ff;
+
+border:2px solid #5b21b6;
+
+box-shadow:0 0 6px rgba(91,33,182,0.7);
+
+}
+
+/* =========================
+TABLA
+========================= */
+
+.tabla{
+width:100%;
+border-collapse:collapse;
+}
+
+.tabla th{
+background:#d8cfbf;
+padding:10px;
+text-align:left;
+border-bottom:2px solid #b6ab97;
+}
+
+.tabla td{
+padding:8px;
+border-bottom:1px solid #eee;
+}
+
+.tabla tr:nth-child(even){
+background:#f7f6f2;
+}
+
+.total{
+background:#d9dfd5;
+font-weight:bold;
+}
+
+/* =========================
+ALINEACION NUMERICA
+========================= */
+
+.num{
+text-align:right;
+}
+
+/* =========================
+LEYENDA DESTACADA
+========================= */
+
+.leyenda-mini{
+
+margin:16px 0 22px 0;
+
+background:#fff6c8;
+
+border:2px solid #d6c46b;
+
+border-radius:6px;
+
+padding:14px 16px;
+
+font-size:15px;
+
+color:#222;
+
+line-height:1.6;
+
+}
+
+.leyenda-mini strong{
+
+display:block;
+
+margin-bottom:8px;
+
+color:#7a6a00;
+
+font-size:16px;
+
+}
+
+/* =========================
+COLORES DEL SISTEMA
+========================= */
+
+.base{
+color:#00a651;
+font-weight:bold;
+}
+
+.deco{
+color:#007bff;
+font-weight:bold;
+}
+
+</style>
+
 </head>
 
 <body>
-    <div class="container">
-        <a href="/recetas" class="btn-volver">← Quiero ver más recetas</a>
-        <h1 class="titulo-receta" style="color:blue;">
-        <span class="etiqueta-receta">RECETA DE LA ABUELA:</span>
-        <span class="nombre-plato">{{ receta.plato_nombre }}</span>
-        </h1>
-        <div class="tabs">
-    
-            <a href="{{ url_for('receta_preparacion', receta_id=receta.id) }}" class="btn">
-                Guía para su preparación
-            </a>
 
-        </div>
+<div class="container">
 
-        <div id="tab-ficha">
+<a href="/recetas" class="boton-accion">
+CLIC → QUIERO VER MÁS RECETAS
+</a>
 
-            <h3>Raciones</h3>
+<h2 class="titulo-receta">
+RECETA DE LA ABUELA:
+<span style="color:#2b7a2b;">{{ receta.plato_nombre }}</span>
+</h2>
 
-            <div class="raciones-info">
-
-                <div class="racion-base">
-                    Raciones base de la receta:
-                    <strong>{{ receta.raciones_base }}</strong>
-                    {% if raciones_solicitadas %}
-                    <p>
-                        Raciones solicitadas: <strong>{{ raciones_solicitadas }}</strong>
-                    </p>
-                    {% endif %}
-                </div>
-
-                <form method="POST">
-
-                    <label>Raciones a solicitar:</label>
-
-                    <input
-                         type="number"
-                         name="raciones"
-                         min="1"
-                         required
-                         style="width:80px"
-                    >
-
-                    <span style="color:green;">
-                        &lt;enter&gt; recalcula 🧮
-                    </span>
-
-                </form>
-
-            </div>
-            
-
-            <table class="tabla-ingredientes">
-
-                <thead>
-                <tr>
-
-                <th class="col-text col-ingrediente">INGREDIENTE</th>
-
-                <th class="col-text">UM</th>
-
-                <th class="col-num">
-                <div style="text-align:center">(*)</div>
-                <div style="text-align:center">CANTIDAD/BASE</div>
-                </th>
-
-                <th class="col-num">
-                <div style="text-align:center">(**)</div>
-                <div style="text-align:center">CANTIDAD/DECO</div>
-                </th>
-
-                <th class="col-num total-col">
-                <div style="text-align:center">TOTAL</div>
-                <div style="text-align:center">INGREDIENTE</div>
-                </th>
-
-                </tr>
-                </thead>
-
-                <tbody>
-                {% for ing in receta["ingredientes"] %}
-
-                    <tr>
-                        <td class="col-text">{{ ing.nombre }}</td>
-
-                        <td class="col-text">{{ ing.unidad_nombre }}</td>
-
-                        <td class="col-num">
-                            {{ "%.1f"|format(ing.cantidad - (ing.rol|float)) }}
-                        </td>
-
-                        <td class="col-num">
-                            {{ "%.1f"|format(ing.rol|float) }}
-                        </td>
-
-                        <td class="col-num total-col">
-                            <strong>{{ "%.1f"|format(ing.cantidad) }}</strong>
-                        </td>
-                    </tr>
-
-                {% endfor %}
-                </tbody>
-
-            </table>
+<a href="/receta/{{ receta.id }}/preparacion" class="boton-accion">
+CLIC → GUÍA PARA LA PREPARACIÓN
+</a>
 
 
+<div class="raciones">
 
-        </div>
+<b>Raciones</b><br><br>
 
-        <div id="tab-proceso" style="display:none;">
+Raciones base de la receta: <b>{{ raciones_base }}</b><br>
 
-            <div class="acordeon">
+<form method="post">
 
-                <button class="acordeon-btn" onclick="toggleAcordeon(this)">
-                    Preparación
-                </button>
-                <div class="acordeon-panel">
-                    <p>{{ receta.textos.preparacion }}</p>
-                </div>
+Raciones a solicitar:
+<input type="number" name="raciones" style="width:80px;">
 
-                <button class="acordeon-btn" onclick="toggleAcordeon(this)">
-                    Elaboración
-                </button>
-                <div class="acordeon-panel">
-                    <p>{{ receta.textos.elaboracion }}</p>
-                </div>
+<span style="color:#2a8c2a;">&lt;enter&gt; recalcula</span>
 
-                <button class="acordeon-btn" onclick="toggleAcordeon(this)">
-                    Presentación
-                </button>
-                <div class="acordeon-panel">
-                    <p>{{ receta.textos.presentacion }}</p>
-                </div>
+</form>
 
-                <button class="acordeon-btn" onclick="toggleAcordeon(this)">
-                    Nutrición (por ración)
-                </button>
-                <div class="acordeon-panel">
-                    
-                    <p>{{ receta.textos.nutricion }}</p>
-                    
-                </div>
+</div>
 
-            </div>
-        </div>
 
-    </div>
+<!-- =========================
+LEYENDA BASE / DECO
+========================= -->
 
-    <script>
-        function toggleAcordeon(btn) {
-            const panel = btn.nextElementSibling;
+<div class="leyenda-mini">
 
-            if (panel.style.display === "block") {
-                panel.style.display = "none";
-            } else {
-                panel.style.display = "block";
-            }
-        }
-    </script>
+<strong>⚠ LEYENDA</strong>
+
+<span class="base">(*) Cantidad/base</span> → Ingrediente utilizado durante la elaboración de la receta.<br>
+
+<span class="deco">(**) Cantidad/deco</span> → Ingrediente destinado a la decoración final del plato, cuando aplique.
+
+</div>
+
+
+<table class="tabla">
+
+<thead>
+
+<tr>
+
+<th>INGREDIENTE</th>
+
+<th>UM</th>
+
+<th class="base num">(*) CANTIDAD/BASE</th>
+
+<th class="deco num">(**) CANTIDAD/DECO</th>
+
+<th class="num">TOTAL INGREDIENTE</th>
+
+</tr>
+
+</thead>
+
+<tbody>
+
+{% for ing in receta.ingredientes %}
+
+<tr>
+
+<td>{{ ing.nombre }}</td>
+
+<td>{{ ing.unidad_nombre }}</td>
+
+<td class="base num">{{ ing.cantidad }}</td>
+
+<td class="deco num">{{ ing.rol }}</td>
+
+<td class="total num">
+{{ (ing.cantidad|float + ing.rol|float)|round(2) }}
+</td>
+
+</tr>
+
+{% endfor %}
+
+</tbody>
+
+</table>
+
+</div>
 
 </body>
-
 </html>
+
+<!--
+FIN DEL ARCHIVO
+ARCHIVO: receta_detalle.html
+RUTA: recetas_app/modulo_web/templates/
+-->

@@ -67,10 +67,14 @@ def init_db():
 
     cur.execute("""
     CREATE TABLE IF NOT EXISTS recetas_maestro (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        plato_id INTEGER NOT NULL,
-        raciones_base INTEGER NOT NULL,
-        FOREIGN KEY (plato_id) REFERENCES platos(id)
+           id INTEGER PRIMARY KEY AUTOINCREMENT,
+           plato_id INTEGER NOT NULL,
+           raciones_base INTEGER NOT NULL,
+           preparacion TEXT,
+           elaboracion TEXT,
+           presentacion TEXT,
+           nutricion TEXT,
+           FOREIGN KEY (plato_id) REFERENCES platos(id)
     );
     """)
 
@@ -291,6 +295,10 @@ def db_cargar_receta_detalle(receta_id):
             r.id,
             r.plato_id,
             r.raciones_base,
+            r.preparacion,
+            r.elaboracion,
+            r.presentacion,
+            r.nutricion,
             p.nombre AS plato_nombre,
             p.foto AS plato_foto
         FROM recetas_maestro r
@@ -310,28 +318,15 @@ def db_cargar_receta_detalle(receta_id):
         "plato_foto": fila["plato_foto"],
         "raciones_base": fila["raciones_base"],
         "textos": {
-            "preparacion": "",
-            "elaboracion": "",
-            "presentacion": "",
-            "nutricion": ""
+            "preparacion": fila["preparacion"] or "",
+            "elaboracion": fila["elaboracion"] or "",
+            "presentacion": fila["presentacion"] or "",
+            "nutricion": fila["nutricion"] or ""
         },
         "ingredientes": []
     }
 
-    cur.execute("""
-        SELECT preparacion, elaboracion, presentacion, nutricion
-        FROM recetas_detalle
-        WHERE receta_id = ?
-    """, (receta_id,))
-    fila_txt = cur.fetchone()
-    if fila_txt:
-        receta["textos"] = {
-            "preparacion": fila_txt["preparacion"] or "",
-            "elaboracion": fila_txt["elaboracion"] or "",
-            "presentacion": fila_txt["presentacion"] or "",
-            "nutricion": fila_txt["nutricion"] or ""
-        }
-
+    
     cur.execute("""
         SELECT
             ri.ingrediente_id,

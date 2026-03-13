@@ -102,19 +102,39 @@ PENDIENTE:
 
 >>> exit() <------- con esto se sale al prompt normal
 
-SALVA: ----web_app.py en web_app_backup.py ------
-copy /Y web_app.py web_app_backup.py
+1)TITULO: SALVA WEB_APP.PY: ----\modulo_web\web_app.py en web_app_backup.py ------
 
-RESTAURA: -----web_app_backup.py en web_app.py -------
-copy /Y web_app_backup.py web_app.py
+2)EJECUTA LA SALVA --> copy /Y modulo_webw\eb_app.py modulo_web\web_app_backup.py
 
-SALVA: -----modulo_web\templates\admin_recetas_editar.html en modulo_web\templates\admin_recetas_editar_backup.html -------
+1)TITULO: RESTAURA EN WEB_APP.PY----web_app_backup.py en web_app.py -------
 
-copy /Y modulo_web\templates\admin_recetas_editar.html modulo_web\templates\admin_recetas_editar_backup.html
+2)EJECUTA LA RETAURACION --> copy /Y modulo_web/web_app_backup.py modulo_web\web_app.py
 
-RESTAURA: ----- modulo_web\templates\admin_recetas_editar_backup.html en modulo_web\templates\admin_recetas_editar.html------
+1)TITULO: SALVA ADMIN_RECETAS_EDITAR.HTML: -----modulo_web\templates\admin_recetas_editar.html en modulo_web\templates\admin_recetas_editar_backup.html -------
 
-copy modulo_web\templates\admin_recetas_editar_backup.html modulo_web\templates\admin_recetas_editar.html
+2)EJECUTA LA SALVA: --> copy /Y modulo_web\templates\admin_recetas_editar.html modulo_web\templates\admin_recetas_editar_backup.html
+
+1)TITULO:RESTAURA: -----modulo_web\templates\admin_recetas_editar_backup.html en modulo_web\templates\admin_recetas_editar.html------
+
+2)EJECUTA LA RESTAURACION:--> copy /Y modulo_web\templates\admin_recetas_editar_backup.html modulo_web\templates\admin_recetas_editar.html
+
+1)TITULO: SALVA RECETAS_PREPARACION.HTML: ---- modulo_web\templatesr\eceta_preparacion.html en modulo_web\templates\receta_preparacion_backup.html
+
+2)EJECUTA LA SALVA --> copy /Y modulo_web\templates\receta_preparacion.html modulo_web\templates\receta_preparacion_backup.html 
+
+1)TITULO: RESTAURA: -----receta_preparacion_backup.html en modulo_web/templates/receta_preparacion.html
+
+2)EJECUTA LA RESTAURACION: --> copy /Y modulo_web\templates\receta_preparacion_backup.html modulo_web\templates\receta_preparacion.html
+
+1)TITULO: SALVA RECETA_DETALLE.HTML Y EJECUTA: --> copy /Y modulo_web\templates\receta_detalle.html modulo_web\templates\receta_detalle_backup.html
+
+2)1)TITULO: RESTAURAR RECETA_DETALLE.HTML Y EJECUTA --> copy /Y modulo_web\templates\receta_detalle_backup.html modulo_web\templates\receta_detalle.html
+
+git commit -am "checkpoint antes de modificar editor" <-- crea otra capa de seguridad 
+                                                          con el git
+
+Encabezado fijo mientras el contenido se desplaza
+(lo que en web se llama sticky header). ----> SCROLL
 
 
 

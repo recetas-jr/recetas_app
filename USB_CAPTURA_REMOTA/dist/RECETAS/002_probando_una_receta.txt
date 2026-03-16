@@ -1,0 +1,13 @@
+RECETA
+nombre: probando una receta
+raciones: 4
+
+INGREDIENTES
+probando 10 g
+probando2 34 g
+
+PREPARACION
+
+ELABORACION
+
+PRESENTACION

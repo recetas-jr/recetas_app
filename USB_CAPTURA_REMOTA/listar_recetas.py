@@ -1,20 +1,39 @@
 # ------------------------------------------------------------
-# ARCHIVO: RECETAS_APP/USB_CAPTURA_REMOTA/listar_recetas.py
+# ARCHIVO: USB_CAPTURA_REMOTA/listar_recetas.py
 # PROPOSITO:
 # Mostrar en pantalla todas las recetas capturadas en el USB.
-# Sirve para revisión visual rápida sin imprimir nada.
 # ------------------------------------------------------------
 
 import os
+import sys
 
-base = "USB_CAPTURA_REMOTA"
-recetas_dir = os.path.join(base, "RECETAS")
+# ------------------------------------------------------------
+# CONFIGURACIÓN PORTABLE
+# ------------------------------------------------------------
 
-if not os.path.exists(recetas_dir):
-    print("La carpeta RECETAS no existe.")
-    exit()
+if getattr(sys, 'frozen', False):
+    # Ejecutándose como .exe
+    BASE_DIR = os.path.dirname(sys.executable)
+else:
+    # Ejecutándose como .py
+    BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
-archivos = sorted(os.listdir(recetas_dir))
+RECETAS_DIR = os.path.join(BASE_DIR, "RECETAS")
+
+# ------------------------------------------------------------
+# VALIDACIÓN
+# ------------------------------------------------------------
+
+if not os.path.exists(RECETAS_DIR):
+    print("\nLa carpeta RECETAS no existe.\n")
+    input("Pulsa ENTER para continuar...")
+    sys.exit()
+
+# ------------------------------------------------------------
+# LISTADO
+# ------------------------------------------------------------
+
+archivos = sorted(os.listdir(RECETAS_DIR))
 
 print("\nRECETAS CAPTURADAS\n")
 
@@ -26,6 +45,8 @@ else:
 
 print("\nFin del listado.\n")
 
-"""
-RECETAS_APP/USB_CAPTURA_REMOTA/listar_recetas.py
-"""
+# ------------------------------------------------------------
+# PAUSA FINAL (IMPORTANTE PARA .exe)
+# ------------------------------------------------------------
+
+input("Pulsa ENTER para volver...")

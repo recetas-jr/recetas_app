@@ -1,17 +1,31 @@
 # ------------------------------------------------------------
-# ARCHIVO: RECETAS_APP/USB_CAPTURA_REMOTA/capturar_receta.py
+# ARCHIVO: USB_CAPTURA_REMOTA/capturar_receta.py
 # PROPOSITO:
 # Permitir capturar recetas en la "lejanía".
-# El usuario introduce los datos por teclado y el sistema
-# guarda la receta como archivo dentro de la carpeta RECETAS.
+# Guarda la receta dentro de la carpeta RECETAS del mismo lugar
+# donde se ejecuta el .exe (modo portable).
 # ------------------------------------------------------------
 
 import os
+import sys
 
-base = "USB_CAPTURA_REMOTA"
-recetas_dir = os.path.join(base, "RECETAS")
+# ------------------------------------------------------------
+# CONFIGURACIÓN PORTABLE (CORRECTA)
+# ------------------------------------------------------------
 
-os.makedirs(recetas_dir, exist_ok=True)
+if getattr(sys, 'frozen', False):
+    BASE_DIR = os.path.dirname(sys.executable)
+else:
+    BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+
+RECETAS_DIR = os.path.join(BASE_DIR, "RECETAS")
+
+# asegurar que exista la carpeta
+os.makedirs(RECETAS_DIR, exist_ok=True)
+
+# ------------------------------------------------------------
+# CAPTURA DE DATOS
+# ------------------------------------------------------------
 
 nombre = input("Nombre de la receta: ")
 raciones = input("Raciones: ")
@@ -54,12 +68,29 @@ while True:
         break
     presentacion.append(linea)
 
-# generar nombre de archivo
-archivos = os.listdir(recetas_dir)
-numero = len(archivos) + 1
+# ------------------------------------------------------------
+# GENERAR ARCHIVO
+# ------------------------------------------------------------
 
+archivos = os.listdir(RECETAS_DIR)
+
+numeros = []
+
+for archivo in archivos:
+    if "_" in archivo:
+        try:
+            num = int(archivo.split("_")[0])
+            numeros.append(num)
+        except:
+            pass
+
+if numeros:
+    numero = max(numeros) + 1
+else:
+    numero = 1
+    
 archivo_nombre = f"{numero:03d}_{nombre.replace(' ', '_')}.txt"
-ruta = os.path.join(recetas_dir, archivo_nombre)
+ruta = os.path.join(RECETAS_DIR, archivo_nombre)
 
 with open(ruta, "w", encoding="utf-8") as f:
 
@@ -85,7 +116,3 @@ with open(ruta, "w", encoding="utf-8") as f:
 
 print("\nReceta guardada correctamente.")
 print("Archivo:", archivo_nombre)
-
-"""
-RECETAS_APP/USB_CAPTURA_REMOTA/capturar_receta.py
-"""

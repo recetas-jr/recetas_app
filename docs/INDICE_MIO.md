@@ -136,6 +136,60 @@ git commit -am "checkpoint antes de modificar editor" <-- crea otra capa de segu
 Encabezado fijo mientras el contenido se desplaza
 (lo que en web se llama sticky header). ----> SCROLL
 
+PARA CREAR SUBCARPETAS DESDE LA TERMINAL DE VSC        <----------
+-Apertura de la terminal en VS Code
+-Abrir la terminal desde el menú superior:
+... → Terminal → New Terminal
+VS Code preguntó sobre editores de confianza.
+Seleccionaste:
+N
+que significa:
+No ejecutar nunca
+para ese aviso.
+6️⃣ Creación de carpetas desde la terminal (en PS-PowerShell)
+
+commando----> mkdir 
+
+Creación de archivos  crear_usb_captura.py
+
+comando -----> New-Item archivo.txt ó .py
+
+Si estás en CMD entonces usas ---> type nul >
+
+Para volver a la carpeta anterior
+Escribe:
+
+cd ..
+Regla fácil de recordar
+..   = subir una carpeta
+..\.. = subir dos carpetas
+
+code <----- Pre-fijo en la consola para entrar a un archivo
 
 
+PENDIENTE:
+🔹 Nivel 1
+
+Validaciones más estrictas
+
+Evitar errores de entrada
+
+🔹 Nivel 2
+
+Backup automático antes de borrar
+
+Papelera interna
+
+🔹 Nivel 3
+  
+UI más amigable (menús más claros)
+
+🔹 Nivel 4
+
+Integración con tu sistema principal recetas_app
+
+Para ir a configuración ---> (Ctrl + ,)
+
+PENDIENTE:
+Si quieres, en la siguiente fase te enseño comandos pro de consola para trabajar más rápido
 

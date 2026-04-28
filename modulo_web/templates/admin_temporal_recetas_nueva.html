@@ -1,0 +1,471 @@
+<!-- Archivo: modulo_web/templates/admin_recetas_nueva.html -->
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Master de Recetas — Nueva</title>
+    <style>
+        body { font-family: Arial, sans-serif; background:#f2f4f8; margin:0; padding:0; }
+        .container { max-width: 1250px; margin: 20px auto; background:#fff; padding:16px; border-radius:6px; }
+
+        h2 { margin-top:0; }
+        .fila { display:flex; gap:10px; align-items:center; margin-bottom:8px; flex-wrap:wrap; }
+        .campo { display:flex; align-items:center; gap:6px; }
+        label { font-weight:bold; }
+        input, select, textarea { padding:6px; font-size:14px; box-sizing:border-box; }
+
+        textarea { width:100%; min-height:60px; resize:vertical; }
+
+        .hint { color:#0b9b0b; font-weight:bold; font-size:12px; margin:4px 0 10px 0; }
+        .error { color:#cc0000; font-weight:bold; margin-bottom:10px; }
+        .ok { color:#0b9b0b; font-weight:bold; margin-bottom:10px; }
+        .btn { padding:6px 12px; border-radius:4px; border:none; cursor:pointer; }
+        .btn-prim { background:#1f6feb; color:#fff; }
+        .btn-sec { background:#777; color:#fff; }
+        .btn-ter { background:#4b7bec; color:#fff; }
+        .tabla { width:100%; border-collapse:collapse; margin-top:10px; }
+        .tabla th, .tabla td { border:1px solid #ddd; padding:6px; }
+        .tabla th { background:#f0f0f0; font-weight:bold; }
+        .col-qty { width:80px; text-align:right; }
+        .col-rol { width:80px; text-align:right; }
+        .col-um { width:140px; color:#333; }
+        .row-actions { text-align:center; }
+        .btn-borrar { background:#cc0000; color:#fff; }
+        .oculta { display:none; }
+
+        input:focus, select:focus, textarea:focus, button:focus {
+            outline: none;
+            background: #f1e9ff;
+        }
+
+        .acciones-top {
+            position: sticky;
+            top: 0;
+            z-index: 10;
+            background: #fff;
+            padding: 8px 0 12px 0;
+            display: flex;
+            justify-content: flex-end;
+            gap: 8px;
+            border-bottom: 1px solid #e6e6e6;
+            margin-bottom: 10px;
+        }
+
+        .textos-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin-bottom: 8px;
+        }
+        .texto-bloque label { display:block; margin-bottom:4px; }
+
+        .modal-backdrop {
+            position:fixed; inset:0; background:rgba(0,0,0,.35); display:none; align-items:center; justify-content:center;
+        }
+        .modal {
+            background:#fff; border-radius:6px; padding:10px; max-width:700px; width:90%;
+        }
+        .modal table { width:100%; border-collapse:collapse; }
+        .modal th, .modal td { border:1px solid #ddd; padding:6px; }
+        .modal th { background:#f0f0f0; }
+        .modal .actions { text-align:right; margin-top:8px; }
+
+        .msg-js {
+            color:#cc0000;
+            font-weight:bold;
+            margin:6px 0 6px 0;
+        }
+
+        .titulo-ingredientes {
+            text-align: center;
+            margin-top: 14px;
+            margin-bottom: 4px;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+
+    <h2>Master de Recetas — Nueva</h2>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+          <div class="{{ category }}">{{ message|safe }}</div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+
+    <div class="acciones-top">
+        <button type="submit" form="form-master" class="btn btn-prim">Guardar receta</button>
+        <button type="button" id="btn-ir-listado" class="btn btn-ter">Ir al Listado</button>
+        <button type="button" id="btn-cancelar" class="btn btn-sec">Cancelar</button>
+    </div>
+
+    <form id="form-master" method="post" action="/admin/recetas/nueva" autocomplete="off">
+
+        <div class="fila">
+            <div class="campo">
+                <label>Plato:</label>
+                <input type="hidden" id="plato_id" name="plato_id">
+                <input type="text" id="plato_nombre" placeholder="Seleccione un plato..." readonly style="width:420px;">
+                <button type="button" id="btn-buscar-plato" class="btn btn-sec">Buscar</button>
+            </div>
+        </div>
+
+        <div class="fila">
+            <div class="campo">
+                <label>Raciones base:</label>
+                <input type="text" id="raciones" name="raciones_base" maxlength="3" style="width:55px; text-align:right;">
+            </div>
+        </div>
+
+        <div id="msg-js" class="msg-js" style="display:none;"></div>
+
+        <div class="textos-grid">
+            <div class="texto-bloque">
+                <label>PREPARACIÓN:</label>
+                <textarea id="preparacion" name="preparacion" placeholder="Describa la preparación..."></textarea>
+                <div class="hint">&lt;Enter&gt; cambia de línea | &lt;Shift+Enter&gt; salta al siguiente campo</div>
+            </div>
+
+            <div class="texto-bloque">
+                <label>ELABORACIÓN:</label>
+                <textarea id="elaboracion" name="elaboracion" placeholder="Describa la elaboración..."></textarea>
+                <div class="hint">&lt;Enter&gt; cambia de línea | &lt;Shift+Enter&gt; salta al siguiente campo</div>
+            </div>
+
+            <div class="texto-bloque">
+                <label>PRESENTACIÓN:</label>
+                <textarea id="presentacion" name="presentacion" placeholder="Describa la presentación..."></textarea>
+                <div class="hint">&lt;Enter&gt; cambia de línea | &lt;Shift+Enter&gt; salta al siguiente campo</div>
+            </div>
+
+            <div class="texto-bloque">
+                <label>NUTRICIÓN:</label>
+                <textarea id="nutricion" name="nutricion" placeholder="Información nutricional..."></textarea>
+                <div class="hint">&lt;Enter&gt; cambia de línea | &lt;Shift+Enter&gt; crea fila de ingrediente</div>
+            </div>
+        </div>
+
+        
+        <table class="tabla">
+            <thead>
+                <tr>
+                    <th>Ingrediente</th>
+                    <th class="col-qty">Cantidad</th>
+                    <th class="col-um">UM</th>
+                    <th class="col-rol">Rol</th>
+                    <th class="col-um">UM</th>
+                    <th class="row-actions">Acciones</th>
+                </tr>
+            </thead>
+            <tbody id="tbody-ingredientes">
+                <tr id="fila-plantilla" class="oculta">
+                    <td>
+                        <select class="ing-select" name="ingrediente_id[]">
+                            <option value="">— Seleccione —</option>
+                            {% for ing in ingredientes %}
+                              <option value="{{ ing.id }}" data-um="{{ ing.unidad_nombre }}">{{ ing.nombre }}</option>
+                            {% endfor %}
+                        </select>
+                    </td>
+                    <td class="col-qty">
+                        <input type="text" class="ing-cantidad" name="cantidad[]" value="0" maxlength="6" style="width:70px; text-align:right;">
+                    </td>
+                    <td class="col-um">
+                        <span class="ing-um">—</span>
+                    </td>
+                    <td class="col-rol">
+                        <input type="text" class="ing-rol" name="rol[]" value="0" maxlength="6" style="width:70px; text-align:right;">
+                    </td>
+                    <td class="col-um">
+                        <span class="ing-um-rol">—</span>
+                    </td>
+                    <td class="row-actions">
+                        <button type="button" class="btn btn-borrar">Borrar</button>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+
+    </form>
+</div>
+
+<div id="modal-backdrop" class="modal-backdrop">
+    <div class="modal">
+        <h3>Seleccione un plato</h3>
+        <table>
+            <thead>
+                <tr><th>Nombre</th><th>Acción</th></tr>
+            </thead>
+            <tbody>
+                {% for p in platos %}
+                <tr>
+                    <td>{{ p.nombre }}</td>
+                    <td><button type="button" class="btn btn-prim btn-sel-plato" data-id="{{ p.id }}" data-nombre="{{ p.nombre }}">Seleccionar</button></td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        <div class="actions">
+            <button type="button" id="btn-cerrar-modal" class="btn btn-sec">Cerrar</button>
+        </div>
+    </div>
+</div>
+
+<script>
+(function(){
+    const btnBuscar = document.getElementById("btn-buscar-plato");
+    const btnCerrar = document.getElementById("btn-cerrar-modal");
+    const modal = document.getElementById("modal-backdrop");
+    const platoNombre = document.getElementById("plato_nombre");
+    const platoId = document.getElementById("plato_id");
+
+    const btnIrListado = document.getElementById("btn-ir-listado");
+    const btnCancelar = document.getElementById("btn-cancelar");
+
+    const msgJs = document.getElementById("msg-js");
+
+    // IMPORTANTE: usamos innerHTML para permitir colores en mensajes
+    function showMsg(html){
+        msgJs.innerHTML = html;
+        msgJs.style.display = "block";
+    }
+    function clearMsg(){
+        msgJs.innerHTML = "";
+        msgJs.style.display = "none";
+    }
+
+    btnIrListado.addEventListener("click", function(){
+        window.location.href = "/admin/recetas/listado";
+    });
+    btnCancelar.addEventListener("click", function(){
+        window.location.href = "/admin/recetas/nueva";
+    });
+
+    btnBuscar.addEventListener("click", function(){
+        modal.style.display = "flex";
+    });
+    btnCerrar.addEventListener("click", function(){
+        modal.style.display = "none";
+    });
+    document.querySelectorAll(".btn-sel-plato").forEach(btn=>{
+        btn.addEventListener("click", function(){
+            platoId.value = this.getAttribute("data-id");
+            platoNombre.value = this.getAttribute("data-nombre");
+            modal.style.display = "none";
+            document.getElementById("raciones").focus();
+        });
+    });
+
+    const raciones = document.getElementById("raciones");
+    const preparacion = document.getElementById("preparacion");
+    const elaboracion = document.getElementById("elaboracion");
+    const presentacion = document.getElementById("presentacion");
+    const nutricion = document.getElementById("nutricion");
+
+    raciones.addEventListener("keydown", function(e){
+        if(e.key === "Enter"){
+            e.preventDefault();
+
+            const val = (raciones.value || "").trim();
+            const num = parseInt(val);
+
+            if(val === ""){
+                showMsg(
+                    "<span style='color:#cc0000; font-weight:bold;'>RACIONES BASE</span> " +
+                    "<span style='color:#0b5d1e; font-weight:bold;'>es obligatorio en</span> " +
+                    "<span style='color:#cc0000; font-weight:bold;'>RECETAS</span>"
+                );
+                raciones.focus();
+                raciones.select();
+                return;
+            }
+
+            if(isNaN(num)){
+                showMsg(
+                    "<span style='color:#cc0000; font-weight:bold;'>RACIONES BASE</span> " +
+                    "<span style='color:#0b5d1e; font-weight:bold;'>debe ser numérico en</span> " +
+                    "<span style='color:#cc0000; font-weight:bold;'>RECETAS</span>"
+                );
+                raciones.focus();
+                raciones.select();
+                return;
+            }
+
+            if(num <= 0){
+                showMsg(
+                    "<span style='color:#cc0000; font-weight:bold;'>RACIONES BASE</span> " +
+                    "<span style='color:#0b5d1e; font-weight:bold;'>debe ser mayor que 0 en</span> " +
+                    "<span style='color:#cc0000; font-weight:bold;'>RECETAS</span>"
+                );
+                raciones.focus();
+                raciones.select();
+                return;
+            }
+
+            clearMsg();
+            preparacion.focus();
+        }
+    });
+    function bindShiftJump(from, to){
+        from.addEventListener("keydown", function(e){
+            if(e.key === "Enter" && e.shiftKey){
+                e.preventDefault();
+                to.focus();
+            }
+        });
+    }
+    bindShiftJump(preparacion, elaboracion);
+    bindShiftJump(elaboracion, presentacion);
+    bindShiftJump(presentacion, nutricion);
+
+    nutricion.addEventListener("keydown", function(e){
+        if(e.key === "Enter" && e.shiftKey){
+            e.preventDefault();
+            crearFilaYEnfocarIngrediente();
+        }
+    });
+
+    const tbody = document.getElementById("tbody-ingredientes");
+    const filaPlantilla = document.getElementById("fila-plantilla");
+
+    function crearFilaYEnfocarIngrediente(){
+        const fila = filaPlantilla.cloneNode(true);
+        fila.id = "";
+        fila.classList.remove("oculta");
+        tbody.appendChild(fila);
+        prepararFila(fila);
+        fila.querySelector(".ing-select").focus();
+    }
+
+    function ingredienteYaUsado(ingId){
+        const selects = tbody.querySelectorAll(".ing-select");
+        let count = 0;
+        selects.forEach(s=>{
+            if(s.value === ingId && ingId !== ""){
+                count++;
+            }
+        });
+        return count > 1;
+    }
+
+    function prepararFila(fila){
+        const sel = fila.querySelector(".ing-select");
+        const qty = fila.querySelector(".ing-cantidad");
+        const rol = fila.querySelector(".ing-rol");
+        const umSpan = fila.querySelector(".ing-um");
+        const umRolSpan = fila.querySelector(".ing-um-rol");
+        const btnBorrar = fila.querySelector(".btn-borrar");
+
+        sel.addEventListener("change", function(){
+            const opt = sel.options[sel.selectedIndex];
+            const um = opt ? (opt.getAttribute("data-um") || "—") : "—";
+            umSpan.textContent = um;
+            umRolSpan.textContent = um;
+            clearMsg();
+        });
+        qty.addEventListener("input", clearMsg);
+        rol.addEventListener("input", clearMsg);
+
+        sel.addEventListener("keydown", function(e){
+            if(e.key === "Enter"){
+                e.preventDefault();
+                if(!sel.value){
+                    showMsg("Debe seleccionar un ingrediente.");
+                    sel.focus();
+                    return;
+                }
+                clearMsg();
+                qty.focus();
+                qty.select();
+            }
+        });
+
+        qty.addEventListener("keydown", function(e){
+            if(e.key === "Enter"){
+                e.preventDefault();
+
+                const val = (qty.value || "").replace(",", ".");
+                const num = parseFloat(val);
+
+                if(isNaN(num) || num <= 0){
+                    showMsg("La cantidad debe ser mayor que 0.");
+                    qty.focus();
+                    qty.select();
+                    return;
+                }
+
+                clearMsg();
+                rol.focus();
+                rol.select();
+            }
+        });
+
+        rol.addEventListener("keydown", function(e){
+            if(e.key === "Enter"){
+                e.preventDefault();
+
+                const ingId = sel.value;
+                if(!ingId){
+                    showMsg("Debe seleccionar un ingrediente.");
+                    sel.focus();
+                    return;
+                }
+
+                const qtyVal = parseFloat((qty.value || "").replace(",", "."));
+                if(isNaN(qtyVal) || qtyVal <= 0){
+                    showMsg("La cantidad debe ser mayor que 0.");
+                    qty.focus();
+                    qty.select();
+                    return;
+                }
+
+                const rolVal = parseFloat((rol.value || "").replace(",", "."));
+                if(isNaN(rolVal) || rolVal < 0){
+                    showMsg("El rol debe ser 0 o mayor.");
+                    rol.focus();
+                    rol.select();
+                    return;
+                }
+                if(rolVal > qtyVal){
+                    showMsg("El rol no puede ser mayor que la cantidad.");
+                    rol.focus();
+                    rol.select();
+                    return;
+                }
+
+                if(ingredienteYaUsado(ingId)){
+                    const nombre = sel.options[sel.selectedIndex].textContent;
+                    // Mensaje con colores: nombre en rojo, resto en verde intenso
+                    const msg =
+                        "<span style='color:#0b5d1e; font-weight:bold;'>El ingrediente </span>" +
+                        "<span style='color:#cc0000; font-weight:bold;'>" + nombre + "</span>" +
+                        "<span style='color:#0b5d1e; font-weight:bold;'> ya está en la receta.</span>";
+                    showMsg(msg);
+                    sel.value = "";
+                    umSpan.textContent = "—";
+                    umRolSpan.textContent = "—";
+                    sel.focus();
+                    return;
+                }
+
+                clearMsg();
+                crearFilaYEnfocarIngrediente();
+            }
+        });
+
+        btnBorrar.addEventListener("click", function(){
+            fila.remove();
+            clearMsg();
+        });
+    }
+
+})();
+</script>
+
+</body>
+</html>
+<!-- Fin del archivo: modulo_web/templates/admin_recetas_nueva.html -->
+<!-- URL del archivo a probar: http://127.0.0.1:5000/admin/recetas/nueva -->

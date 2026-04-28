@@ -95,6 +95,29 @@
             margin-left: 6px;
         }
 
+        .fila {
+            display: flex;
+            gap: 12px;
+            align-items: flex-start;
+            margin-bottom: 10px;
+        }
+
+        .campo {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .label-2l {
+             display: inline-block;
+             line-height: 1.05;
+             font-size: 13px;
+             color: #111;
+             font-weight: bold;
+             min-width: 80px;
+             text-align: right;
+        }
+
         /* =========================================
                   FOCO VIOLETA ESTÁNDAR
            ========================================= */
@@ -121,6 +144,27 @@
                 i.focus();
             }
         });
+
+        document.addEventListener("DOMContentLoaded", function () {
+
+            const nombre = document.getElementById("nombre");
+            const form = document.getElementById("form-tipos");
+
+            nombre.addEventListener("keydown", function (e) {
+                if (e.key === "Enter") {
+                    e.preventDefault();
+                    form.submit();
+                }
+            });
+
+            document.addEventListener("keydown", function (e) {
+                if (e.key === "Escape") {
+                    nombre.value = "";
+                    nombre.focus();
+                }
+            });
+
+        });
     </script>
 </head>
 <body>
@@ -146,10 +190,22 @@
         </div>
     {% endif %}
 
-    <form method="post" action="/admin/tipos_plato" autocomplete="off">
-        <label>Nombre:</label>
-        <input type="text" id="nombre" name="nombre" placeholder="Tipo de plato" maxlength="40" autofocus>
-        <span class="ayuda">&lt;enter para guardar&gt;</span>
+    <form id="form-tipos" method="post" action="/admin/tipos_plato" autocomplete="off">
+        <div class="fila">
+
+            <div class="campo">
+                <div class="label-2l">Tipo de<br>plato</div>
+                <input type="text"
+                       id="nombre"
+                       name="nombre"
+                       placeholder="tipo de plato"
+                       maxlength="40"
+                       autofocus>
+            </div>
+
+            <span class="ayuda">&lt;enter para guardar&gt; | ESC limpia</span>
+
+        </div>
     </form>
 
     <table>

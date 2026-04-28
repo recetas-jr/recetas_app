@@ -99,3 +99,7 @@ __pycache__/
 *.exe
 
 modulo_web/recetas.db
+debug.py 
+recetas_web/ 
+recetas_web_backup/ 
+python 

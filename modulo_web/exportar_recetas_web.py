@@ -1,8 +1,10 @@
+print("🔥 ESTE ES EL EXPORTADOR CORRECTO 🔥")
+
 import json
 import os
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-DATA_DIR = os.path.join(BASE_DIR, "data")
+DATA_DIR = os.path.join(BASE_DIR, "..", "data_compartida", "data")
 WEB_DIR = os.path.join(BASE_DIR, "web_data")
 
 # -------------------------
@@ -29,6 +31,7 @@ def cargar(path):
 
 
 def guardar(path, data):
+    os.makedirs(os.path.dirname(path), exist_ok=True)
     with open(path, "w", encoding="utf-8") as f:
         json.dump(data, f, indent=2, ensure_ascii=False)
 
@@ -46,9 +49,16 @@ def exportar():
     # --- solo versiones activas
     versiones_activas = [v for v in maestro if v.get("estado") == "activa"]
 
+    print("MAESTRO:", maestro)
+    print("VERSIONES ACTIVAS:", versiones_activas)
+
     publicadas = []
 
     for v in versiones_activas:
+
+    
+
+
         receta_id = v["receta_id"]
         receta_maestro_id = v["id"]
 
@@ -63,6 +73,7 @@ def exportar():
                or r.get("receta_id") == receta_id
         ]
 
+        print("RELACIONES:", rel_ver)
         if not rel_ver:
             print(f"⚠ Omitida (sin ingredientes): {plato['nombre']}")
             continue
@@ -77,9 +88,9 @@ def exportar():
                 continue
 
             ingredientes_web.append({
-                "nombre": ing["descripcion"],
+                "nombre": ing.get("descripcion") or ing.get("nombre"),
                 "cantidad": r["cantidad"],
-                "unidad": um["simbolo"],
+                "unidad": um.get("simbolo") or um.get("codigo") or um.get("nombre"),
                 "rol": r.get("uso", "principal")
             })
 
@@ -89,6 +100,7 @@ def exportar():
             None
         )
 
+        print("DETALLE:", det)
         if not det or not det.get("preparacion"):
             print(f"⚠ Omitida (sin preparación): {plato['nombre']}")
             continue

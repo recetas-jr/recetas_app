@@ -5,7 +5,7 @@ body {
     background-color: #f2f4f8;
     margin: 0;
     padding: 12px;
-    font-size: 13px;
+    font-size: 16px;
 }
 
 /* ===== Tarjeta principal ===== */
@@ -146,8 +146,8 @@ input:focus {
 }
 
 .tabla-scroll {
-    max-height: 420px;
-    overflow-y: auto;
+    /* max-height: 420px; */
+    /* overflow-y: auto; */
     border: 1px solid #ddd;
     border-radius: 6px;
 }
@@ -307,9 +307,66 @@ input[type=number] {
     color: #8B1E2D;
     font-weight: bold;
 }
-
 .titulo-receta .nombre-plato {
     color: #2e7d32 !important;
     font-weight: bold;
 }
 
+.barra-acciones{
+    display:flex;
+    align-items:center;
+    gap:35px;
+    margin-bottom:15px;
+}
+
+.btn-recetas{
+    background:#28a745;
+    color:white;
+    padding:8px 16px;
+    border-radius:20px;
+    text-decoration:none;
+    font-weight:bold;
+}
+
+.btn-recetas:hover{
+    background:#218838;
+}
+
+.btn-admin-volver{
+    margin-left:40px;
+}
+
+@media (max-width: 768px) {
+
+    .tabla-scroll {
+        max-height: none;
+        overflow: visible;
+    }
+
+}
+
+@media (max-width: 768px) {
+
+    h1 {
+        font-size: 22px;
+    }
+
+    h2 {
+        font-size: 18px;
+    }
+
+    .tabla-recetas {
+        font-size: 15px;
+    }
+
+    .tabla-recetas th,
+    .tabla-recetas td {
+        padding: 10px 6px;
+    }
+
+    .btn-ver {
+        font-size: 14px;
+        padding: 6px 10px;
+    }
+
+}

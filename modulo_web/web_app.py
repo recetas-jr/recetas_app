@@ -11,13 +11,20 @@ from modulo_web.persistencia_db import (
 
 app = Flask(__name__)
 
+
+@app.route("/")
+def home():
+    return redirect("/recetas")
+
+
 print("WEB_APP CARGADO DESDE:", __file__)
 
 app.secret_key = "recetas_app_clave_segura_temporal"
 
-#==================================================
+# ==================================================
 # ADMIN TIPOS DE PLATO
 # ==================================================
+
 
 @app.route("/admin/tipos_plato", methods=["GET", "POST"])
 def admin_tipos_plato():
@@ -36,7 +43,8 @@ def admin_tipos_plato():
                 conn = get_connection()
                 cur = conn.cursor()
 
-                cur.execute("SELECT id FROM tipos_plato WHERE LOWER(nombre) = LOWER(?)", (nombre,))
+                cur.execute(
+                    "SELECT id FROM tipos_plato WHERE LOWER(nombre) = LOWER(?)", (nombre,))
                 existe = cur.fetchone()
                 if existe:
                     conn.close()
@@ -47,10 +55,12 @@ def admin_tipos_plato():
                         f"<span style='color:#cc0000; font-weight:bold;'>TIPO DE PLATO</span>"
                     )
                 else:
-                    cur.execute("INSERT INTO tipos_plato (nombre) VALUES (?)", (nombre,))
+                    cur.execute(
+                        "INSERT INTO tipos_plato (nombre) VALUES (?)", (nombre,))
                     conn.commit()
                     conn.close()
-                    flash(f"Tipo de plato '<span class='item'>{nombre}</span>' creado correctamente.", "ok")
+                    flash(
+                        f"Tipo de plato '<span class='item'>{nombre}</span>' creado correctamente.", "ok")
                     return redirect("/admin/tipos_plato")
 
             except Exception as e:
@@ -67,10 +77,12 @@ def borrar_tipo_plato(tipo_id):
         conn = get_connection()
         cur = conn.cursor()
 
-        cur.execute("SELECT COUNT(*) as c FROM platos WHERE tipo_plato_id = ?", (tipo_id,))
+        cur.execute(
+            "SELECT COUNT(*) as c FROM platos WHERE tipo_plato_id = ?", (tipo_id,))
         fila = cur.fetchone()
         if fila and fila["c"] > 0:
-            cur.execute("SELECT nombre FROM tipos_plato WHERE id = ?", (tipo_id,))
+            cur.execute(
+                "SELECT nombre FROM tipos_plato WHERE id = ?", (tipo_id,))
             fila_nombre = cur.fetchone()
             nombre = fila_nombre["nombre"] if fila_nombre else ""
             conn.close()
@@ -92,7 +104,8 @@ def borrar_tipo_plato(tipo_id):
         conn.commit()
         conn.close()
 
-        flash(f"Tipo de plato '<span class='item'>{nombre}</span>' borrado correctamente.", "ok")
+        flash(
+            f"Tipo de plato '<span class='item'>{nombre}</span>' borrado correctamente.", "ok")
 
     except Exception as e:
         print("ERROR borrando tipo de plato:", e)
@@ -164,7 +177,8 @@ def admin_unidades():
                         )
                         conn.commit()
                         conn.close()
-                        flash(f"Unidad '<span class='item'>{codigo} - {nombre}</span>' creada correctamente.", "ok")
+                        flash(
+                            f"Unidad '<span class='item'>{codigo} - {nombre}</span>' creada correctamente.", "ok")
                         return redirect("/admin/unidades")
 
             except Exception as e:
@@ -182,13 +196,15 @@ def borrar_unidad(unidad_id):
         cur = conn.cursor()
 
         # Obtener primero datos de la unidad
-        cur.execute("SELECT codigo, nombre FROM unidades WHERE id = ?", (unidad_id,))
+        cur.execute(
+            "SELECT codigo, nombre FROM unidades WHERE id = ?", (unidad_id,))
         fila_nombre = cur.fetchone()
         codigo = fila_nombre["codigo"] if fila_nombre else ""
         nombre = fila_nombre["nombre"] if fila_nombre else ""
 
         # Verificar si está en uso
-        cur.execute("SELECT COUNT(*) as c FROM ingredientes WHERE unidad_id = ?", (unidad_id,))
+        cur.execute(
+            "SELECT COUNT(*) as c FROM ingredientes WHERE unidad_id = ?", (unidad_id,))
         fila = cur.fetchone()
 
         if fila and fila["c"] > 0:
@@ -206,7 +222,8 @@ def borrar_unidad(unidad_id):
         conn.commit()
         conn.close()
 
-        flash(f"Unidad '<span class='item'>{codigo} - {nombre}</span>' borrada correctamente.", "ok")
+        flash(
+            f"Unidad '<span class='item'>{codigo} - {nombre}</span>' borrada correctamente.", "ok")
 
     except Exception as e:
         print("ERROR borrando unidad:", e)
@@ -282,6 +299,7 @@ def admin_ingredientes():
         errores=errores
     )
 
+
 @app.route("/admin/ingredientes/borrar/<int:ingrediente_id>", methods=["POST"])
 def borrar_ingrediente(ingrediente_id):
     try:
@@ -289,7 +307,8 @@ def borrar_ingrediente(ingrediente_id):
         cur = conn.cursor()
 
         # Obtener nombre antes de cualquier validación
-        cur.execute("SELECT nombre FROM ingredientes WHERE id = ?", (ingrediente_id,))
+        cur.execute("SELECT nombre FROM ingredientes WHERE id = ?",
+                    (ingrediente_id,))
         fila_nombre = cur.fetchone()
         nombre = fila_nombre["nombre"] if fila_nombre else ""
 
@@ -329,6 +348,7 @@ def borrar_ingrediente(ingrediente_id):
 # ==================================================
 # UTILIDAD — INGREDIENTES CON UNIDAD
 # ==================================================
+
 
 def cargar_ingredientes_con_unidad():
     ingredientes = db_cargar_ingredientes()
@@ -381,7 +401,8 @@ def admin_platos():
             try:
                 peso_float = float(peso_racion)
                 if peso_float <= 0:
-                    errores.append("El peso de la ración debe ser mayor que 0.")
+                    errores.append(
+                        "El peso de la ración debe ser mayor que 0.")
             except:
                 errores.append("El peso de la ración debe ser numérico.")
 
@@ -486,72 +507,76 @@ def borrar_plato(plato_id):
 # INDEX
 # ==================================================
 
+
 @app.route("/", methods=["GET"])
 def portada():
     return render_template("portada.html")
+
 
 @app.route("/recetas", methods=["GET"])
 def catalogo_publico():
     recetas = db_cargar_recetas_maestro_listado()
     return render_template("index.html", recetas=recetas)
 
-@app.route("/receta/<int:receta_id>", methods=["GET", "POST"])
+
+@app.route("/receta/<int:receta_id>")
 def receta_detalle(receta_id):
 
+    desde_admin = request.args.get("admin") == "1"
+
+    raciones_nuevas = request.args.get("raciones", type=float)
+
     receta = db_cargar_receta_detalle(receta_id)
-    raciones_solicitadas = None
+    ingredientes = receta["ingredientes"]
 
-    if request.method == "POST":
-        try:
-            raciones_solicitadas = int(request.form.get("raciones"))
-        except:
-            raciones_solicitadas = None
+    raciones_base = receta["raciones_base"]
 
-    # =========================================
-    # RECÁLCULO DE INGREDIENTES
-    # =========================================
+    if raciones_base <= 0:
+        raciones_base = 1
 
-    if raciones_solicitadas and receta["raciones_base"] > 0:
+    if raciones_nuevas is None or raciones_nuevas <= 0:
+        raciones_nuevas = raciones_base
 
-        factor = raciones_solicitadas / receta["raciones_base"]
+    # límite superior para evitar locuras
+    if raciones_nuevas > 1000:
+        raciones_nuevas = raciones_base
 
-        for ing in receta["ingredientes"]:
-            ing["cantidad"] = round(float(ing["cantidad"]) * factor, 2)
-            ing["rol"] = round(float(ing["rol"]) * factor, 2)
-
-    if not receta:
-        return "Receta no encontrada", 404
-
-        
-
-    if not receta:
-        return "Receta no encontrada", 404
+    ingredientes_escalados = escalar_ingredientes(
+        ingredientes,
+        raciones_base,
+        raciones_nuevas
+    )
 
     return render_template(
         "receta_detalle.html",
         receta=receta,
-        raciones_solicitadas=raciones_solicitadas,
-        raciones_base=receta["raciones_base"]
+        ingredientes=ingredientes_escalados,
+        raciones_base=raciones_base,
+        raciones_nuevas=raciones_nuevas,
+        desde_admin=desde_admin
     )
+
 
 @app.route("/receta/<int:receta_id>/preparacion")
 def receta_preparacion(receta_id):
 
     receta = db_cargar_receta_detalle(receta_id)
 
-    if not receta:
-        abort(404)
+    raciones_nuevas = request.args.get("raciones", type=float)
+
+    if not raciones_nuevas or raciones_nuevas <= 0:
+        raciones_nuevas = receta.get("raciones", 1)
 
     return render_template(
         "receta_preparacion.html",
-        receta=receta
+        receta=receta,
+        raciones_nuevas=raciones_nuevas
     )
-
-
 
 # ==================================================
 # ADMIN RECETAS — LISTADO
 # ==================================================
+
 
 @app.route("/admin/recetas/listado", methods=["GET"])
 def admin_recetas_listado():
@@ -658,7 +683,8 @@ def admin_recetas_nueva():
                 return render_template("admin_recetas_nueva.html", platos=platos, ingredientes=ingredientes)
 
             if cant_f <= 0:
-                flash("La cantidad debe ser mayor que 0 en todos los ingredientes.", "error")
+                flash(
+                    "La cantidad debe ser mayor que 0 en todos los ingredientes.", "error")
                 return render_template("admin_recetas_nueva.html", platos=platos, ingredientes=ingredientes)
 
             if rol_txt == "":
@@ -681,7 +707,8 @@ def admin_recetas_nueva():
             filas_validas.append((int(ing_id), cant_f, rol_f))
 
         if not filas_validas:
-            flash("La receta debe tener al menos un ingrediente con cantidad > 0.", "error")
+            flash(
+                "La receta debe tener al menos un ingrediente con cantidad > 0.", "error")
             return render_template("admin_recetas_nueva.html", platos=platos, ingredientes=ingredientes)
 
         try:
@@ -717,7 +744,7 @@ def admin_recetas_nueva():
 # EDITAR RECETA (MASTER)
 # ==================================================
 
-@app.route("/admin/recetas/editar/<int:receta_id>", methods=["GET","POST"])
+@app.route("/admin/recetas/editar/<int:receta_id>", methods=["GET", "POST"])
 def admin_recetas_editar(receta_id):
 
     platos = db_cargar_platos()
@@ -919,14 +946,17 @@ def admin_recetas_editar(receta_id):
 # BORRAR RECETA
 # ==================================================
 
+
 @app.route("/admin/recetas/borrar/<int:receta_id>", methods=["POST"])
 def borrar_receta(receta_id):
     try:
         conn = get_connection()
         cur = conn.cursor()
 
-        cur.execute("DELETE FROM recetas_ingredientes WHERE receta_id = ?", (receta_id,))
-        cur.execute("DELETE FROM recetas_detalle WHERE receta_id = ?", (receta_id,))
+        cur.execute(
+            "DELETE FROM recetas_ingredientes WHERE receta_id = ?", (receta_id,))
+        cur.execute(
+            "DELETE FROM recetas_detalle WHERE receta_id = ?", (receta_id,))
         cur.execute("DELETE FROM recetas_maestro WHERE id = ?", (receta_id,))
 
         conn.commit()
@@ -940,6 +970,49 @@ def borrar_receta(receta_id):
     return redirect("/admin/recetas/listado")
 
 
+def escalar_ingredientes(ingredientes, raciones_base, raciones_nuevas):
+    factor = raciones_nuevas / raciones_base
+    resultado = []
+
+    for ing in ingredientes:
+
+        cantidad = float(ing.get("cantidad", 0) or 0)
+        deco = float(ing.get("rol", 0) or 0)
+
+        cantidad_escalada = round(cantidad * factor, 2)
+        deco_escalado = round(deco * factor, 2)
+
+        deco_escalado = min(deco_escalado, cantidad_escalada)
+
+        cocina_escalada = round(max(cantidad_escalada - deco_escalado, 0), 2)
+
+        nuevo = dict(ing)
+        nuevo["cantidad_escalada"] = cantidad_escalada
+        nuevo["deco_escalado"] = deco_escalado
+        nuevo["cocina_escalada"] = cocina_escalada
+
+        resultado.append(nuevo)
+
+    return resultado
+
+
+@app.route("/admin/nomencladores")
+def ver_nomencladores():
+
+    tipos = db_cargar_tipos_plato()
+    unidades = db_cargar_unidades()
+    ingredientes = db_cargar_ingredientes()
+    platos = db_cargar_platos()
+
+    return render_template(
+        "admin_nomencladores.html",
+        tipos=tipos,
+        unidades=unidades,
+        ingredientes=ingredientes,
+        platos=platos
+    )
+
+
 # ==================================================
 # EJECUCIÓN
 # ==================================================
@@ -951,4 +1024,4 @@ if __name__ == "__main__":
         print(rule)
     print("=========================\n")
 
-    app.run(debug=True)
+    app.run(host="0.0.0.0", port=5000, debug=True)

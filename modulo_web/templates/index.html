@@ -2,7 +2,7 @@
 <html>
 <head>
     <title>Catálogo de Recetas</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}"> -->
 </head>
 <body>
 
@@ -35,7 +35,7 @@
                     <td>{{ r.raciones_base }}</td>
                     <td>{{ r.cantidad_ingredientes }}</td>
                     <td>
-                        <a class="btn-ver" href="/receta/{{ r.id }}">Ver</a>
+                        <a class="btn-ver" href="/receta/{{ r.id }}{% if request.args.get('admin') %}?admin=1{% endif %}">Ver</a>
                     </td>
                 </tr>
             {% endfor %}

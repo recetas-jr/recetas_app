@@ -209,16 +209,26 @@ font-weight:bold;
 
 <div class="container">
 
-<a href="/recetas" class="boton-accion">
-CLIC → QUIERO VER MÁS RECETAS
-</a>
+<div class="barra-acciones">
+
+    <a href="/recetas{% if desde_admin %}?admin=1{% endif %}" class="btn-recetas">
+        👉 CLIC: Ver más recetas
+    </a>
+
+    {% if desde_admin %}
+    <a href="/admin/recetas/listado" class="btn-admin-volver">
+        ⚙️ Volver a administración
+    </a>
+    {% endif %}
+
+</div>
 
 <h2 class="titulo-receta">
 RECETA DE LA ABUELA:
 <span style="color:#2b7a2b;">{{ receta.plato_nombre }}</span>
 </h2>
 
-<a href="/receta/{{ receta.id }}/preparacion" class="boton-accion">
+<a href="/receta/{{ receta.id }}/preparacion?raciones={{ raciones_nuevas }}{% if desde_admin %}&admin=1{% endif %}"></a>
 CLIC → GUÍA PARA LA PREPARACIÓN
 </a>
 
@@ -227,16 +237,9 @@ CLIC → GUÍA PARA LA PREPARACIÓN
 
 <b>Raciones</b><br><br>
 
-Raciones base de la receta: <b>{{ raciones_base }}</b><br>
+Raciones base de la receta: <b>{{ receta.raciones_base }}</b><br><br>
 
-<form method="post">
-
-Raciones a solicitar:
-<input type="number" name="raciones" style="width:80px;">
-
-<span style="color:#2a8c2a;">&lt;enter&gt; recalcula</span>
-
-</form>
+Raciones solicitadas: <b>{{ raciones_nuevas }}</b>
 
 </div>
 
@@ -249,11 +252,30 @@ LEYENDA BASE / DECO
 
 <strong>⚠ LEYENDA</strong>
 
-<span class="base">(*) Cantidad/base</span> → Ingrediente utilizado durante la elaboración de la receta.<br>
+CANTIDAD → total del ingrediente<br>
 
-<span class="deco">(**) Cantidad/deco</span> → Ingrediente destinado a la decoración final del plato, cuando aplique.
+<span class="deco">DECO</span> → parte destinada a la decoración<br>
+
+COCINA → parte utilizada en la elaboración del plato
 
 </div>
+
+<form method="get">
+
+    {% if desde_admin %}
+    <input type="hidden" name="admin" value="1">
+    {% endif %}
+
+    <label>Raciones:</label>
+
+    <input type="number"
+           name="raciones"
+           value="{{ raciones_nuevas }}"
+           min="1"
+           step="0.1">
+
+    <button type="submit">Recalcular</button>
+</form>
 
 
 <table class="tabla">
@@ -266,11 +288,9 @@ LEYENDA BASE / DECO
 
 <th>UM</th>
 
-<th class="base num">(*) CANTIDAD/BASE</th>
-
-<th class="deco num">(**) CANTIDAD/DECO</th>
-
-<th class="num">TOTAL INGREDIENTE</th>
+<th class="num">CANTIDAD</th>
+<th class="deco num">DECO</th>
+<th class="num">COCINA</th>
 
 </tr>
 
@@ -278,7 +298,7 @@ LEYENDA BASE / DECO
 
 <tbody>
 
-{% for ing in receta.ingredientes %}
+{% for ing in ingredientes %}
 
 <tr>
 
@@ -286,13 +306,11 @@ LEYENDA BASE / DECO
 
 <td>{{ ing.unidad_nombre }}</td>
 
-<td class="base num">{{ ing.cantidad }}</td>
+<td class="num">{{ ing.cantidad_escalada|round(2) }}</td>
 
-<td class="deco num">{{ ing.rol }}</td>
+<td class="deco num">{{ ing.deco_escalado|round(2) }}</td>
 
-<td class="total num">
-{{ (ing.cantidad|float + ing.rol|float)|round(2) }}
-</td>
+<td class="total num">{{ ing.cocina_escalada|round(2) }}</td>
 
 </tr>
 

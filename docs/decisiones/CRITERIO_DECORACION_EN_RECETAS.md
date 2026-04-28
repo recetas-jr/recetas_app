@@ -62,3 +62,4 @@ Implicaciones directas:
   - `rol <= cantidad`
 - El cálculo de “tiene decoración” debe basarse en una consulta o agregación que verifique:
   - `MAX(rol) > 0` o `SUM(CASE WHEN rol > 0 THEN 1 ELSE 0 END) > 0`
+  

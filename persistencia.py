@@ -27,6 +27,7 @@ DB_PATH = Path(BASE_DIR) / "modulo_web" / "recetas.db"
 # FUNCIONES DE SOPORTE
 # --------------------------------------------------
 
+
 def asegurar_directorio():
     """
     Garantiza que el directorio de datos exista.
@@ -202,10 +203,45 @@ def cargar_recetas_catalogo():
 
 
 def cargar_recetas_maestro():
-    print(">>> LEYENDO RECETAS DESDE:", RECETAS_MAESTRO_FILE)
-    datos = cargar_datos(RECETAS_MAESTRO_FILE, [])
-    print(">>> TOTAL RECETAS LEIDAS:", len(datos))
-    return datos
+
+    print("🔥🔥🔥 ENTRO A SQLITE 🔥🔥🔥")
+
+    """
+    Lee recetas desde SQLite.
+    Si falla, usa JSON.
+    """
+    try:
+        conn = get_db_conn()
+        cur = conn.cursor()
+
+        cur.execute("""
+            SELECT id, plato_id, raciones_base, preparacion, elaboracion, presentacion, nutricion
+            FROM recetas_maestro
+        """)
+
+        filas = cur.fetchall()
+        conn.close()
+
+        recetas = []
+        for r in filas:
+            recetas.append({
+                "id": r["id"],
+                "receta_id": r["receta_id"],
+                "version": r["version"],
+                "raciones_base": r["raciones_base"],
+                "estado": r["estado"],
+                "peso_racion": r["peso_racion"]
+            })
+
+        print(">>> LEYENDO RECETAS DESDE: SQLite")
+        print(">>> TOTAL RECETAS LEIDAS:", len(recetas))
+
+        return recetas
+
+    except Exception as e:
+        print(">>> ERROR DB, usando JSON:", e)
+        print(">>> LEYENDO RECETAS DESDE:", RECETAS_MAESTRO_FILE)
+        return cargar_datos(RECETAS_MAESTRO_FILE, [])
 
 
 def cargar_versiones_activas():
@@ -220,7 +256,12 @@ def cargar_recetas_operativas():
     recetas = []
 
     for v in versiones:
+        print("DEBUG VERSION:", v)
+
         plato = next((c for c in catalogo if c["id"] == v["receta_id"]), None)
+
+        print("DEBUG PLATO:", plato)
+
         if not plato:
             continue
 
@@ -236,11 +277,13 @@ def cargar_recetas_operativas():
 
         recetas.append(receta)
 
-    return recetas
+    print("DEBUG RESULTADO FINAL:", recetas)
 
+    return recetas
 # --------------------------------------------------
 # DETALLE DE RECETA — TEXTO TÉCNICO POR VERSIÓN
 # --------------------------------------------------
+
 
 def cargar_detalle_receta(receta_maestro_id):
     detalles = cargar_datos(RECETAS_DETALLE_FILE, [])
@@ -252,6 +295,7 @@ def cargar_detalle_receta(receta_maestro_id):
 # --------------------------------------------------
 # INGREDIENTES DE RECETA — COMPOSICIÓN POR VERSIÓN
 # --------------------------------------------------
+
 
 def cargar_ingredientes_receta(receta_maestro_id):
     ingredientes = cargar_datos(RECETAS_ING_FILE, [])
@@ -271,3 +315,44 @@ def guardar_detalle_receta(receta_maestro_id, datos):
     datos_guardar["receta_maestro_id"] = receta_maestro_id
     detalles.append(datos_guardar)
     guardar_datos(RECETAS_DETALLE_FILE, detalles)
+
+
+def traer_recetas_para_web():
+    recetas_db = cargar_recetas_operativas()
+
+    recetas_web = []
+
+    for r in recetas_db:
+        receta_id = r["receta_maestro_id"]
+
+        detalle = cargar_detalle_receta(receta_id)
+        ingredientes_db = cargar_ingredientes_receta(receta_id)
+
+        ingredientes = []
+
+        for ing in ingredientes_db:
+            ingredientes.append({
+                "nombre": ing.get("nombre", ""),
+                "cantidad": ing.get("cantidad", 0),
+                "unidad": ing.get("unidad", "")
+            })
+
+        recetas_web.append({
+            "id": receta_id,
+            "nombre": r.get("nombre", ""),
+            "raciones_base": detalle.get("raciones", 1) if detalle else 1,
+            "ingredientes": ingredientes
+        })
+
+    return recetas_web
+
+
+def publicar_a_web():
+    recetas = traer_recetas_para_web()
+
+    ruta = os.path.join(BASE_DIR, "modulo_web", "web_data",
+                        "recetas_publicadas.json")
+
+    guardar_datos(ruta, recetas)
+
+    print("✅ RECETAS PUBLICADAS A WEB")

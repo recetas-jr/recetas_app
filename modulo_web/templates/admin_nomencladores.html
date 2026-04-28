@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Nomencladores</title>
+
+<style>
+body{
+    font-family: Arial;
+    background:#f4f6f9;
+}
+
+.container{
+    width:90%;
+    margin:30px auto;
+    background:white;
+    padding:20px;
+    border-radius:10px;
+    box-shadow:0 0 10px rgba(0,0,0,0.1);
+}
+
+h2{
+    margin-top:30px;
+}
+
+table{
+    width:100%;
+    border-collapse:collapse;
+    margin-top:10px;
+}
+
+th{
+    background:#333;
+    color:white;
+    padding:8px;
+}
+
+td{
+    padding:8px;
+    border-bottom:1px solid #ddd;
+}
+
+tr:nth-child(even){
+    background:#f2f2f2;
+}
+</style>
+
+</head>
+
+<body>
+
+<div class="container">
+
+<h1>ADMIN - NOMENCLADORES</h1>
+
+<!-- INGREDIENTES -->
+<h2>INGREDIENTES</h2>
+<table>
+<tr>
+<th>ID</th>
+<th>NOMBRE</th>
+</tr>
+
+{% for i in ingredientes %}
+<tr>
+<td>{{ i.id }}</td>
+<td>{{ i.nombre }}</td>
+</tr>
+{% endfor %}
+
+</table>
+
+<!-- UNIDADES -->
+<h2>UNIDADES</h2>
+<table>
+<tr>
+<th>ID</th>
+<th>NOMBRE</th>
+</tr>
+
+{% for u in unidades %}
+<tr>
+<td>{{ u.id }}</td>
+<td>{{ u.nombre }}</td>
+</tr>
+{% endfor %}
+
+</table>
+
+<!-- TIPOS -->
+<h2>TIPOS DE PLATO</h2>
+<table>
+<tr>
+<th>ID</th>
+<th>NOMBRE</th>
+</tr>
+
+{% for t in tipos %}
+<tr>
+<td>{{ t.id }}</td>
+<td>{{ t.nombre }}</td>
+</tr>
+{% endfor %}
+
+</table>
+
+<!-- PLATOS -->
+<h2>PLATOS</h2>
+<table>
+<tr>
+<th>ID</th>
+<th>NOMBRE</th>
+<th>TIPO</th>
+</tr>
+
+{% for p in platos %}
+<tr>
+<td>{{ p.id }}</td>
+<td>{{ p.nombre }}</td>
+<td>{{ p.tipo_nombre }}</td>
+</tr>
+{% endfor %}
+
+</table>
+
+</div>
+
+</body>
+</html>

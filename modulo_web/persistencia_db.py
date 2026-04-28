@@ -204,7 +204,7 @@ def db_cargar_platos():
         resultado.append({
             "id": f["id"],
             "nombre": f["nombre"],
-            "tipo_plato": f["tipo_plato"] or "",
+            "tipo_nombre": f["tipo_plato"] or "",
             "activo": f["activo"],
             "peso_racion": f["peso_racion"] if f["peso_racion"] is not None else 0.0,
             "foto": f["foto"]
@@ -326,7 +326,6 @@ def db_cargar_receta_detalle(receta_id):
         "ingredientes": []
     }
 
-    
     cur.execute("""
         SELECT
             ri.ingrediente_id,

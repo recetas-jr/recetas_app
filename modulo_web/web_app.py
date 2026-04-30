@@ -17,11 +17,6 @@ def inicio():
     return "APP FUNCIONANDO 🔥"
 
 
-@app.route("/")
-def home():
-    return redirect("/recetas")
-
-
 print("WEB_APP CARGADO DESDE:", __file__)
 
 app.secret_key = "recetas_app_clave_segura_temporal"

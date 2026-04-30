@@ -21,7 +21,13 @@ def inicio():
 
 @app.route("/recetas")
 def recetas():
-    return "LISTADO DE RECETAS 🔥"
+    recetas = db_cargar_recetas_maestro_listado()
+
+    if not recetas:
+        return "No hay recetas disponibles"
+
+    receta = recetas[0]
+    return render_template("receta_preparacion.html", receta=receta)
 
 
 print("WEB_APP CARGADO DESDE:", __file__)

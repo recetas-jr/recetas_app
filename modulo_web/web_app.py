@@ -16,7 +16,7 @@ app = Flask(__name__)
 
 @app.route("/")
 def inicio():
-    return "APP FUNCIONANDO 🔥"
+    return redirect("/recetas")
 
 
 @app.route("/recetas")

@@ -26,9 +26,12 @@ def recetas():
     if not recetas:
         return "No hay recetas disponibles"
 
-    receta_base = recetas[0]
+    receta_base = recetas[0]   # 👈 ESTA LÍNEA ES OBLIGATORIA
 
     receta = db_cargar_receta_detalle(receta_base["id"])
+
+    if not receta:
+        return "Error cargando receta"
 
     print("RECETA DETALLE:", receta)
 

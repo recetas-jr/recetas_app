@@ -9,6 +9,8 @@ from modulo_web.persistencia_db import (
     get_connection
 )
 
+print("🔥🔥🔥 ESTA ES MI APP REAL 🔥🔥🔥")
+
 app = Flask(__name__)
 
 

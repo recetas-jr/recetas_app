@@ -29,7 +29,7 @@ def recetas():
     receta = recetas[0]
     receta = db_cargar_receta_detalle(receta_base["id"])
 
-    print("RECETA:", receta)
+    print("RECETA DETALLE:", receta)
 
     return render_template("receta_preparacion.html", receta=receta)
 

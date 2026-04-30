@@ -35,9 +35,7 @@ def recetas():
 
     print("RECETA DETALLE:", receta)
 
- #   return render_template("receta_preparacion.html", receta=receta)
-
-    return "OK RUTA RECETAS"
+    return render_template("receta_preparacion.html", receta=receta)
 
 
 print("WEB_APP CARGADO DESDE:", __file__)

@@ -13,6 +13,8 @@ print("🔥🔥🔥 ESTA ES MI APP REAL 🔥🔥🔥")
 
 app = Flask(__name__)
 
+app.config["PROPAGATE_EXCEPTIONS"] = True
+
 
 @app.route("/")
 def inicio():
@@ -1033,10 +1035,10 @@ def ver_nomencladores():
         platos=platos
     )
 
-
 # ==================================================
 # EJECUCIÓN
 # ==================================================
+
 
 if __name__ == "__main__":
 

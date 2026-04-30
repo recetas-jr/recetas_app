@@ -1,14 +1,5 @@
 @echo off
-echo =========================
-echo   SUBIENDO CAMBIOS
-echo =========================
-
 git add .
-git commit -m "Actualizacion rapida"
+git commit -m "test"
 git push
-
-echo =========================
-echo   LISTO
-echo =========================
-
 pause

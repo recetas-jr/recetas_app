@@ -27,6 +27,9 @@ def recetas():
         return "No hay recetas disponibles"
 
     receta = recetas[0]
+
+    print("RECETA:", receta)
+
     return render_template("receta_preparacion.html", receta=receta)
 
 

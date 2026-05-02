@@ -247,6 +247,8 @@
         tipoError.textContent = "";
         peso.focus();
     }
+
+    
 });
 
     // Enter en peso
@@ -269,6 +271,23 @@
             nombre.focus();
         }
     });
+
+    // ===== LIMPIAR MENSAJES FLASH =====
+
+    function limpiarMensajesFlash() {
+        const mensajes = document.querySelectorAll(".flash-msg, .errores");
+        mensajes.forEach(m => m.remove());
+    }
+
+    // limpiar al escribir nombre
+    nombre.addEventListener("input", limpiarMensajesFlash);
+    nombre.addEventListener("keydown", limpiarMensajesFlash);
+
+    // limpiar al cambiar tipo
+    tipo.addEventListener("change", limpiarMensajesFlash);
+
+    // limpiar al escribir peso
+    peso.addEventListener("input", limpiarMensajesFlash);
 
 });
 </script>
@@ -355,7 +374,7 @@
         {% for p in platos %}
             <tr>
                 <td class="col-plato" title="{{ p.nombre }}">{{ p.nombre }}</td>
-                <td class="col-tipo" title="{{ p.tipo_plato }}">{{ p.tipo_plato }}</td>
+                <td class="col-tipo" title="{{ p.tipo_nombre }}">{{ p.tipo_nombre }}</td>
                 <td style="white-space: nowrap;">{{ "%.2f"|format(p.peso_racion) }} gramos</td>
                 <td>
                     <form method="post" action="/admin/platos/borrar/{{ p.id }}" style="display:inline;"

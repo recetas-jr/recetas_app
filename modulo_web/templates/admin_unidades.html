@@ -158,6 +158,26 @@
                     codigo.focus();
                 }
             });
+
+            // ===== LIMPIAR MENSAJES FLASH =====
+
+            function limpiarMensajesFlash() {
+                const mensajes = document.querySelectorAll(".flash-msg");
+                mensajes.forEach(m => m.remove());
+            }
+
+            // limpiar al escribir código
+            const inputCodigo = document.getElementById("codigo");
+            if (inputCodigo) {
+                inputCodigo.addEventListener("input", limpiarMensajesFlash);
+            }
+
+            // limpiar al escribir nombre
+            const inputNombre = document.getElementById("nombre");
+            if (inputNombre) {
+                inputNombre.addEventListener("input", limpiarMensajesFlash);
+            }
+
         });
     </script>
 </head>

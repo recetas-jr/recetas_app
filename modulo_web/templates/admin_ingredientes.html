@@ -146,17 +146,49 @@
                 e.preventDefault();
 
                 if (unidad.value === "") {
+                    unidad.classList.add("input-error");
+                    mostrarErrorUM("Debe seleccionar una unidad.");
                     unidad.focus();
                     return;
                 }
 
+                limpiarErrorUM();
                 form.submit();
             }
-        });
+        });  
 
         /* ===== GUARDAR LA ÚLTIMA UM SELECCIONADA ===== */
         unidad.addEventListener("change", function () {
             localStorage.setItem("ultima_um", unidad.value);
+        });
+
+        function mostrarErrorUM(msg) {
+            let err = document.getElementById("um_error");
+            if (!err) {
+                err = document.createElement("div");
+                err.id = "um_error";
+                err.className = "msg-inline";
+                unidad.parentNode.appendChild(err);
+            }
+            err.textContent = msg;
+        }
+
+        function limpiarErrorUM() {
+            unidad.classList.remove("input-error");
+            const err = document.getElementById("um_error");
+            if (err) err.textContent = "";
+        }
+
+        unidad.addEventListener("change", function () {
+            limpiarErrorUM();
+        });
+
+        unidad.addEventListener("blur", function () {
+            if (unidad.value === "") {
+                unidad.classList.add("input-error");
+                mostrarErrorUM("Debe seleccionar una unidad.");
+                setTimeout(() => unidad.focus(), 0);
+            }
         });
 
         /* ESC limpia y vuelve a nombre */
@@ -167,6 +199,20 @@
                 nombre.focus();
             }
         });
+
+        // ===== LIMPIAR MENSAJES FLASH AL INTERACTUAR =====
+
+        function limpiarMensajesFlash() {
+            const mensajes = document.querySelectorAll(".flash-msg");
+            mensajes.forEach(m => m.remove());
+        }
+
+        // cuando el usuario escribe → limpia mensajes
+        nombre.addEventListener("input", limpiarMensajesFlash);
+
+        // cuando cambia la UM → limpia mensajes
+        unidad.addEventListener("change", limpiarMensajesFlash);
+
     });
     </script>
 </head>

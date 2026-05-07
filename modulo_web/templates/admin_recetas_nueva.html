@@ -3,7 +3,7 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Master de Recetas — Nueva</title>
+    <title>Master de Recetas — Nueva TEST</title>
     <style>
         body { font-family: Arial, sans-serif; background:#f2f4f8; margin:0; padding:0; }
         .container { max-width: 1250px; margin: 20px auto; background:#fff; padding:16px; border-radius:6px; }
@@ -49,6 +49,7 @@
             gap: 8px;
             border-bottom: 1px solid #e6e6e6;
             margin-bottom: 10px;
+            pointer-events: auto;   /* 👈 AGREGA ESTO */
         }
 
         .textos-grid {
@@ -84,9 +85,16 @@
     </style>
 </head>
 <body>
+
+<div style="background:red; color:white; font-size:30px; padding:10px;">
+    ARCHIVO NUEVA REAL
+</div>
+
 <div class="container">
 
     <h2>Master de Recetas — Nueva</h2>
+
+    <div id="flash-mensajes">
 
     {% with messages = get_flashed_messages(with_categories=true) %}
       {% if messages %}
@@ -96,9 +104,12 @@
       {% endif %}
     {% endwith %}
 
+    </div>
     <div class="acciones-top">
         <button type="submit" form="form-master" class="btn btn-prim">Guardar receta</button>
-        <button type="button" id="btn-ir-listado" class="btn btn-ter">Ir al Listado</button>
+        <button type="button" id="btn-ir-listado" class="btn btn-ter" style="position:relative; z-index:9999;">
+            Ir al Listado
+        </button>
         <button type="button" id="btn-cancelar" class="btn btn-sec">Cancelar</button>
     </div>
 
@@ -122,7 +133,24 @@ autocomplete="off">
             </div>
         </div>
 
-        <div id="msg-js" class="msg-js" style="display:none;"></div>
+        <div id="msg-js"
+             class="msg-js"
+             style="
+                display:none;
+                margin-left:520px;
+                margin-top:10px;
+                font-size:28px;
+                font-weight:bold;
+             ">
+        </div>
+
+        <div id="msg-ok" style="display:none; color:#0b9b0b; font-weight:bold;">
+            ✔ Todo listo para guardar
+      </div>
+        <div id="estado-cambios"
+             style="display:none; font-weight:bold; color:#cc0000; margin-top:10px;">
+            * Cambios sin guardar
+        </div>
 
         <div class="textos-grid">
             <div class="texto-bloque">
@@ -157,7 +185,9 @@ autocomplete="off">
                     <th>Ingrediente</th>
                     <th class="col-qty">Cantidad</th>
                     <th class="col-um">UM</th>
-                    <th class="col-rol">Rol</th>
+                    <th class="col-rol">Deco</th>
+                    <th class="col-um">UM</th>
+                    <th class="col-qty">Cocina</th>
                     <th class="col-um">UM</th>
                     <th class="row-actions">Acciones</th>
                 </tr>
@@ -205,6 +235,13 @@ autocomplete="off">
                         <span class="ing-um-rol">—</span>
                     </td>
 
+                    <td class="col-qty">
+                        <span class="ing-cocina">0.00</span>
+                    </td>
+                    <td class="col-um">
+                        <span class="ing-um-cocina">—</span>
+                    </td>
+
                     <td class="row-actions">
                         <button type="button" class="btn btn-borrar">Borrar</button>
                     </td>
@@ -231,6 +268,13 @@ autocomplete="off">
                     </td>
                     <td class="col-um">
                         <span class="ing-um-rol">—</span>
+                    </td>
+
+                    <td class="col-qty">
+                        <span class="ing-cocina">0.00</span>
+                    </td>
+                    <td class="col-um">
+                        <span class="ing-um-cocina">—</span>
                     </td>
                     <td class="row-actions">
                         <button type="button" class="btn btn-borrar">Borrar</button>
@@ -266,16 +310,43 @@ autocomplete="off">
 
 <script>
 (function(){
+   // alert("SCRIPT ARRANCA");
+   // return;
+   // throw new Error("TEST ERROR");
+   // alert("SCRIPT OK");  // 👈 AGREGA ESTO
+
+    document.body.style.background = "yellow";
     const btnBuscar = document.getElementById("btn-buscar-plato");
+    btnBuscar.disabled = false;
+    let hayCambios = false;
+    let salidaPermitida = false;
     const btnCerrar = document.getElementById("btn-cerrar-modal");
     const modal = document.getElementById("modal-backdrop");
     const platoNombre = document.getElementById("plato_nombre");
     const platoId = document.getElementById("plato_id");
 
     const btnIrListado = document.getElementById("btn-ir-listado");
+   // alert("BOTON LISTADO DETECTADO");
     const btnCancelar = document.getElementById("btn-cancelar");
-
     const msgJs = document.getElementById("msg-js");
+
+    function marcarCambio() {
+        hayCambios = true;
+        document.getElementById("estado-cambios").style.display = "block";
+    }
+
+    
+    // plato
+    //platoNombre.addEventListener("change", marcarCambio);
+
+    // tabla (delegado)
+    document.getElementById("tbody-ingredientes").addEventListener("input", function(e){
+        if (e.target.classList.contains("ing-cantidad") ||
+            e.target.classList.contains("ing-rol") ||
+            e.target.classList.contains("ing-select")) {
+            marcarCambio();
+        }
+    });
 
     // IMPORTANTE: usamos innerHTML para permitir colores en mensajes
     function showMsg(html){
@@ -287,10 +358,25 @@ autocomplete="off">
         msgJs.style.display = "none";
     }
 
-    btnIrListado.addEventListener("click", function(){
-        window.location.href = "/admin/recetas/listado";
-    });
+    btnIrListado.onclick = function(){
+
+    if (hayCambios) {
+        const salir = confirm("Tienes cambios sin guardar. ¿Deseas salir?");
+        if (!salir) return;
+    }
+
+    salidaPermitida = true;
+    window.location.href = "/admin/recetas/listado";
+};
+    
     btnCancelar.addEventListener("click", function(){
+        if (hayCambios) {
+            const salir = confirm("Tienes cambios sin guardar. ¿Deseas salir?");
+            if (!salir) return;
+        }
+
+        salidaPermitida = true;  // 👈 CLAVE
+
         window.location.href = "/admin/recetas/nueva";
     });
 
@@ -304,6 +390,24 @@ autocomplete="off">
         btn.addEventListener("click", function(){
             platoId.value = this.getAttribute("data-id");
             platoNombre.value = this.getAttribute("data-nombre");
+            const flash = document.getElementById("flash-mensajes");
+
+            if (flash) {
+                flash.style.display = "none";
+            }
+
+            const errores = document.querySelectorAll(".error");
+
+            errores.forEach(function(e){
+                e.remove();
+            });
+
+            document.querySelectorAll(".error").forEach(e => {
+                e.style.display = "none";
+            });
+
+            marcarCambio();
+
             modal.style.display = "none";
             document.getElementById("raciones").focus();
         });
@@ -314,6 +418,13 @@ autocomplete="off">
     const elaboracion = document.getElementById("elaboracion");
     const presentacion = document.getElementById("presentacion");
     const nutricion = document.getElementById("nutricion");
+
+    // campos principales
+    raciones.addEventListener("input", marcarCambio);
+    preparacion.addEventListener("input", marcarCambio);
+    elaboracion.addEventListener("input", marcarCambio);
+    presentacion.addEventListener("input", marcarCambio);
+    nutricion.addEventListener("input", marcarCambio);
 
     raciones.addEventListener("keydown", function(e){
         if(e.key === "Enter"){
@@ -357,7 +468,9 @@ autocomplete="off">
             }
 
             clearMsg();
-            preparacion.focus();
+            setTimeout(() => {
+                preparacion.focus();
+            }, 0);
         }
     });
     function bindShiftJump(from, to){
@@ -410,15 +523,81 @@ autocomplete="off">
         const umRolSpan = fila.querySelector(".ing-um-rol");
         const btnBorrar = fila.querySelector(".btn-borrar");
 
+        const cocinaSpan = fila.querySelector(".ing-cocina");
+        const umCocinaSpan = fila.querySelector(".ing-um-cocina");
+
+        // 👇 AQUÍ EXACTAMENTE VA ESTO
+        function calcularCocina() {
+            const cantidad = parseFloat((qty.value || "0").replace(",", "."));
+            const deco = parseFloat((rol.value || "0").replace(",", "."));
+
+            if (isNaN(cantidad) || isNaN(deco)) {
+                cocinaSpan.textContent = "0.00";
+                return;
+            }
+
+            if (deco > cantidad) {
+                showMsg("El DECO no puede ser mayor que la CANTIDAD.");
+
+                rol.style.border = "2px solid #cc0000";
+                rol.style.backgroundColor = "#ffecec";
+
+                cocinaSpan.textContent = "0.00";
+                return;
+            } else {
+                rol.style.border = "";
+                rol.style.backgroundColor = "";
+            }
+
+            const cocina = cantidad - deco;
+            cocinaSpan.textContent = cocina.toFixed(2);
+        }
+
         sel.addEventListener("change", function(){
+
+            const ingId = sel.value;
+
+            // 👇 VALIDAR DUPLICADO INMEDIATAMENTE
+            if (ingredienteYaUsado(ingId)) {
+
+                const nombre = sel.options[sel.selectedIndex].textContent;
+
+                const msg =
+                    "<span style='color:#0b5d1e; font-weight:bold;'>El ingrediente </span>" +
+                    "<span style='color:#cc0000; font-weight:bold;'>" + nombre + "</span>" +
+                    "<span style='color:#0b5d1e; font-weight:bold;'> ya está en la receta.</span>";
+
+                showMsg(msg);
+
+                sel.value = "";
+
+                qty.value = "0";
+                rol.value = "0";
+                cocinaSpan.textContent = "0.00";
+
+                umSpan.textContent = "—";
+                umRolSpan.textContent = "—";
+                umCocinaSpan.textContent = "—";
+
+                sel.focus();
+
+                return;
+            }
+
             const opt = sel.options[sel.selectedIndex];
+
             const um = opt ? (opt.getAttribute("data-um") || "—") : "—";
+
             umSpan.textContent = um;
             umRolSpan.textContent = um;
+            umCocinaSpan.textContent = um;
+
             clearMsg();
         });
-        qty.addEventListener("input", clearMsg);
         rol.addEventListener("input", clearMsg);
+
+        qty.addEventListener("input", calcularCocina);
+        rol.addEventListener("input", calcularCocina);
 
         sel.addEventListener("keydown", function(e){
             if(e.key === "Enter"){
@@ -511,7 +690,71 @@ autocomplete="off">
             fila.remove();
             clearMsg();
         });
+    }    
+
+    function formularioValido() {
+        // plato
+        if (!platoId.value) return false;
+
+        // raciones
+        const val = (raciones.value || "").trim();
+        if (!/^\d+$/.test(val)) return false;
+        if (parseInt(val, 10) <= 0) return false;
+
+        // ingredientes
+        const filas = document.querySelectorAll("#tbody-ingredientes tr:not(.oculta)");
+
+        if (filas.length === 0) return false;
+
+        let hayIngredientesValidos = false;
+
+        for (let fila of filas) {
+            const sel = fila.querySelector(".ing-select");
+            const qty = fila.querySelector(".ing-cantidad");
+            const rol = fila.querySelector(".ing-rol");
+
+            // fila vacía → ignorar
+            if (!sel.value) continue;
+
+            hayIngredientesValidos = true;
+
+            const cantidad = parseFloat((qty.value || "").replace(",", "."));
+            if (isNaN(cantidad) || cantidad <= 0) return false;
+
+            const deco = parseFloat((rol.value || "").replace(",", "."));
+            if (isNaN(deco) || deco < 0) return false;
+
+            if (deco > cantidad) return false;
+        }
+
+        // debe haber al menos un ingrediente válido
+        if (!hayIngredientesValidos) return false;
+        
+
+        return true;
     }
+
+    
+
+    const formMaster = document.getElementById("form-master");
+
+    if (formMaster) {
+        formMaster.addEventListener("submit", function(){
+            hayCambios = false;
+
+            const estado = document.getElementById("estado-cambios");
+            if (estado) {
+                estado.style.display = "none";
+            }
+        });
+    }
+
+    // 👇 AQUÍ VA EXACTAMENTE
+    window.addEventListener("beforeunload", function (e) {
+        if (!hayCambios || salidaPermitida) return;
+        e.preventDefault();
+        e.returnValue = "";
+    });
 
 })();
 </script>

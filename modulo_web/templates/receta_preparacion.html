@@ -58,8 +58,8 @@ HEADER STICKY
 
 display:flex;
 
-position:sticky;
-top:0;
+/* position:sticky; */
+/* top:0; */
 
 background:#f0f0f0;
 border-bottom:1px solid #ccc;
@@ -126,6 +126,30 @@ font-size:15px;
 
 }
 
+.boton-accion{
+
+display:inline-block;
+
+margin-bottom:20px;
+
+padding:10px 18px;
+
+background:#28a745;
+
+color:white;
+
+text-decoration:none;
+
+border-radius:8px;
+
+font-weight:bold;
+
+}
+
+.boton-accion:hover{
+background:#218838;
+}
+
 </style>
 
 </head>
@@ -133,7 +157,7 @@ font-size:15px;
 
 <body>
 
-<a href="/recetas" class="boton-accion">
+<a href="/receta/{{ receta.id }}{% if desde_admin %}?admin=1{% endif %}" class="boton-accion">
 ← VOLVER A LA RECETA
 </a>
 

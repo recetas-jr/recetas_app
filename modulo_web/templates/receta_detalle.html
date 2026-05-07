@@ -42,6 +42,10 @@ margin-bottom:10px;
 margin-bottom:20px;
 }
 
+.bloque-preparacion{
+margin-top:20px;
+}
+
 /* =========================
 BOTONES DE ACCION
 ========================= */
@@ -124,14 +128,16 @@ border-collapse:collapse;
 
 .tabla th{
 background:#d8cfbf;
-padding:10px;
+padding:8px 10px;
 text-align:left;
 border-bottom:2px solid #b6ab97;
+vertical-align:middle;
 }
 
 .tabla td{
-padding:8px;
+padding:6px 10px;
 border-bottom:1px solid #eee;
+vertical-align:middle;
 }
 
 .tabla tr:nth-child(even){
@@ -149,6 +155,37 @@ ALINEACION NUMERICA
 
 .num{
 text-align:right;
+font-weight:bold;
+font-variant-numeric:tabular-nums;
+white-space:nowrap;
+}
+
+.tabla th.num,
+.tabla td.num{
+width:110px;
+}
+
+.tabla th:nth-child(1),
+.tabla td:nth-child(1){
+width:38%;
+}
+
+.tabla th:nth-child(2),
+.tabla td:nth-child(2){
+width:12%;
+}
+
+.tabla th:nth-child(3),
+.tabla td:nth-child(3),
+.tabla th:nth-child(4),
+.tabla td:nth-child(4),
+.tabla th:nth-child(5),
+.tabla td:nth-child(5){
+width:15%;
+}
+
+.num-head{
+text-align:center !important;
 }
 
 /* =========================
@@ -200,6 +237,19 @@ font-weight:bold;
 color:#007bff;
 font-weight:bold;
 }
+button{
+padding:8px 14px;
+border:none;
+border-radius:6px;
+background:#2d6cdf;
+color:white;
+font-weight:bold;
+cursor:pointer;
+}
+
+button:hover{
+background:#1f57b8;
+}
 
 </style>
 
@@ -209,28 +259,24 @@ font-weight:bold;
 
 <div class="container">
 
-<div class="barra-acciones">
-
-    <a href="/recetas{% if desde_admin %}?admin=1{% endif %}" class="btn-recetas">
-        👉 CLIC: Ver más recetas
-    </a>
-
-    {% if desde_admin %}
-    <a href="/admin/recetas/listado" class="btn-admin-volver">
-        ⚙️ Volver a administración
-    </a>
-    {% endif %}
-
-</div>
+<a href="/recetas{% if desde_admin %}?admin=1{% endif %}" class="boton-accion">
+👉 VER MÁS RECETAS
+</a>
 
 <h2 class="titulo-receta">
 RECETA DE LA ABUELA:
 <span style="color:#2b7a2b;">{{ receta.plato_nombre }}</span>
 </h2>
 
-<a href="/receta/{{ receta.id }}/preparacion?raciones={{ raciones_nuevas }}{% if desde_admin %}&admin=1{% endif %}"></a>
-CLIC → GUÍA PARA LA PREPARACIÓN
-</a>
+<div class="bloque-preparacion">
+
+    <span>
+        <a href="/receta/{{ receta.id }}/preparacion?raciones={{ raciones_nuevas }}{% if desde_admin %}&admin=1{% endif %}">
+            CLIC → GUÍA PARA LA PREPARACIÓN
+        </a>
+    </span>
+
+</div>
 
 
 <div class="raciones">
@@ -288,9 +334,9 @@ COCINA → parte utilizada en la elaboración del plato
 
 <th>UM</th>
 
-<th class="num">CANTIDAD</th>
-<th class="deco num">DECO</th>
-<th class="num">COCINA</th>
+<th class="num num-head">CANTIDAD</th>
+<th class="deco num num-head">DECO</th>
+<th class="num num-head">COCINA</th>
 
 </tr>
 

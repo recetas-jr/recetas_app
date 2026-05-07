@@ -21,25 +21,6 @@ def inicio():
     return redirect("/recetas")
 
 
-@app.route("/recetas")
-def recetas():
-    recetas = db_cargar_recetas_maestro_listado()
-
-    if not recetas:
-        return "No hay recetas disponibles"
-
-    receta_base = recetas[0]   # 👈 ESTA LÍNEA ES OBLIGATORIA
-
-    receta = db_cargar_receta_detalle(receta_base["id"])
-
-    if not receta:
-        return "Error cargando receta"
-
-    print("RECETA DETALLE:", receta)
-
-    return render_template("receta_preparacion.html", receta=receta)
-
-
 print("WEB_APP CARGADO DESDE:", __file__)
 
 app.secret_key = "recetas_app_clave_segura_temporal"
@@ -538,8 +519,12 @@ def portada():
 
 @app.route("/recetas", methods=["GET"])
 def catalogo_publico():
+
     recetas = db_cargar_recetas_maestro_listado()
-    return render_template("index.html", recetas=recetas)
+    return render_template(
+        "index.html",
+        recetas=recetas
+    )
 
 
 @app.route("/receta/<int:receta_id>")

@@ -320,6 +320,7 @@ input[type=number] {
 }
 
 .btn-recetas{
+    display:inline-block;
     background:#28a745;
     color:white;
     padding:8px 16px;
@@ -333,6 +334,7 @@ input[type=number] {
 }
 
 .btn-admin-volver{
+    display:inline-block;
     margin-left:40px;
 }
 

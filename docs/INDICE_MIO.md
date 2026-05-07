@@ -193,3 +193,5 @@ Para ir a configuración ---> (Ctrl + ,)
 PENDIENTE:
 Si quieres, en la siguiente fase te enseño comandos pro de consola para trabajar más rápido
 
+copy modulo_web\templates\admin_recetas_nueva.html modulo_web\templates\admin_recetas_nueva_backup.html <-- guardar admin_recetas_nueva.html
+

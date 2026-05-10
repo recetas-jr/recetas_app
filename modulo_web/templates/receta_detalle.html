@@ -263,6 +263,16 @@ background:#1f57b8;
 👉 VER MÁS RECETAS
 </a>
 
+{% if desde_admin %}
+
+<p>
+<a href="/admin/recetas/listado" class="boton-accion">
+← VOLVER AL LISTADO
+</a>
+</p>
+
+{% endif %}
+
 <h2 class="titulo-receta">
 RECETA DE LA ABUELA:
 <span style="color:#2b7a2b;">{{ receta.plato_nombre }}</span>

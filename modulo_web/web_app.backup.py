@@ -521,14 +521,10 @@ def portada():
 @app.route("/recetas", methods=["GET"])
 def catalogo_publico():
 
-    desde_admin = request.args.get("admin") == "1"
-
     recetas = db_cargar_recetas_publicadas()
-
     return render_template(
         "index.html",
-        recetas=recetas,
-        desde_admin=desde_admin
+        recetas=recetas
     )
 
 
@@ -580,13 +576,10 @@ def receta_preparacion(receta_id):
     if not raciones_nuevas or raciones_nuevas <= 0:
         raciones_nuevas = receta.get("raciones", 1)
 
-    desde_admin = request.args.get("admin") == "1"
-
     return render_template(
         "receta_preparacion.html",
         receta=receta,
-        raciones_nuevas=raciones_nuevas,
-        desde_admin=desde_admin
+        raciones_nuevas=raciones_nuevas
     )
 
 # ==================================================

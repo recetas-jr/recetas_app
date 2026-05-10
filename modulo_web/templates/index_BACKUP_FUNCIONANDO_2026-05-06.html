@@ -10,16 +10,6 @@
 
     <h1>Catálogo de Recetas</h1>
 
-    {% if desde_admin %}
-
-    <p>
-        <a href="/admin/recetas/listado" class="btn-nuevo">
-            ← Volver al listado
-        </a>
-    </p>
-
-    {% endif %}
-
     <!-- BOTÓN ADMINISTRATIVO DESACTIVADO EN CATÁLOGO PÚBLICO
     <div style="margin-bottom: 12px;">
         <a href="/nueva" class="btn-nuevo">+ Nueva receta</a>
@@ -45,10 +35,7 @@
                     <td>{{ r.raciones_base }}</td>
                     <td>{{ r.cantidad_ingredientes }}</td>
                     <td>
-                        <a class="btn-ver"
-   href="/receta/{{ r.id }}{% if desde_admin %}?admin=1{% endif %}">
-   Ver
-</a>
+                        <a class="btn-ver" href="/receta/{{ r.id }}">Ver</a>
                     </td>
                 </tr>
             {% endfor %}

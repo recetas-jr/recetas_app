@@ -255,6 +255,7 @@ def db_cargar_recetas_maestro_listado():
             r.plato_id,
             p.nombre AS plato_nombre,
             r.raciones_base,
+            r.visible_web,
             COUNT(ri.id) AS cantidad_ingredientes,
             MAX(
                 CASE
@@ -279,8 +280,47 @@ def db_cargar_recetas_maestro_listado():
             "plato_id": f["plato_id"],
             "plato_nombre": f["plato_nombre"],
             "raciones_base": f["raciones_base"],
+            "visible_web": f["visible_web"],
             "cantidad_ingredientes": f["cantidad_ingredientes"],
             "tiene_decoracion": f["tiene_decoracion"] if f["tiene_decoracion"] is not None else 0
+        })
+
+    return resultado
+
+
+def db_cargar_recetas_publicadas():
+
+    conn = get_connection()
+    cur = conn.cursor()
+
+    cur.execute("""
+        SELECT
+            r.id,
+            r.plato_id,
+            p.nombre AS plato_nombre,
+            r.raciones_base,
+            COUNT(ri.id) AS cantidad_ingredientes
+        FROM recetas_maestro r
+        JOIN platos p ON p.id = r.plato_id
+        LEFT JOIN recetas_ingredientes ri ON ri.receta_id = r.id
+        WHERE r.visible_web = 1
+        GROUP BY r.id, r.plato_id, p.nombre, r.raciones_base
+        ORDER BY p.nombre
+    """)
+
+    filas = cur.fetchall()
+    conn.close()
+
+    resultado = []
+
+    for f in filas:
+
+        resultado.append({
+            "id": f["id"],
+            "plato_id": f["plato_id"],
+            "plato_nombre": f["plato_nombre"],
+            "raciones_base": f["raciones_base"],
+            "cantidad_ingredientes": f["cantidad_ingredientes"]
         })
 
     return resultado

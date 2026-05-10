@@ -6,8 +6,7 @@ from modulo_web.persistencia_db import (
     db_cargar_recetas_maestro_listado,
     db_cargar_tipos_plato,
     db_cargar_receta_detalle,
-    get_connection,
-    db_cargar_recetas_publicadas
+    get_connection
 )
 
 print("🔥🔥🔥 ESTA ES MI APP REAL 🔥🔥🔥")
@@ -521,14 +520,10 @@ def portada():
 @app.route("/recetas", methods=["GET"])
 def catalogo_publico():
 
-    desde_admin = request.args.get("admin") == "1"
-
-    recetas = db_cargar_recetas_publicadas()
-
+    recetas = db_cargar_recetas_maestro_listado()
     return render_template(
         "index.html",
-        recetas=recetas,
-        desde_admin=desde_admin
+        recetas=recetas
     )
 
 
@@ -580,13 +575,10 @@ def receta_preparacion(receta_id):
     if not raciones_nuevas or raciones_nuevas <= 0:
         raciones_nuevas = receta.get("raciones", 1)
 
-    desde_admin = request.args.get("admin") == "1"
-
     return render_template(
         "receta_preparacion.html",
         receta=receta,
-        raciones_nuevas=raciones_nuevas,
-        desde_admin=desde_admin
+        raciones_nuevas=raciones_nuevas
     )
 
 # ==================================================

@@ -74,9 +74,18 @@ def init_db():
            elaboracion TEXT,
            presentacion TEXT,
            nutricion TEXT,
+           visible_web INTEGER NOT NULL DEFAULT 1,
            FOREIGN KEY (plato_id) REFERENCES platos(id)
     );
     """)
+
+    try:
+        cur.execute("""
+            ALTER TABLE recetas_maestro
+            ADD COLUMN visible_web INTEGER NOT NULL DEFAULT 1;
+        """)
+    except sqlite3.OperationalError:
+        pass
 
     cur.execute("""
     CREATE TABLE IF NOT EXISTS recetas_ingredientes (

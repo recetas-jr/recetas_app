@@ -986,6 +986,35 @@ def borrar_receta(receta_id):
     return redirect("/admin/recetas/listado")
 
 
+@app.route("/admin/recetas/toggle-publicacion/<int:receta_id>", methods=["POST"])
+def toggle_publicacion_receta(receta_id):
+
+    try:
+        conn = get_connection()
+        cur = conn.cursor()
+
+        cur.execute("""
+            UPDATE recetas_maestro
+            SET visible_web =
+                CASE
+                    WHEN visible_web = 1 THEN 0
+                    ELSE 1
+                END
+            WHERE id = ?
+        """, (receta_id,))
+
+        conn.commit()
+        conn.close()
+
+        flash("Estado de publicación actualizado.", "recetas")
+
+    except Exception as e:
+        print("ERROR toggle publicación:", e)
+        flash("No se pudo actualizar la publicación.", "error")
+
+    return redirect("/admin/recetas/listado")
+
+
 def escalar_ingredientes(ingredientes, raciones_base, raciones_nuevas):
     factor = raciones_nuevas / raciones_base
     resultado = []

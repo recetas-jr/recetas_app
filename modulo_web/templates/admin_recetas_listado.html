@@ -114,9 +114,29 @@
                     <td align="center">
 
                         {% if r.visible_web == 1 %}
-                            🌐 Publicada
+                            <div>🌐 Publicada</div>
+
+                            <form method="post"
+                                  action="/admin/recetas/toggle-publicacion/{{ r.id }}"
+                                  style="margin-top:4px;">
+                                <button type="submit"
+                                        style="background:#dc3545;color:white;border:none;padding:4px 8px;border-radius:4px;cursor:pointer;">
+                                    Despublicar
+                                </button>
+                            </form>
+
                         {% else %}
-                            🚫 Oculta
+                            <div>🚫 Oculta</div>
+
+                            <form method="post"
+                                  action="/admin/recetas/toggle-publicacion/{{ r.id }}"
+                                  style="margin-top:4px;">
+                                <button type="submit"
+                                        style="background:#198754;color:white;border:none;padding:4px 8px;border-radius:4px;cursor:pointer;">
+                                    Publicar
+                                </button>
+                            </form>
+
                         {% endif %}
 
                     </td>

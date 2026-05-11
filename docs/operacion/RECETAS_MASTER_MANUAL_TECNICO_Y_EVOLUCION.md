@@ -373,3 +373,320 @@ recuperar versiones estables
 entender la evolución del sistema
 explicar rápidamente el proyecto a terceros
 evitar pérdidas difíciles de revertir
+
+FECHA 09-MAYO-2026 06:00
+CONSOLIDACIÓN DEL FLUJO HÍBRIDO USUARIO / CLIENTE
+Objetivo arquitectónico
+
+Se consolidó oficialmente la separación funcional entre:
+
+usuario → operador administrativo
+cliente → consumidor final del catálogo público
+
+Esto permitió estabilizar dos flujos independientes dentro del mismo sistema web.
+
+FLUJOS DEFINIDOS
+Flujo usuario (administración)
+Listado MASTER
+→ catálogo público preview
+→ detalle receta
+→ preparación
+→ regreso reversible
+→ retorno al MASTER
+
+El usuario mantiene contexto administrativo completo durante toda la navegación.
+
+Flujo cliente (público)
+Catálogo público
+→ detalle receta
+→ preparación
+
+El cliente NO visualiza:
+
+herramientas administrativas
+accesos MASTER
+navegación interna de administración
+controles editoriales
+IMPLEMENTACIÓN TÉCNICA
+Propagación administrativa
+
+Se consolidó la propagación de:
+
+?admin=1
+
+como mecanismo oficial de persistencia del contexto administrativo.
+
+La navegación reversible depende completamente de que este parámetro se preserve entre:
+
+rutas Flask
+templates Jinja
+enlaces internos
+navegación detalle/preparación/catálogo
+CORRECCIÓN DE BUG DE CONTEXTO ADMIN
+Problema detectado
+
+El flujo:
+
+detalle
+→ preparación
+→ volver receta
+→ ver más recetas
+
+perdía el contexto administrativo y regresaba al catálogo público cliente.
+
+Causa raíz
+
+La ruta:
+
+/receta/<id>/preparacion
+
+no propagaba:
+
+desde_admin
+
+hacia el template:
+
+receta_preparacion.html
+Solución aplicada
+
+Se agregó:
+
+desde_admin = request.args.get("admin") == "1"
+
+y posteriormente:
+
+desde_admin=desde_admin
+
+al render_template() de preparación.
+
+RESULTADO FINAL
+
+Quedó estabilizado el flujo reversible completo:
+
+MASTER
+→ 👁️ preview
+→ detalle
+→ preparación
+→ volver receta
+→ ver más recetas
+→ catálogo admin
+
+manteniendo correctamente:
+
+?admin=1
+
+durante toda la navegación.
+
+DECISIÓN ARQUITECTÓNICA CONSOLIDADA
+
+El botón:
+
+👁️
+
+del listado MASTER representa oficialmente:
+
+preview cliente rápida dentro del contexto administrativo
+
+y NO acceso administrativo directo.
+
+ESTADO DEL SISTEMA
+
+Queda consolidado:
+
+aislamiento usuario/cliente
+navegación reversible administrativa
+catálogo público estable
+propagación contextual funcional
+separación visual administrativa
+arquitectura híbrida operativa
+COMMIT DE CONSOLIDACIÓN
+9dc9752
+RECETAS WEB: correccion completa de navegacion reversible admin entre detalle, preparacion y catalogo
+SIGUIENTE FASE
+
+Implementación del sistema editorial:
+
+visible_web
+
+para:
+
+publicar recetas
+despublicar recetas
+controlar visibilidad pública del catálogo.
+
+
+09-MAYO-2026
+HORA: 07:48 PM
+
+SISTEMA: recetas_app
+ACTUALIZACIÓN — IMPLEMENTACIÓN DEL SISTEMA EDITORIAL visible_web
+
+FECHA: 09 Mayo 2026
+RAMA: main
+
+COMMIT DE CONSOLIDACIÓN EDITORIAL
+30988c6
+RECETAS WEB: implementacion completa del sistema editorial visible_web con publicar y despublicar recetas
+OBJETIVO DE LA FASE
+
+Se implementó oficialmente el sistema editorial de publicación para controlar qué recetas pueden visualizar los clientes en el catálogo público.
+
+La solución se basó en la bandera persistente:
+
+visible_web
+
+integrada directamente en:
+
+recetas_maestro
+MIGRACIÓN SQLITE
+Cambio estructural
+
+Se agregó la columna:
+
+visible_web INTEGER NOT NULL DEFAULT 1
+
+a la tabla:
+
+recetas_maestro
+Compatibilidad con instalaciones existentes
+
+Se implementó migración automática mediante:
+
+ALTER TABLE recetas_maestro
+ADD COLUMN visible_web INTEGER NOT NULL DEFAULT 1;
+
+protegida con:
+
+try / except sqlite3.OperationalError
+
+para evitar errores en reinicios posteriores.
+
+COMPORTAMIENTO DEL SISTEMA EDITORIAL
+visible_web = 1
+Receta publicada
+
+La receta:
+
+aparece en catálogo público
+puede ser accedida por clientes
+mantiene navegación pública funcional
+visible_web = 0
+Receta oculta
+
+La receta:
+
+desaparece del catálogo público
+deja de mostrarse a clientes
+permanece disponible para administración
+FILTRADO DEL CATÁLOGO PÚBLICO
+
+La función:
+
+db_cargar_recetas_publicadas()
+
+ahora utiliza:
+
+WHERE r.visible_web = 1
+
+garantizando que únicamente las recetas publicadas sean visibles para clientes.
+
+MASTER ADMINISTRATIVO
+Estado visual implementado
+
+El listado MASTER ahora muestra:
+
+🌐 Publicada
+🚫 Oculta
+
+según el estado editorial de cada receta.
+
+ACCIONES EDITORIALES
+
+Se implementó la nueva ruta Flask:
+
+/admin/recetas/toggle-publicacion/<int:receta_id>
+COMPORTAMIENTO TOGGLE
+
+La acción alterna automáticamente:
+
+1 → 0
+0 → 1
+
+mediante:
+
+UPDATE recetas_maestro
+SET visible_web =
+    CASE
+        WHEN visible_web = 1 THEN 0
+        ELSE 1
+    END
+FRONTEND ADMINISTRATIVO
+Nuevos controles
+
+Se añadieron botones:
+
+Publicar
+Despublicar
+
+directamente en:
+
+admin_recetas_listado.html
+VALIDACIÓN FUNCIONAL REALIZADA
+Caso validado
+
+La receta:
+
+Arroz Frito Especial
+
+fue despublicada correctamente y desapareció del catálogo público cliente.
+
+RESULTADO DE LA FASE
+
+El sistema dispone ahora de:
+
+control editorial persistente
+publicación selectiva
+despublicación inmediata
+filtrado automático del catálogo
+separación completa usuario/cliente
+administración editorial funcional
+ESTADO ARQUITECTÓNICO ACTUAL
+
+El proyecto cuenta actualmente con:
+
+Backend
+
+✅ SQLite consolidado
+✅ persistencia editorial
+✅ navegación híbrida
+✅ propagación administrativa
+✅ filtrado público
+
+Frontend
+
+✅ catálogo público funcional
+✅ MASTER administrativo estable
+✅ preview cliente
+✅ control visual editorial
+✅ botones publicar/despublicar
+
+Arquitectura
+
+✅ separación usuario/cliente
+✅ flujo reversible administrativo
+✅ sistema editorial operativo
+✅ CMS culinario funcional
+
+SIGUIENTE FASE POSIBLE
+
+El sistema queda preparado para futuras extensiones:
+
+publicación programada
+borrador/editorial avanzada
+categorías públicas
+búsqueda cliente
+imágenes culinarias
+exportación web pública
+autenticación administrativa
+estadísticas de visualización
+FIN DE ACTUALIZACIÓN DEL MANUAL TÉCNICO Y EVOLUCIÓN

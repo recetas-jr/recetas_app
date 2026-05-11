@@ -1,4 +1,5 @@
-from flask import Flask, render_template, request, redirect, flash, abort
+from flask import Flask, render_template, request, redirect, flash, abort, session
+from datetime import timedelta
 from modulo_web.persistencia_db import (
     db_cargar_platos,
     db_cargar_unidades,
@@ -13,8 +14,12 @@ from modulo_web.persistencia_db import (
 print("🔥🔥🔥 ESTA ES MI APP REAL 🔥🔥🔥")
 
 app = Flask(__name__)
+app.secret_key = "recetas_app_secret_key_2026"
+app.permanent_session_lifetime = timedelta(hours=4)
 
 app.config["PROPAGATE_EXCEPTIONS"] = True
+ADMIN_USER = "admin"
+ADMIN_PASS = "Recetas2026_Admin!"
 
 
 @app.route("/")
@@ -25,6 +30,55 @@ def inicio():
 print("WEB_APP CARGADO DESDE:", __file__)
 
 app.secret_key = "recetas_app_clave_segura_temporal"
+
+
+@app.before_request
+def proteger_admin():
+
+    ruta = request.path
+
+    if ruta.startswith("/admin"):
+
+        if not session.get("admin"):
+
+            return redirect("/login")
+
+
+@app.route("/login", methods=["GET", "POST"])
+def login():
+    if session.get("admin"):
+        return redirect("/admin/recetas/listado")
+
+    if request.method == "POST":
+
+        usuario = request.form.get("usuario", "").strip()
+        password = request.form.get("password", "").strip()
+
+        if usuario == ADMIN_USER and password == ADMIN_PASS:
+
+            session.permanent = True
+
+            session["admin"] = True
+
+            session["usuario"] = usuario
+
+            flash("Login correcto.", "recetas")
+
+            return redirect("/admin/recetas/listado")
+
+        flash("Usuario o contraseña incorrectos.", "error")
+
+    return render_template("login.html")
+
+
+@app.route("/logout")
+def logout():
+
+    session.clear()
+
+    flash("Sesión cerrada.", "recetas")
+
+    return redirect("/login")
 
 # ==================================================
 # ADMIN TIPOS DE PLATO

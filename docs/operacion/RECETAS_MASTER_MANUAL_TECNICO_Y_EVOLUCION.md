@@ -690,3 +690,244 @@ exportación web pública
 autenticación administrativa
 estadísticas de visualización
 FIN DE ACTUALIZACIÓN DEL MANUAL TÉCNICO Y EVOLUCIÓN
+
+SISTEMA: recetas_app
+ACTUALIZACIÓN — IMPLEMENTACIÓN COMPLETA DE AUTENTICACIÓN ADMINISTRATIVA
+
+FECHA: 10 Mayo 2026
+HORA: 11:40 PM
+RAMA: main
+
+COMMIT DE CONSOLIDACIÓN
+fb7215c
+AUTH: implementacion completa de login admin, sesiones, timeout, logout y proteccion administrativa
+OBJETIVO DE LA FASE
+
+Se implementó el primer sistema formal de autenticación administrativa para proteger completamente el entorno MASTER del sistema.
+
+La administración dejó de ser pública y pasó a operar mediante sesiones autenticadas.
+
+ARQUITECTURA DE AUTENTICACIÓN
+Sistema implementado
+
+La autenticación se construyó utilizando:
+
+Flask session
+session cookies
+secret_key
+control de sesión persistente
+timeout automático
+protección de rutas administrativas
+CONFIGURACIÓN BASE
+Secret key
+
+Se agregó:
+
+app.secret_key
+
+para habilitar persistencia de sesiones Flask.
+
+CREDENCIALES MVP
+
+Se implementó autenticación inicial mediante:
+
+ADMIN_USER
+ADMIN_PASS
+
+como solución MVP temporal.
+
+LOGIN ADMINISTRATIVO
+Nueva ruta
+/login
+FUNCIONALIDADES
+
+El login ahora permite:
+
+autenticación administrativa
+validación usuario/password
+persistencia de sesión
+redirección automática al MASTER
+mensajes de error
+bloqueo acceso administrativo no autenticado
+TEMPLATE LOGIN
+Nuevo archivo
+modulo_web/templates/login.html
+FUNCIONALIDADES VISUALES
+
+La interfaz login incluye:
+
+formulario estilizado
+caja centrada
+UX limpia
+feedback visual errores
+botón acceso
+visualización opcional contraseña
+VISUALIZACIÓN DE CONTRASEÑA
+
+Se implementó:
+
+👁️ mostrar/ocultar contraseña
+
+mediante JavaScript frontend.
+
+Esto mejora:
+
+UX
+validación visual
+accesibilidad operativa
+SESIONES PERSISTENTES
+Configuración implementada
+session.permanent = True
+TIMEOUT AUTOMÁTICO
+
+Se agregó:
+
+app.permanent_session_lifetime = timedelta(hours=4)
+RESULTADO
+
+La sesión administrativa:
+
+permanece activa durante navegación normal
+evita login repetitivo
+expira automáticamente
+mejora seguridad operativa
+PROTECCIÓN ADMINISTRATIVA
+Middleware implementado
+
+Se agregó:
+
+@app.before_request
+
+para proteger rutas administrativas.
+
+COMPORTAMIENTO
+
+Si un usuario NO autenticado intenta acceder a:
+
+/admin/*
+
+el sistema:
+
+redirige automáticamente a /login
+LOGOUT
+Nueva ruta
+/logout
+FUNCIONALIDAD
+
+Logout ahora:
+
+destruye la sesión
+elimina autenticación
+retorna a login
+impide acceso posterior al MASTER
+REDIRECCIÓN INTELIGENTE
+
+La ruta:
+
+/login
+
+ahora detecta si ya existe sesión activa.
+
+RESULTADO
+
+Usuarios autenticados:
+
+NO vuelven a ver login innecesariamente
+
+y son enviados directamente al:
+
+Listado MASTER
+SESIÓN DE USUARIO
+
+Ahora el sistema almacena:
+
+session["usuario"]
+
+permitiendo conocer qué usuario inició sesión.
+
+FRONTEND ADMINISTRATIVO
+Barra superior MASTER
+
+Se agregaron:
+
+👤 usuario autenticado
+🚪 Cerrar sesión
+RESULTADO VISUAL
+
+La interfaz administrativa ahora transmite claramente:
+
+sesión activa
+identidad autenticada
+control administrativo real
+VALIDACIONES REALIZADAS
+Verificado exitosamente
+
+✅ login correcto
+✅ login incorrecto
+✅ persistencia sesión
+✅ logout
+✅ expiración configurada
+✅ protección rutas admin
+✅ bloqueo acceso directo
+✅ redirección automática
+✅ visualización contraseña
+
+ESTADO ACTUAL DEL SISTEMA
+CLIENTE
+
+✅ catálogo público
+✅ detalle receta
+✅ preparación
+
+ADMINISTRACIÓN
+
+✅ login
+✅ logout
+✅ timeout
+✅ sesiones persistentes
+✅ CRUD MASTER
+✅ control editorial
+✅ navegación reversible
+✅ usuario autenticado visible
+
+ARQUITECTURA
+
+✅ SQLite consolidado
+✅ separación usuario/cliente
+✅ autenticación administrativa
+✅ protección backend
+✅ control editorial
+✅ persistencia estable
+
+IMPACTO ARQUITECTÓNICO
+
+Este commit representa el paso oficial desde:
+
+aplicación local abierta
+
+hacia:
+
+sistema administrativo autenticado real
+PREPARACIÓN PARA PRODUCCIÓN
+
+El sistema queda ahora preparado para:
+
+deployment privado
+publicación en internet
+acceso remoto seguro
+futuras capas de usuarios reales
+permisos avanzados
+autenticación escalable
+SIGUIENTE FASE NATURAL
+Deployment privado inicial
+
+El sistema ya dispone de suficiente estabilidad para:
+
+primer despliegue real en internet
+
+mediante plataformas tipo:
+
+Render
+Railway
+Fly.io
+FIN DE ACTUALIZACIÓN DEL MANUAL TÉCNICO Y EVOLUCIÓN

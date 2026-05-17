@@ -1,4 +1,5 @@
 from flask import Flask, render_template, request, redirect, flash, abort, session
+from markupsafe import Markup
 from datetime import timedelta
 from modulo_web.persistencia_db import (
     db_cargar_platos,
@@ -666,6 +667,10 @@ def admin_recetas_nueva():
     if request.method == "POST":
         plato_id = request.form.get("plato_id", "").strip()
         raciones_base = request.form.get("raciones_base", "").strip()
+        preparacion = request.form.get("preparacion", "").strip()
+        elaboracion = request.form.get("elaboracion", "").strip()
+        presentacion = request.form.get("presentacion", "").strip()
+        nutricion = request.form.get("nutricion", "").strip()
 
         if not plato_id:
             flash(
@@ -786,8 +791,26 @@ def admin_recetas_nueva():
             cur = conn.cursor()
 
             cur.execute(
-                "INSERT INTO recetas_maestro (plato_id, raciones_base) VALUES (?, ?)",
-                (int(plato_id), raciones_base_int)
+                """
+                INSERT INTO recetas_maestro
+                (
+                    plato_id,
+                    raciones_base,
+                    preparacion,
+                    elaboracion,
+                    presentacion,
+                    nutricion
+                )
+                VALUES (?, ?, ?, ?, ?, ?)
+                """,
+                (
+                    int(plato_id),
+                    raciones_base_int,
+                    preparacion,
+                    elaboracion,
+                    presentacion,
+                    nutricion
+                )
             )
             receta_id = cur.lastrowid
 
@@ -1023,19 +1046,63 @@ def borrar_receta(receta_id):
         conn = get_connection()
         cur = conn.cursor()
 
+        # =========================
+        # RECUPERAR NOMBRE RECETA
+        # =========================
+
+        cur.execute("""
+            SELECT p.nombre
+            FROM recetas_maestro r
+            JOIN platos p ON p.id = r.plato_id
+            WHERE r.id = ?
+        """, (receta_id,))
+
+        receta = cur.fetchone()
+
+        nombre_receta = "SIN NOMBRE"
+
+        if receta:
+            nombre_receta = receta["nombre"]
+        # =========================
+        # BORRAR RECETA
+        # =========================
+
         cur.execute(
-            "DELETE FROM recetas_ingredientes WHERE receta_id = ?", (receta_id,))
+            "DELETE FROM recetas_ingredientes WHERE receta_id = ?",
+            (receta_id,)
+        )
+
         cur.execute(
-            "DELETE FROM recetas_detalle WHERE receta_id = ?", (receta_id,))
-        cur.execute("DELETE FROM recetas_maestro WHERE id = ?", (receta_id,))
+            "DELETE FROM recetas_detalle WHERE receta_id = ?",
+            (receta_id,)
+        )
+
+        cur.execute(
+            "DELETE FROM recetas_maestro WHERE id = ?",
+            (receta_id,)
+        )
 
         conn.commit()
         conn.close()
-        flash("Receta borrada correctamente.", "recetas")
+
+        # =========================
+        # MENSAJE VISUAL
+        # =========================
+
+        flash(
+            Markup(
+                f'Receta <span style="color:red;">"{nombre_receta}"</span> eliminada correctamente.'
+            ),
+            "success"
+        )
 
     except Exception as e:
         print("ERROR borrando receta:", e)
-        flash("No se pudo borrar la receta.", "error")
+
+        flash(
+            "No se pudo borrar la receta.",
+            "error"
+        )
 
     return redirect("/admin/recetas/listado")
 

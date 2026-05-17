@@ -103,3 +103,9 @@ debug.py
 recetas_web/ 
 recetas_web_backup/ 
 python 
+
+# =========================
+# BACKUPS LOCALES
+# =========================
+
+backups_proyecto/

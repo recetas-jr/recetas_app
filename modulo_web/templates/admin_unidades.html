@@ -162,8 +162,13 @@
             // ===== LIMPIAR MENSAJES FLASH =====
 
             function limpiarMensajesFlash() {
-                const mensajes = document.querySelectorAll(".flash-msg");
-                mensajes.forEach(m => m.remove());
+
+                const flashes = document.querySelectorAll(".flash-msg");
+                flashes.forEach(f => f.remove());
+
+                const errores = document.querySelectorAll(".errores");
+                errores.forEach(e => e.remove());
+
             }
 
             // limpiar al escribir código

@@ -285,25 +285,25 @@ style="width:80px;">
 
 <div>
 <label>PREPARACIÓN</label>
-<textarea id="preparacion" name="preparacion">{{ receta.preparacion if receta else '' }}</textarea>
+<textarea id="preparacion" name="preparacion">{{ receta["preparacion"] if receta else '' }}</textarea>
 <div class="hint">Enter = nueva línea | Shift+Enter = siguiente campo</div>
 </div>
 
 <div>
 <label>ELABORACIÓN</label>
-<textarea id="elaboracion" name="elaboracion">{{ receta.elaboracion if receta else '' }}</textarea>
+<textarea id="elaboracion" name="elaboracion">{{ receta["elaboracion"] if receta else '' }}</textarea>
 <div class="hint">Enter = nueva línea | Shift+Enter = siguiente campo</div>
 </div>
 
 <div>
 <label>PRESENTACIÓN</label>
-<textarea id="presentacion" name="presentacion">{{ receta.presentacion if receta else '' }}</textarea>
+<textarea id="presentacion" name="presentacion">{{ receta["presentacion"] if receta else '' }}</textarea>
 <div class="hint">Enter = nueva línea | Shift+Enter = siguiente campo</div>
 </div>
 
 <div>
 <label>NUTRICIÓN</label>
-<textarea id="nutricion" name="nutricion">{{ receta.nutricion if receta else '' }}</textarea>
+<textarea id="nutricion" name="nutricion">{{ receta["nutricion"] if receta else '' }}</textarea>
 <div class="hint">Shift+Enter → ingredientes</div>
 </div>
 
@@ -406,6 +406,86 @@ Borrar
 
 {% endfor %}
 {% endif %}
+
+<tr id="fila-plantilla" style="display:none;">
+
+<td>
+
+<select class="ing-select" name="ingrediente_id[]">
+
+<option value="">— Seleccione —</option>
+
+{% for ing in ingredientes %}
+
+<option value="{{ ing.id }}"
+data-um="{{ ing.unidad_nombre }}">
+
+{{ ing.nombre }}
+
+</option>
+
+{% endfor %}
+
+</select>
+
+</td>
+
+<td class="col-qty">
+
+<input
+type="number"
+step="0.01"
+class="ing-cantidad"
+name="cantidad[]"
+value="">
+
+</td>
+
+<td class="col-um">
+<span class="ing-um">—</span>
+</td>
+
+<td class="col-rol">
+
+<input
+type="number"
+step="0.01"
+class="ing-rol"
+name="rol[]"
+value="">
+
+</td>
+
+<td class="col-um">
+<span class="ing-um-rol">—</span>
+</td>
+
+<td class="col-qty">
+
+<span class="ing-cocina"
+style="display:inline-block; width:70px; text-align:right;">
+
+0.00
+
+</span>
+
+</td>
+
+<td class="col-um">
+
+<span class="ing-um-cocina">—</span>
+
+</td>
+
+<td class="row-actions">
+
+<button type="button" class="btn btn-borrar">
+Borrar
+</button>
+
+</td>
+
+</tr>
 
 </tbody>
 
@@ -529,6 +609,32 @@ primerIngrediente.focus()
 FUNCIONES FILA INGREDIENTE
 =============================== */
 
+function ingredienteYaUsado(ingId,filaActual){
+
+let count=0
+
+document.querySelectorAll("#tbody-ingredientes tr").forEach(f=>{
+
+if(f===filaActual){
+return
+}
+
+if(f.id==="fila-plantilla"){
+return
+}
+
+const sel=f.querySelector(".ing-select")
+
+if(sel && sel.value===ingId && ingId!==""){
+count++
+}
+
+})
+
+return count>0
+
+}
+
 function activarEventosFila(fila){
 
 const sel=fila.querySelector(".ing-select")
@@ -579,7 +685,44 @@ rol.addEventListener("focus",activarFila)
 
 sel.addEventListener("change",function(){
 
+/* impedir ingredientes duplicados */
+
+if(
+sel.value &&
+ingredienteYaUsado(sel.value,fila)
+){
+
+const nombreIngrediente=
+sel.options[sel.selectedIndex].textContent
+
+alert(
+"El ingrediente \"" +
+nombreIngrediente +
+"\" ya está en la receta."
+)
+
+sel.value=""
+
+if(um){
+um.textContent="—"
+}
+
+if(umRol){
+umRol.textContent="—"
+}
+
+if(umCocina){
+umCocina.textContent="—"
+}
+
+sel.focus()
+
+return
+
+}
+
 const opcion=sel.options[sel.selectedIndex]
+
 const unidad=opcion.dataset.um
 
 if(um){
@@ -601,10 +744,35 @@ qty.focus()
 /* navegación */
 
 sel.addEventListener("keydown",function(e){
+
 if(e.key==="Enter"){
+
 e.preventDefault()
-qty.focus()
+
+/* fila vacía final → ir a guardar */
+
+if(!sel.value){
+
+const botonGuardar=document.querySelector(".btn-prim")
+
+if(botonGuardar){
+
+botonGuardar.focus()
+
+botonGuardar.classList.add("btn-guardar-activo")
+
 }
+
+return
+
+}
+
+/* flujo normal */
+
+qty.focus()
+
+}
+
 })
 
 qty.addEventListener("keydown",function(e){
@@ -620,7 +788,16 @@ if(e.key==="Enter"){
 
 e.preventDefault()
 
-const siguiente=fila.nextElementSibling
+let siguiente=fila.nextElementSibling
+
+/* ignorar fila plantilla oculta */
+
+while(
+siguiente &&
+siguiente.id==="fila-plantilla"
+){
+siguiente=siguiente.nextElementSibling
+}
 
 if(siguiente){
 
@@ -632,17 +809,27 @@ sigSel.focus()
 
 }else{
 
-/* si es la última fila → ir a Guardar */
+/* crear nueva fila dinámica */
 
-const botonGuardar=document.querySelector(".btn-prim")
+const tbody=document.getElementById("tbody-ingredientes")
 
-if(botonGuardar){
-botonGuardar.focus()
+const plantilla=document.getElementById("fila-plantilla")
 
-botonGuardar.classList.add("btn-guardar-activo")
+const nuevaFila=plantilla.cloneNode(true)
 
+nuevaFila.removeAttribute("id")
+
+nuevaFila.style.display=""
+
+tbody.appendChild(nuevaFila)
+
+activarEventosFila(nuevaFila)
+
+const nuevoSelect=nuevaFila.querySelector(".ing-select")
+
+if(nuevoSelect){
+nuevoSelect.focus()
 }
-
 
 }
 
@@ -656,7 +843,41 @@ rol.addEventListener("input",recalcularCocina)
 /* borrar fila */
 
 btnBorrar.addEventListener("click",function(){
+
+const filas=document.querySelectorAll("#tbody-ingredientes tr")
+
+let filasReales=0
+
+filas.forEach(f=>{
+
+if(f.id==="fila-plantilla"){
+return
+}
+
+const sel=f.querySelector(".ing-select")
+
+if(sel && sel.value){
+filasReales++
+}
+
+})
+
+const selActual=fila.querySelector(".ing-select")
+
+const filaActualEsReal=selActual && selActual.value
+
+/* impedir borrar última fila real */
+
+if(filaActualEsReal && filasReales<=1){
+
+alert("La receta debe contener al menos un ingrediente.")
+
+return
+
+}
+
 fila.remove()
+
 })
 
 recalcularCocina()
@@ -711,58 +932,21 @@ document.getElementById("btn-agregar-ingrediente").addEventListener("click",func
 
 const tbody=document.getElementById("tbody-ingredientes")
 
-const tr=document.createElement("tr")
+const plantilla=document.getElementById("fila-plantilla")
 
-tr.innerHTML=`
+const nuevaFila=plantilla.cloneNode(true)
 
-<td>
-<select class="ing-select" name="ingrediente_id[]">
-<option value="">— Seleccione —</option>
+nuevaFila.removeAttribute("id")
 
-{% for ing in ingredientes %}
-<option value="{{ ing.id }}" data-um="{{ ing.unidad_nombre }}">
-{{ ing.nombre }}
-</option>
-{% endfor %}
+nuevaFila.style.display=""
 
-</select>
-</td>
+tbody.appendChild(nuevaFila)
 
-<td class="col-qty">
-<input type="number" step="0.01" class="ing-cantidad" name="cantidad[]" style="width:80px; text-align:right;" value="">
-</td>
+activarEventosFila(nuevaFila)
 
-<td class="col-um">
-<span class="ing-um">—</span>
-</td>
-
-<td class="col-rol">
-<input type="number" step="0.01" class="ing-rol" name="rol[]" style="width:80px; text-align:right;" value="">
-</td>
-
-<td class="col-um">
-<span class="ing-um-rol">—</span>
-</td>
-
-<td class="col-um">
-    <span class="ing-um-cocina">—</span>
-</td>
-
-
-<td class="row-actions">
-<button type="button" class="btn btn-borrar">Borrar</button>
-</td>
-
-`
-
-tbody.appendChild(tr)
-
-activarEventosFila(tr)
-
-tr.querySelector(".ing-select").focus()
+nuevaFila.querySelector(".ing-select").focus()
 
 })
-
 </script>
 
 </body>

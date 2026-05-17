@@ -84,7 +84,30 @@
 </div>
 
 <div style="background:white; padding:15px; border-radius:6px; max-width:1100px;">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+           {% if messages %}
 
+             {% for categoria, mensaje in messages %}
+
+                  {% if categoria == 'success' %}
+                      {% set estilo = "background:#d1e7dd; color:#0f5132; border:1px solid #badbcc;" %}
+                  {% elif categoria == 'error' %}
+                      {% set estilo = "background:#f8d7da; color:#842029; border:1px solid #f5c2c7;" %}
+                  {% else %}
+                      {% set estilo = "background:#e2e3e5; color:#41464b; border:1px solid #d3d6d8;" %}
+                  {% endif %}
+
+                    <div
+                        class="flash-msg"
+                        style="{{ estilo }} margin-bottom:12px; padding:12px; border-radius:6px; font-weight:bold;"
+                    >
+                        {{ mensaje|safe }}
+                    </div>
+
+             {% endfor %}
+
+           {% endif %}
+    {% endwith %}
     <!-- Leyenda -->
     <div class="leyenda">
         <span class="icon">🎨</span> Tiene decoración
@@ -206,6 +229,16 @@ document.addEventListener("DOMContentLoaded", function () {
             }
         });
     });
+});
+
+document.addEventListener("click", function () {
+
+    const mensajes = document.querySelectorAll(".flash-msg");
+
+    mensajes.forEach(msg => {
+        msg.style.display = "none";
+    });
+
 });
 </script>
 

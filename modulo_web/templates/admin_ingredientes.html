@@ -123,6 +123,9 @@
 
     document.addEventListener("DOMContentLoaded", function () {
         const nombre = document.getElementById("nombre");
+
+        console.log("INPUT DETECTADO");
+
         const unidad = document.getElementById("unidad_id");
         const form = document.getElementById("form-ingredientes");
 
@@ -203,8 +206,13 @@
         // ===== LIMPIAR MENSAJES FLASH AL INTERACTUAR =====
 
         function limpiarMensajesFlash() {
-            const mensajes = document.querySelectorAll(".flash-msg");
-            mensajes.forEach(m => m.remove());
+
+            const flashes = document.querySelectorAll(".flash-msg");
+            flashes.forEach(f => f.remove());
+
+            const errores = document.querySelectorAll(".errores");
+            errores.forEach(e => e.remove());
+
         }
 
         // cuando el usuario escribe → limpia mensajes

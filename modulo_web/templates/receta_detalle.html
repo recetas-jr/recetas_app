@@ -308,12 +308,11 @@ LEYENDA BASE / DECO
 
 <strong>⚠ LEYENDA</strong>
 
-CANTIDAD → total del ingrediente<br>
+ COCINA → parte utilizada en la elaboración del plato<br>
 
-<span class="deco">DECO</span> → parte destinada a la decoración<br>
+<span class="deco">DECO</span> → parte destinada a la decoración (si el plato tiene)<br>
 
-COCINA → parte utilizada en la elaboración del plato
-
+CANTIDAD TOTAL → total del ingrediente
 </div>
 
 <form method="get">
@@ -344,9 +343,9 @@ COCINA → parte utilizada en la elaboración del plato
 
 <th>UM</th>
 
-<th class="num num-head">CANTIDAD</th>
-<th class="deco num num-head">DECO</th>
 <th class="num num-head">COCINA</th>
+<th class="deco num num-head">DECO</th>
+<th class="num num-head">CANTIDAD TOTAL</th>
 
 </tr>
 
@@ -362,12 +361,11 @@ COCINA → parte utilizada en la elaboración del plato
 
 <td>{{ ing.unidad_nombre }}</td>
 
-<td class="num">{{ ing.cantidad_escalada|round(2) }}</td>
+<td class="total num">{{ ing.cocina_escalada|round(2) }}</td>
 
 <td class="deco num">{{ ing.deco_escalado|round(2) }}</td>
 
-<td class="total num">{{ ing.cocina_escalada|round(2) }}</td>
-
+<td class="num">{{ ing.cantidad_escalada|round(2) }}</td>
 </tr>
 
 {% endfor %}

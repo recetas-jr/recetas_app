@@ -1,4 +1,7 @@
-Informe Git Y Recuperacion Recetas Master
+AQUI: FECHA: Informe Git Y Recuperacion Recetas Master
+
+ESTE ES EL MANUAL VIVO!!!!!!
+
 Informe de Git y Recuperación — RECETAS MASTER
 Objetivo
 
@@ -931,3 +934,773 @@ Render
 Railway
 Fly.io
 FIN DE ACTUALIZACIÓN DEL MANUAL TÉCNICO Y EVOLUCIÓN
+
+AQUI: FECHA: 12-MAYO-2026
+
+Estado actual general
+
+El sistema recetas_app ya cuenta con:
+
+Arquitectura híbrida:
+Administración local con Flask (127.0.0.1:5000)
+Catálogo público desplegado en Render
+Flujo completo operativo:
+nomencladores
+master de recetas
+listado master
+catálogo público
+detalle receta pública
+guía de preparación pública
+Publicación web funcional sin depender de Flask local.
+Acceso desde PC y móvil mediante endpoint público Render.
+URL pública actual
+
+Catálogo público:
+
+https://recetas-master.onrender.com/recetas
+
+Funcionando desde:
+
+PC
+móvil
+WhatsApp
+navegador externo
+
+Importante:
+
+Google NO indexa automáticamente el sistema todavía.
+Para acceder debe escribirse la URL completa o abrirse desde enlace directo.
+Flujo operacional actual
+Nomencladores
+↓
+Master de recetas
+↓
+Listado master
+↓
+Catálogo público
+↓
+Ver receta
+↓
+Receta de la abuela
+↓
+Guía de preparación
+Estado Flask
+REQUIERE Flask LOCAL
+nomencladores
+master recetas
+listado master
+edición
+creación
+publicación
+administración
+NO REQUIERE Flask LOCAL
+
+Catálogo público Render:
+
+https://recetas-master.onrender.com/recetas
+Trabajo realizado en interfaz Master Recetas — Nueva
+
+Archivo principal:
+
+modulo_web/templates/admin_recetas_nueva.html
+Mejoras estructurales realizadas
+Eliminado entorno de prueba visual
+
+Se eliminó:
+
+ARCHIVO NUEVA REAL
+
+y fondos de depuración.
+
+Reestructuración visual completa
+
+Se creó:
+
+header-master
+bloques visuales
+separación por áreas funcionales
+Nueva estructura visual
+Bloque Datos generales
+
+Contiene:
+
+Plato
+Buscar
+Raciones base
+Bloque Textos culinarios
+
+Contiene:
+
+Preparación
+Elaboración
+Presentación
+Nutrición
+
+Distribución:
+
+Grid 2 columnas
+Más compacto
+Más profesional
+Bloque Ingredientes
+
+Separado visualmente.
+
+Ahora:
+
+aparece antes
+mejor lectura
+menos scroll
+Mejoras UX realizadas
+Botonera superior
+
+Botones:
+
+Guardar receta
+Ir al listado
+Cancelar
+
+Integrados junto al título principal.
+
+Reducción de scroll inicial
+
+Se compactó:
+
+encabezado
+márgenes
+separación vertical
+
+Objetivo:
+mostrar ingredientes desde el primer pantallazo.
+
+Bloques visuales profesionales
+
+Se añadieron:
+
+bordes suaves
+separaciones visuales
+jerarquía visual
+estilo más moderno
+Sistema de validaciones ya operativo
+Validaciones implementadas
+raciones obligatorias
+raciones > 0
+solo numérico
+ingrediente obligatorio
+ingrediente duplicado
+deco no mayor que cantidad
+cálculo automático cocina
+navegación Enter / Shift+Enter
+Sistema de mensajes operativos
+
+Tipos:
+
+ok
+error
+
+Con:
+
+colores
+bloques visuales
+HTML seguro
+mensajes estilo nomencladores
+Mejoras pendientes inmediatas
+LISTADO MASTER — MENSAJE BORRADO
+
+Detectado:
+
+al borrar receta NO aparece mensaje visual.
+
+Objetivo:
+mostrar igual que nomencladores:
+
+Ejemplo:
+
+Receta "Arroz Frito Especial" eliminada correctamente.
+
+Con:
+
+texto verde
+nombre receta rojo
+mismo patrón nomencladores
+
+Pendiente revisar:
+
+Archivo:
+
+modulo_web/web_app.py
+
+Ruta probable:
+
+admin_recetas_borrar()
+
+Debe agregarse:
+
+flash()
+recuperación nombre receta
+mensaje HTML colorizado
+Sistema de backups implementado
+1️⃣ Backup SQLite
+
+Archivos:
+
+backup_recetas.py
+backup_recetas.bat
+
+Función:
+
+backup rápido de recetas.db
+
+Destino:
+
+backups/
+
+Resultado:
+
+backups históricos fechados
+2️⃣ Snapshot completo proyecto
+
+Archivos:
+
+backup_proyecto.py
+backup_proyecto.bat
+
+Función:
+
+snapshot completo del proyecto
+
+Incluye:
+
+Flask
+templates
+JS
+CSS
+SQLite
+Render
+scripts
+todo el sistema
+
+Destino:
+
+backups_proyecto/
+
+Características:
+
+sin ZIP
+rápido
+ignora .git
+ignora __pycache__
+ignora backups previos
+Sistema RESTORE implementado
+Restore SQLite
+
+Archivos:
+
+restore_recetas.py
+restore_recetas.bat
+
+Características:
+
+listado histórico backups
+selección interactiva
+restore automático
+rollback seguro
+
+MUY IMPORTANTE:
+antes de restaurar:
+
+crea backup automático del estado actual
+
+Formato:
+
+ANTES_RESTORE_YYYY-MM-DD_HH-MM-SS.db
+Infraestructura de seguridad actual
+
+El sistema ya cuenta con:
+
+backup SQLite
+restore SQLite
+rollback automático
+snapshot completo proyecto
+backups históricos
+recuperación temporal
+protección previa restore
+Próximos trabajos inmediatos
+1️⃣ Finalizar mensaje borrado recetas
+
+Pendiente.
+
+2️⃣ Git completo
+
+Debe hacerse commit de:
+
+backups
+restore
+rediseño master nueva
+mejoras UX
+snapshot proyecto
+rollback SQLite
+3️⃣ Actualizar Manual Técnico
+
+Actualizar:
+
+backups
+restore
+snapshots
+arquitectura híbrida
+Render
+flujo publicación
+recuperación sistema
+nuevos scripts .bat
+seguridad operacional
+4️⃣ Actualizar Evolución del Sistema
+
+Registrar:
+
+separación admin/publico
+despliegue Render
+acceso móvil
+backups
+rollback
+snapshots
+refactor visual master recetas
+endurecimiento operacional
+Archivos principales involucrados
+Frontend
+modulo_web/templates/admin_recetas_nueva.html
+Backend Flask
+modulo_web/web_app.py
+Backups
+backup_recetas.py
+backup_recetas.bat
+
+backup_proyecto.py
+backup_proyecto.bat
+
+restore_recetas.py
+restore_recetas.bat
+Estado general del proyecto
+
+El sistema ya pasó de:
+
+prototipo
+a:
+sistema operativo real con protección, rollback y publicación híbrida.
+
+Infraestructura ya existente:
+
+Render público
+backups
+restore
+snapshots
+rollback
+publicación web
+administración local
+acceso móvil
+protección operacional
+
+AQUI:FECHA 14-MAYO-2026
+CONTEXTO GENERAL
+
+Se recuperó exitosamente el archivo:
+
+modulo_web/templates/admin_recetas_nueva.html
+
+desde commit estable funcional, luego de detectar que versiones posteriores habían roto:
+
+navegación
+validaciones
+cálculo
+flujo de captura
+estabilidad JS
+
+La recuperación se hizo desde commit estable:
+
+ffb8932
+ESTADO ACTUAL — RECETAS NUEVAS
+ARCHIVO
+modulo_web/templates/admin_recetas_nueva.html
+FUNCIONALIDADES YA OPERATIVAS
+UI / TABLA
+
+✅ tabla compacta profesional
+✅ columnas alineadas
+✅ columnas:
+
+Ingrediente
+Cantidad
+Deco
+Cocina
+UM
+Acciones
+
+✅ badges amarillos UM
+✅ fila activa amarilla
+✅ botones uniformes
+✅ tabla visual estable
+
+NAVEGACIÓN
+
+✅ Enter:
+
+ingrediente → cantidad
+cantidad → deco
+
+✅ Shift+Enter:
+
+textos → siguiente bloque
+
+✅ nutrición:
+
+Shift+Enter → ingredientes
+
+✅ Deco:
+
+Enter → crea nueva fila
+MOTOR DINÁMICO
+IMPLEMENTADO
+
+✅ fila plantilla dinámica
+✅ creación automática filas
+✅ navegación automática
+✅ múltiples filas funcionales
+
+VALIDACIONES IMPLEMENTADAS
+
+✅ cantidad > 0
+✅ deco ≥ 0
+✅ deco ≤ cantidad
+✅ ingredientes duplicados prohibidos
+✅ receta no puede quedar vacía
+
+CÁLCULOS IMPLEMENTADOS
+Cocina automática
+cocina = cantidad - deco
+
+✅ tiempo real
+✅ bloqueo negativos
+✅ campo rojo si deco > cantidad
+
+UM SINCRONIZADAS
+
+✅ UM ingrediente
+✅ UM deco
+✅ UM cocina
+
+TEXTOS RECETA
+CAMPOS
+
+✅ preparación
+✅ elaboración
+✅ presentación
+✅ nutrición
+
+BUG DETECTADO Y CORREGIDO
+PROBLEMA
+
+Los textos:
+
+no aparecían en edición
+ni en guía preparación
+CAUSA REAL
+
+En:
+
+modulo_web/web_app.py
+
+función:
+
+def admin_recetas_nueva():
+
+el INSERT original NO guardaba:
+
+preparacion
+elaboracion
+presentacion
+nutricion
+CORRECCIÓN APLICADA
+SE AGREGÓ:
+preparacion = request.form.get(...)
+elaboracion = ...
+presentacion = ...
+nutricion = ...
+Y EL INSERT FUE AMPLIADO A:
+INSERT INTO recetas_maestro
+(
+    plato_id,
+    raciones_base,
+    preparacion,
+    elaboracion,
+    presentacion,
+    nutricion
+)
+RESULTADO
+
+✅ textos se guardan correctamente
+✅ textos aparecen en edición
+✅ textos aparecen en guía preparación
+
+RECETAS EDITAR — ESTADO ACTUAL
+ARCHIVO
+modulo_web/templates/admin_recetas_editar.html
+FUNCIONALIDADES OPERATIVAS
+
+✅ carga textos correctamente
+✅ carga ingredientes
+✅ cocina visible
+✅ cálculo cocina operativo
+✅ UM visibles
+✅ navegación básica operativa
+
+PROBLEMA ESTRUCTURAL DETECTADO
+
+La arquitectura JS de edición es ANTIGUA.
+
+Actualmente:
+
+NUTRICIÓN
+↓
+primer ingrediente
+↓
+cantidad
+↓
+DECO
+↓
+GUARDAR CAMBIOS
+
+❌ NO permite:
+
+insertar nuevas filas correctamente
+recorrer múltiples filas dinámicamente
+navegación ERP completa
+DISEÑO FUNCIONAL DEFINIDO PARA EDITAR
+REGLAS APROBADAS
+ENTER EN DECO
+SI EXISTE FILA SIGUIENTE
+focus → ingrediente siguiente fila
+SI ES ÚLTIMA FILA
+crear nueva fila
+↓
+focus ingrediente nueva fila
+SI OPERADOR NO QUIERE MÁS INGREDIENTES
+
+En ingrediente vacío de nueva fila:
+
+Enter
+↓
+GUARDAR CAMBIOS
+REGLAS DE INTEGRIDAD DEFINIDAS
+PROHIBIDO
+
+❌ borrar última fila real
+❌ receta sin ingredientes
+❌ duplicar ingredientes
+
+CONCEPTO CLAVE
+FILA VACÍA FINAL
+
+La última fila vacía:
+
+NO cuenta como ingrediente
+solo representa:
+¿desea continuar?
+ESTRATEGIA TÉCNICA DECIDIDA
+NO PARCHEAR EDITAR
+
+Se decidió:
+
+migrar arquitectura de NUEVA → EDITAR
+RAZÓN
+
+La arquitectura de:
+
+admin_recetas_nueva.html
+
+ya está:
+✅ estable
+✅ moderna
+✅ robusta
+✅ probada
+
+PLAN SIGUIENTE EN NUEVA PESTAÑA
+OBJETIVO
+
+Unificar:
+
+navegación
+filas dinámicas
+validaciones
+cocina
+UM
+eventos
+UX
+
+entre:
+
+admin_recetas_nueva.html
+
+y
+
+admin_recetas_editar.html
+ARCHIVOS CLAVE
+TEMPLATE NUEVA
+modulo_web/templates/admin_recetas_nueva.html
+TEMPLATE EDITAR
+modulo_web/templates/admin_recetas_editar.html
+BACKEND
+modulo_web/web_app.py
+ESTADO GENERAL DEL SISTEMA
+
+🔥 Muy estable actualmente.
+
+Las últimas correcciones:
+✅ recuperaron funcionalidad crítica
+✅ estabilizaron JS
+✅ estabilizaron UI
+✅ consolidaron lógica de negocio
+✅ consolidaron textos recetas
+✅ consolidaron cocina/deco
+
+El sistema ya está entrando en fase:
+
+ERP / UX profesional
+
+AQUI:FECHA 17-MAYO-2026
+HORA: 10:14 AM
+Deploy Render Bat Recetas App
+DEPLOY AUTOMÁTICO — recetas_app
+OBJETIVO
+
+Automatizar el flujo:
+
+revisar estado git
+agregar cambios
+excluir backups
+hacer commit
+hacer push a GitHub
+disparar redeploy automático en Render
+ARCHIVO
+
+Crear este archivo en:
+
+C:\Users\jrmon\Documents\recetas_app\deploy_render.bat
+CONTENIDO DEL .BAT
+@echo off
+cls
+color 0A
+
+
+echo =====================================
+echo    RECETAS_APP - DEPLOY RENDER
+ echo =====================================
+echo.
+
+
+cd /d C:\Users\jrmon\Documents\recetas_app
+
+
+echo.
+echo ===== ESTADO GIT =====
+git status
+
+
+echo.
+set /p mensaje=Escriba mensaje del commit:
+
+
+echo.
+echo ===== AGREGANDO ARCHIVOS =====
+
+
+git add modulo_web
+git add docs
+
+
+echo.
+echo ===== COMMIT =====
+git commit -m "%mensaje%"
+
+
+echo.
+echo ===== PUSH A GITHUB =====
+git push origin main
+
+
+echo.
+echo =====================================
+echo      DEPLOY ENVIADO A RENDER
+ echo =====================================
+echo.
+pause
+CÓMO USARLO
+1.
+
+Doble clic en:
+
+deploy_render.bat
+2.
+
+El sistema mostrará:
+
+git status
+
+para revisar cambios.
+
+3.
+
+Escribir mensaje del commit.
+
+Ejemplo:
+
+RECETAS: mejoras UX nomencladores y estabilizacion editor recetas
+4.
+
+El .bat hará automáticamente:
+
+git add
+commit
+push
+5.
+
+Render detectará automáticamente el push y hará:
+
+redeploy
+VENTAJAS
+
+✅ evita olvidar comandos ✅ evita errores manuales ✅ flujo rápido ✅ despliegue consistente ✅ profesionaliza operación
+
+IMPORTANTE
+
+Este .bat:
+
+✅ SÍ sube:
+
+modulo_web
+/docs
+
+❌ NO sube:
+
+backups_proyecto
+
+por lo que los backups quedan protegidos automáticamente.
+
+RECOMENDACIÓN FUTURA
+
+Más adelante crear también:
+
+run_local.bat
+backup_proyecto.bat
+
+para consolidar completamente la operación del sistema.
+
+COMENTARIO:
+
+Ya quedó preparado el .bat profesional para despliegue automático a GitHub + Render.
+
+Incluye:
+
+✅ git status
+✅ git add controlado
+✅ commit interactivo
+✅ push automático
+✅ exclusión implícita de backups
+✅ estructura preparada para crecimiento futuro del sistema.

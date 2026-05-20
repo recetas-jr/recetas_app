@@ -33,6 +33,17 @@ print("WEB_APP CARGADO DESDE:", __file__)
 app.secret_key = "recetas_app_clave_segura_temporal"
 
 
+@app.route("/admin")
+def menu_admin():
+
+    if "usuario" not in session:
+        return redirect("/login")
+
+    return render_template(
+        "menu_principal.html"
+    )
+
+
 @app.before_request
 def proteger_admin():
 
@@ -48,7 +59,7 @@ def proteger_admin():
 @app.route("/login", methods=["GET", "POST"])
 def login():
     if session.get("admin"):
-        return redirect("/admin/recetas/listado")
+        return redirect("/admin")
 
     if request.method == "POST":
 
@@ -65,7 +76,7 @@ def login():
 
             flash("Login correcto.", "recetas")
 
-            return redirect("/admin/recetas/listado")
+            return redirect("/admin")
 
         flash("Usuario o contraseña incorrectos.", "error")
 

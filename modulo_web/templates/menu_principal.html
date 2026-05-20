@@ -1,0 +1,148 @@
+<!-- Archivo: modulo_web/templates/menu_principal.html -->
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Menú Principal - recetas_app</title>
+
+<style>
+
+body{
+    margin:0;
+    padding:30px;
+    font-family:Arial,sans-serif;
+    background:#f4f6f9;
+}
+
+h1{
+    text-align:center;
+    margin-bottom:40px;
+    color:#333;
+}
+
+.contenedor{
+
+    max-width:1000px;
+    margin:auto;
+
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(280px,1fr));
+    gap:25px;
+}
+
+.tarjeta{
+
+    background:white;
+    border-radius:15px;
+    padding:25px;
+
+    box-shadow:
+    0 4px 12px rgba(0,0,0,.1);
+
+}
+
+.tarjeta h2{
+
+    margin-top:0;
+    color:#1f6feb;
+}
+
+.tarjeta a{
+
+    display:block;
+    margin:10px 0;
+
+    text-decoration:none;
+
+    padding:10px;
+
+    background:#f2f2f2;
+
+    border-radius:8px;
+
+    color:#333;
+
+    transition:.3s;
+}
+
+.tarjeta a:hover{
+
+    background:#1f6feb;
+    color:white;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<h1>🍽 recetas_app</h1>
+
+<div class="contenedor">
+
+<div class="tarjeta">
+
+<h2>📚 Nomencladores</h2>
+
+<a href="/admin/tipos_plato">
+Tipos de plato
+</a>
+
+<a href="/admin/platos">
+Platos
+</a>
+
+<a href="/admin/unidades">
+Unidades
+</a>
+
+<a href="/admin/ingredientes">
+Ingredientes
+</a>
+
+</div>
+
+
+<div class="tarjeta">
+
+<h2>🍽 Recetas</h2>
+
+<a href="/admin/recetas/listado">
+Listado recetas
+</a>
+
+<a href="/admin/recetas/nueva">
+Nueva receta
+</a>
+
+</div>
+
+
+<div class="tarjeta">
+
+<h2>🌐 Web</h2>
+
+<a href="/recetas">
+Catálogo público
+</a>
+
+</div>
+
+
+<div class="tarjeta">
+
+<h2>⚙ Sistema</h2>
+
+<a href="#">Manual técnico</a>
+<a href="#">
+Respaldo
+</a>
+
+</div>
+
+</div>
+
+</body>
+</html>

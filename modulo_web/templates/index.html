@@ -6,7 +6,9 @@
 </head>
 <body>
 
-{% include "componentes/menu_superior.html" %}
+{% if desde_admin %}
+    {% include "componentes/menu_superior.html" %}
+{% endif %}
 
 <div class="container">
 

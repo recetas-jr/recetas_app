@@ -366,6 +366,12 @@ def db_cargar_receta_detalle(receta_id):
         "plato_nombre": fila["plato_nombre"],
         "plato_foto": fila["plato_foto"],
         "raciones_base": fila["raciones_base"],
+
+        "preparacion": fila["preparacion"] or "",
+        "elaboracion": fila["elaboracion"] or "",
+        "presentacion": fila["presentacion"] or "",
+        "nutricion": fila["nutricion"] or "",
+
         "textos": {
             "preparacion": fila["preparacion"] or "",
             "elaboracion": fila["elaboracion"] or "",

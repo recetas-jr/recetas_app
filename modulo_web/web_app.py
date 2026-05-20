@@ -665,6 +665,7 @@ def admin_recetas_nueva():
     ingredientes = cargar_ingredientes_con_unidad()
 
     if request.method == "POST":
+
         plato_id = request.form.get("plato_id", "").strip()
         raciones_base = request.form.get("raciones_base", "").strip()
         preparacion = request.form.get("preparacion", "").strip()

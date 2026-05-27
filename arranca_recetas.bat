@@ -2,19 +2,24 @@
 
 title recetas_app
 
-echo ¿Flask ya está abierto?
-echo.
-echo 1 = SI
-echo 2 = NO
-echo.
+echo Verificando Flask...
 
-set /p opcion=Seleccione:
+netstat -ano | findstr :5000 >nul
 
-if "%opcion%"=="2" (
+if errorlevel 1 (
 
-    start cmd /c "python -m modulo_web.web_app"
+    echo Flask no encontrado...
+    echo Iniciando Flask en PowerShell...
 
-    pause
+    start "Flask recetas_app" powershell -NoExit -Command "python -m modulo_web.web_app"
+
+:espera
+    netstat -ano | findstr :5000 >nul
+
+    if errorlevel 1 (
+        timeout /t 1 >nul
+        goto espera
+    )
 )
 
 start http://127.0.0.1:5000/login

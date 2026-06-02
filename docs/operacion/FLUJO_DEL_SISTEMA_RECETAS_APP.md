@@ -2,7 +2,6 @@ II-FLUJO DEL SISTEMA — RECETAS_APP
 1. Propósito del documento
 
 Este documento describe el flujo operativo del sistema recetas_app.
-
 Su objetivo es explicar cómo interactúan:
 
 el usuario

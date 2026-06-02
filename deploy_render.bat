@@ -64,7 +64,12 @@ if errorlevel 1 (
 echo.
 echo =====================================
 echo CAMBIOS ENVIADOS A GITHUB
-echo RENDER INICIARA DEPLOY AUTOMATICAMENTE
+echo PUSH COMPLETADO CORRECTAMENTE
+echo.
+echo RENDER ACTUALIZARA LA WEB
+echo EN SEGUNDO PLANO
+echo.
+echo YA PUEDE CERRAR ESTA VENTANA
 echo =====================================
 echo.
 

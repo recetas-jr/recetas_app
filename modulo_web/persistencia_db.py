@@ -17,6 +17,7 @@ def get_connection():
 
 
 def init_db():
+
     conn = get_connection()
     cur = conn.cursor()
 
@@ -108,6 +109,22 @@ def init_db():
         presentacion TEXT,
         nutricion TEXT,
         FOREIGN KEY (receta_id) REFERENCES recetas_maestro(id)
+    );
+    """)
+
+    # ----------------------------
+    # CONTACTOS WEB
+    # ----------------------------
+
+    cur.execute("""
+    CREATE TABLE IF NOT EXISTS contactos (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        fecha TEXT NOT NULL,
+        nombre TEXT NOT NULL,
+        correo TEXT NOT NULL,
+        asunto TEXT NOT NULL,
+        mensaje TEXT NOT NULL,
+        atendido INTEGER NOT NULL DEFAULT 0
     );
     """)
 
@@ -408,6 +425,133 @@ def db_cargar_receta_detalle(receta_id):
         })
 
     return receta
+
+
+def db_insertar_contacto(fecha, nombre, correo, asunto, mensaje):
+
+    conn = get_connection()
+    cur = conn.cursor()
+
+    cur.execute("""
+        INSERT INTO contactos (
+            fecha,
+            nombre,
+            correo,
+            asunto,
+            mensaje
+        )
+        VALUES (?, ?, ?, ?, ?)
+    """, (
+        fecha,
+        nombre,
+        correo,
+        asunto,
+        mensaje
+    ))
+
+    conn.commit()
+    conn.close()
+
+# ================================
+#
+#    CARGAR CONTACTO EN GENERAL
+#
+# ================================
+
+
+def db_cargar_contactos():
+
+    conn = get_connection()
+    cur = conn.cursor()
+
+    cur.execute("""
+        SELECT
+            id,
+            fecha,
+            nombre,
+            correo,
+            asunto,
+            atendido
+        FROM contactos
+        ORDER BY id DESC
+    """)
+
+    filas = cur.fetchall()
+
+    conn.close()
+
+    return filas
+
+# ================================
+#
+#    CARGAR CONTACTO ESPECIFICO
+#
+# ================================
+
+
+def db_cargar_contacto(contacto_id):
+
+    conn = get_connection()
+    cur = conn.cursor()
+
+    cur.execute("""
+        SELECT
+            id,
+            fecha,
+            nombre,
+            correo,
+            asunto,
+            mensaje,
+            atendido
+        FROM contactos
+        WHERE id = ?
+    """, (contacto_id,))
+
+    fila = cur.fetchone()
+
+    conn.close()
+
+    return fila
+
+
+def db_listar_contactos():
+
+    conn = get_connection()
+    cur = conn.cursor()
+
+    cur.execute("""
+        SELECT
+            id,
+            fecha,
+            nombre,
+            correo,
+            asunto,
+            mensaje,
+            atendido
+        FROM contactos
+        ORDER BY id DESC
+    """)
+
+    filas = cur.fetchall()
+
+    conn.close()
+
+    return filas
+
+
+def db_marcar_contacto_atendido(contacto_id):
+
+    conn = get_connection()
+    cur = conn.cursor()
+
+    cur.execute("""
+        UPDATE contactos
+        SET atendido = 1
+        WHERE id = ?
+    """, (contacto_id,))
+
+    conn.commit()
+    conn.close()
 
 
 if __name__ == "__main__":

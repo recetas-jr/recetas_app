@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Contactos recibidos</title>
+</head>
+<body>
+
+<!-- Botón al Menú principal -->
+
+{% include "componentes/menu_superior.html" %}
+
+<h1>Contactos recibidos</h1>
+
+<p>
+
+{% if pendientes > 0 %}
+
+    <span style="color:red;">
+        <b>Pendientes:</b> {{ pendientes }}
+    </span>
+
+{% else %}
+
+    <span style="color:green;">
+        <b>Pendientes:</b> 0
+    </span>
+
+{% endif %}
+
+</p>
+
+<table border="1" cellpadding="5">
+
+<tr>
+    <th>ID</th>
+    <th>Fecha</th>
+    <th>Nombre</th>
+    <th>Correo</th>
+    <th>Asunto</th>
+    <th>Estado</th>
+    <th>Ver</th>
+</tr>
+
+{% for c in contactos %}
+
+<tr>
+
+    <td>{{ c.id }}</td>
+    <td>{{ c.fecha }}</td>
+    <td>{{ c.nombre }}</td>
+    <td>{{ c.correo }}</td>
+    <td>{{ c.asunto }}</td>
+
+    <td>
+
+    {% if c.atendido %}
+
+        <span style="color:green;">
+            Atendido
+        </span>
+
+    {% else %}
+
+        <span style="color:red;">
+            Pendiente
+        </span>
+
+    {% endif %}
+
+    </td>
+
+    <td>
+        <a href="/admin/contactos/{{ c.id }}">
+            Abrir
+        </a>
+    </td>
+
+</tr>
+
+{% endfor %}
+
+</table>
+
+</body>
+</html>

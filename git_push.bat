@@ -1,3 +1,5 @@
+:: GIT_PUSH.BAT
+
 @echo off
 echo INICIO
 git add .

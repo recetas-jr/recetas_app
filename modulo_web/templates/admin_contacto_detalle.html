@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Detalle contacto</title>
+</head>
+<body>
+
+<!-- Botón al Menú principal -->
+
+{% include "componentes/menu_superior.html" %}
+
+<h1>Detalle del contacto</h1>
+
+<p>
+<b>Fecha:</b>
+{{ contacto.fecha }}
+</p>
+
+<p>
+<b>Nombre:</b>
+{{ contacto.nombre }}
+</p>
+
+<p>
+<b>Correo:</b>
+{{ contacto.correo }}
+</p>
+
+<p>
+<b>Asunto:</b>
+{{ contacto.asunto }}
+</p>
+
+<p>
+<b>Estado:</b>
+
+{% if contacto.atendido %}
+    Atendido
+{% else %}
+    Pendiente
+{% endif %}
+
+</p>
+
+<p>
+<b>Mensaje:</b>
+</p>
+
+<div style="
+border:1px solid #ccc;
+padding:15px;
+max-width:800px;
+white-space:pre-wrap;
+">
+
+{{ contacto.mensaje }}
+
+</div>
+
+<br><br>
+
+{% if not contacto.atendido %}
+
+<a href="/admin/contactos/{{ contacto.id }}/atender">
+    Marcar como atendido
+</a>
+
+{% endif %}
+
+<br><br>
+
+<a href="/admin/contactos">
+    Volver al listado de Contactos
+</a>
+
+</body>
+</html>

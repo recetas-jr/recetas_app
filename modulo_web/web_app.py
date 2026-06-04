@@ -1,6 +1,7 @@
 from flask import Flask, render_template, request, redirect, flash, abort, session
 from markupsafe import Markup
 from datetime import timedelta
+from datetime import datetime
 from modulo_web.persistencia_db import (
     db_cargar_platos,
     db_cargar_unidades,
@@ -9,7 +10,13 @@ from modulo_web.persistencia_db import (
     db_cargar_tipos_plato,
     db_cargar_receta_detalle,
     get_connection,
-    db_cargar_recetas_publicadas
+    db_cargar_recetas_publicadas,
+    init_db,
+    db_insertar_contacto,
+    db_listar_contactos,
+    db_cargar_contactos,
+    db_cargar_contacto,
+    db_marcar_contacto_atendido
 )
 
 print("🔥🔥🔥 ESTA ES MI APP REAL 🔥🔥🔥")
@@ -17,6 +24,8 @@ print("🔥🔥🔥 ESTA ES MI APP REAL 🔥🔥🔥")
 app = Flask(__name__)
 app.secret_key = "recetas_app_secret_key_2026"
 app.permanent_session_lifetime = timedelta(hours=4)
+
+init_db()
 
 app.config["PROPAGATE_EXCEPTIONS"] = True
 ADMIN_USER = "admin"
@@ -1189,6 +1198,85 @@ def ver_nomencladores():
         ingredientes=ingredientes,
         platos=platos
     )
+
+
+@app.route("/contacto", methods=["GET", "POST"])
+def contacto():
+
+    if request.method == "POST":
+
+        nombre = request.form.get("nombre", "").strip()
+        correo = request.form.get("correo", "").strip()
+        asunto = request.form.get("asunto", "").strip()
+        mensaje = request.form.get("mensaje", "").strip()
+
+        fecha = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+
+        db_insertar_contacto(
+            fecha,
+            nombre,
+            correo,
+            asunto,
+            mensaje
+        )
+
+        return render_template(
+            "contacto_ok.html"
+        )
+
+        return redirect("/contacto")
+
+    return render_template("contacto.html")
+
+
+@app.route("/admin/contactos")
+def admin_contactos():
+
+    if "usuario" not in session:
+        return redirect("/login")
+
+    contactos = db_cargar_contactos()
+
+    pendientes = sum(1 for c in contactos if not c["atendido"])
+
+    return render_template(
+        "admin_contactos.html",
+        contactos=contactos,
+        pendientes=pendientes
+    )
+
+
+@app.route("/admin/contactos/<int:contacto_id>")
+def admin_contacto_detalle(contacto_id):
+
+    if "usuario" not in session:
+        return redirect("/login")
+
+    contacto = db_cargar_contacto(contacto_id)
+
+    if not contacto:
+        abort(404)
+
+    return render_template(
+        "admin_contacto_detalle.html",
+        contacto=contacto
+    )
+
+
+@app.route("/admin/contactos/<int:contacto_id>/atender")
+def admin_contacto_atender(contacto_id):
+
+    if "usuario" not in session:
+        return redirect("/login")
+
+    db_marcar_contacto_atendido(contacto_id)
+
+    flash(
+        "Contacto marcado como atendido.",
+        "recetas"
+    )
+
+    return redirect("/admin/contactos")
 
 # ==================================================
 # EJECUCIÓN

@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Contacto</title>
+</head>
+<body>
+
+<h1>Contacto</h1>
+
+{% with mensajes = get_flashed_messages(with_categories=true) %}
+    {% if mensajes %}
+        {% for categoria, mensaje in mensajes %}
+
+            {% if categoria == "contacto" %}
+
+                <p>
+                    {{ mensaje }}
+                </p>
+
+            {% endif %}
+
+        {% endfor %}
+    {% endif %}
+{% endwith %}
+
+<form method="post" action="/contacto">
+
+    <p>
+        <label>Nombre</label><br>
+        <input type="text" name="nombre" id="nombre" autofocus>
+    </p>
+
+    <p>
+        <label>Correo</label><br>
+        <input type="email" name="correo" id="correo">
+    </p>
+
+    <p>
+        <label>Asunto</label><br>
+        <input type="text" name="asunto" id="asunto">
+    </p>
+
+    <p>
+        <label>Mensaje</label><br>
+        <textarea name="mensaje" id="mensaje" rows="8"></textarea>
+    </p>
+
+    <p>
+        <small>
+            Enter o Tab para avanzar.<br>
+            En el botón "Enviar mensaje", use Enter.
+        </small>
+    </p>
+
+    <button type="submit">
+        Enviar mensaje
+    </button>
+
+</form>
+
+<script>
+
+document.getElementById("nombre").addEventListener("keydown", function(e){
+
+    if(e.key === "Enter"){
+
+        e.preventDefault();
+
+        document.getElementById("correo").focus();
+
+    }
+
+});
+
+document.getElementById("correo").addEventListener("keydown", function(e){
+
+    if(e.key === "Enter"){
+
+        e.preventDefault();
+
+        document.getElementById("asunto").focus();
+
+    }
+
+});
+
+document.getElementById("asunto").addEventListener("keydown", function(e){
+
+    if(e.key === "Enter"){
+
+        e.preventDefault();
+
+        document.getElementById("mensaje").focus();
+
+    }
+
+});
+
+</script>
+
+</body>
+</html>

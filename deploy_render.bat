@@ -1,3 +1,5 @@
+:: DEPLOY_RENDER.BAT
+
 @echo off
 cls
 color 0A

@@ -1,3 +1,5 @@
+:: Archivo: arranca_recetas.bat
+
 @echo off
 
 title recetas_app

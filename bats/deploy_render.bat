@@ -24,8 +24,7 @@ echo.
 echo ===== AGREGANDO ARCHIVOS =====
 git add modulo_web
 git add docs
-git add arranca_recetas.bat
-git add deploy_render.bat
+git add bats
 
 REM ===== VALIDAR CAMBIOS =====
 

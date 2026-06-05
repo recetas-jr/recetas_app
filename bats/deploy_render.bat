@@ -52,6 +52,25 @@ if errorlevel 1 (
 )
 
 echo.
+echo =====================================
+echo ULTIMO COMMIT REALIZADO
+echo =====================================
+git show --stat --oneline HEAD
+
+echo.
+echo =====================================
+echo REVISE EL COMMIT ANTES DEL PUSH
+echo.
+echo Verifique:
+echo - Que los archivos esperados esten incluidos
+echo - Que no entren backups por error
+echo - Que recetas.db este incluida cuando corresponda
+echo.
+echo Pulse una tecla para continuar con el PUSH...
+echo =====================================
+pause
+
+echo.
 echo ===== PUSH A GITHUB =====
 git push origin main
 

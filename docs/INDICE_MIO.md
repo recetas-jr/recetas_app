@@ -195,3 +195,108 @@ Si quieres, en la siguiente fase te enseño comandos pro de consola para trabaja
 
 copy modulo_web\templates\admin_recetas_nueva.html modulo_web\templates\admin_recetas_nueva_backup.html <-- guardar admin_recetas_nueva.html
 
+
+
+==================================================|
+CONVENCIÓN OFICIAL DE MENSAJES GIT — recetas_app  |  ==================================================| 
+1. Cambios de recetas (datos)
+Publicar o despublicar recetas
+RECETAS: sincronizar catálogo web
+
+Usar cuando:
+
+visible_web = 1
+visible_web = 0
+
+o cualquier cambio de visibilidad.
+
+Agregar nuevas recetas
+RECETAS: publicar nuevas recetas
+
+Usar cuando:
+
+Se crean recetas nuevas
+y se publican en catálogo
+Modificar recetas existentes
+RECETAS: actualizar datos del catálogo
+
+Usar cuando:
+
+Ingredientes
+Preparación
+Elaboración
+Presentación
+Nutrición
+Fotos
+Peso ración
+Cambios masivos de recetas
+RECETAS: actualización general del catálogo
+
+Usar cuando:
+
+Muchas recetas cambian
+2. Cambios de nomencladores
+Ingredientes
+INGREDIENTES: actualización de nomenclador
+
+Usar cuando:
+
+Altas
+Bajas
+Modificaciones
+Unidades de medida
+UNIDADES: actualización de nomenclador
+Tipos de plato
+TIPOS: actualización de nomenclador
+3. Cambios administrativos
+Menú principal
+MENU: ajustes navegación principal
+Editor de recetas
+EDITOR: mejoras editor de recetas
+Catálogo administrativo
+ADMIN: mejoras catálogo administrativo
+4. Cambios del catálogo público
+Visualización pública
+CATALOGO: mejoras visualización pública
+Diseño público
+CATALOGO: ajustes visuales
+5. Cambios de infraestructura
+BAT de arranque
+SISTEMA: mejoras arranque local
+Deploy
+SISTEMA: mejoras proceso de despliegue
+Render
+SISTEMA: ajustes despliegue Render
+6. Base de datos
+Estructura BD
+BD: ajustes estructura de datos
+
+Usar cuando:
+
+Campos nuevos
+Longitudes
+Tipos de datos
+Índices
+7. Documentación
+Manual técnico
+DOCS: actualización manual técnico
+Evolución del sistema
+DOCS: actualización evolución del sistema
+Informe de migración
+DOCS: actualización informe de migración
+8. Commits grandes de fase
+
+Cuando cierres una fase completa:
+
+FASE: menú principal administrativo
+FASE: navegación global
+FASE: estabilización editor master
+FASE: separación administración y catálogo público
+Los 5 mensajes que más vas a usar
+RECETAS: sincronizar catálogo web
+RECETAS: actualizar datos del catálogo
+RECETAS: publicar nuevas recetas
+SISTEMA: mejoras proceso de despliegue
+DOCS: actualización manual técnico
+
+Con esa convención, el historial Git de recetas_app queda prácticamente autodescriptivo y muy fácil de auditar cuando estemos trabajando también con ALLENDE. 🚀

@@ -1226,7 +1226,12 @@ def contacto():
 
         return redirect("/contacto")
 
-    return render_template("contacto.html")
+    desde_admin = request.args.get("admin") == "1"
+
+    return render_template(
+        "contacto.html",
+        desde_admin=desde_admin
+    )
 
 
 @app.route("/admin/contactos")

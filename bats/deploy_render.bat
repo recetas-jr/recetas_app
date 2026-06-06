@@ -1,6 +1,7 @@
 :: DEPLOY_RENDER.BAT
 
 @echo off
+setlocal EnableDelayedExpansion
 cls
 color 0A
 
@@ -18,7 +19,52 @@ echo ===== ESTADO GIT =====
 git status
 
 echo.
-set /p mensaje=Escriba mensaje del commit:
+echo =====================================
+echo MENSAJES DE COMMIT DISPONIBLES
+echo =====================================
+echo.
+
+set i=0
+
+for /f "usebackq delims=" %%a in ("bats\nomenclador_commits.txt") do (
+    set /a i+=1
+    call echo %%i%%. %%a
+)
+
+echo 0. Escribir mensaje manualmente
+echo 9. Cancelar deploy
+echo.
+
+set /p opcion=Seleccione una opcion:
+
+if "%opcion%"=="9" (
+    echo.
+    echo =====================================
+    echo DEPLOY CANCELADO POR EL USUARIO
+    echo =====================================
+    echo.
+    pause
+    exit /b
+)
+
+if "%opcion%"=="0" (
+    echo.
+    set /p mensaje=Escriba mensaje del commit:
+)
+
+if not "%opcion%"=="0" if not "%opcion%"=="9" (
+
+    set i=0
+
+    for /f "usebackq delims=" %%a in ("bats\nomenclador_commits.txt") do (
+
+        set /a i+=1
+
+        if "!i!"=="%opcion%" (
+            set mensaje=%%a
+        )
+    )
+)
 
 echo.
 echo ===== AGREGANDO ARCHIVOS =====

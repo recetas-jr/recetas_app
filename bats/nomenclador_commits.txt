@@ -1,7 +1,7 @@
 RECETAS: correcciones menores y estabilizacion general
-RECETAS: actualizar documentación técnica
-RECETAS: mejoras de navegación
-RECETAS: mejoras módulo Contactos Web
+RECETAS: actualizar documentacion tecnica
+RECETAS: mejoras de navegacion
+RECETAS: mejoras modulo Contactos Web
 RECETAS: ajustes editor de recetas
-RECETAS: reorganización herramientas BAT
+RECETAS: reorganizacion herramientas BAT
 RECETAS: mejoras proceso Deploy Render

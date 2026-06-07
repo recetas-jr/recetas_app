@@ -24,11 +24,78 @@ NOMENCLADORES_DIR = os.path.join(BASE_DIR, "NOMENCLADORES")
 # FUNCIONES DEL SISTEMA
 # ------------------------------------------------------------
 
+
 def capturar():
-    subprocess.run([os.path.join(BASE_DIR, "capturar_receta.exe")], cwd=BASE_DIR)
+
+    if getattr(sys, 'frozen', False):
+        subprocess.run(
+            [os.path.join(BASE_DIR, "capturar_receta.exe")]
+        )
+
+    else:
+        subprocess.run(
+            [sys.executable, os.path.join(BASE_DIR, "capturar_receta.py")]
+        )
+
 
 def listar():
-    subprocess.run([os.path.join(BASE_DIR, "listar_recetas.exe")], cwd=BASE_DIR)
+
+    if getattr(sys, 'frozen', False):
+        subprocess.run(
+            [os.path.join(BASE_DIR, "listar_recetas.exe")]
+        )
+
+    else:
+        subprocess.run(
+            [sys.executable, os.path.join(BASE_DIR, "listar_recetas.py")]
+        )
+
+
+def ver():
+
+    archivos = sorted(os.listdir(RECETAS_DIR))
+
+    if not archivos:
+        print("\nNo hay recetas para visualizar.\n")
+        return
+
+    print("\nRECETAS DISPONIBLES\n")
+
+    for i, archivo in enumerate(archivos, start=1):
+
+        if "_" in archivo:
+            nombre = archivo.split("_", 1)[1].replace(".txt", "")
+        else:
+            nombre = archivo.replace(".txt", "")
+
+        if nombre == "":
+            nombre = "(sin nombre)"
+
+        print(f"{i} - {nombre}")
+
+    opcion = input("\nNúmero de receta a visualizar (0 para  al Menú): ")
+
+    if opcion == "0":
+        return
+
+    try:
+        indice = int(opcion) - 1
+        archivo = archivos[indice]
+    except:
+        print("Selección inválida.")
+        return
+
+    ruta = os.path.join(RECETAS_DIR, archivo)
+
+    print("\n" + "-"*60)
+
+    with open(ruta, "r", encoding="utf-8") as f:
+        print(f.read())
+
+    print("-"*60)
+
+    input("\nPulsa ENTER para volver...")
+
 
 def modificar():
 
@@ -52,8 +119,9 @@ def modificar():
 
         print(f"{i} - {nombre}")
 
-    opcion = input("\nNúmero de receta a modificar: ")
-
+    opcion = input("\nNúmero de receta a modificar (0 para volver): ")
+    if opcion == "0":
+        return
     try:
         indice = int(opcion) - 1
         archivo = archivos[indice]
@@ -64,6 +132,7 @@ def modificar():
     ruta = os.path.join(RECETAS_DIR, archivo)
     subprocess.run(["notepad.exe", ruta])
     input("\nPulsa ENTER para volver al menú...")
+
 
 def borrar():
 
@@ -87,7 +156,9 @@ def borrar():
 
         print(f"{i} - {nombre}")
 
-    opcion = input("\nNúmero de receta a borrar: ")
+    opcion = input("\nNúmero de receta a borrar (0 para volver): ")
+    if opcion == "0":
+        return
 
     try:
         indice = int(opcion) - 1
@@ -96,8 +167,10 @@ def borrar():
         print("Selección inválida.")
         return
 
-    confirmar = input("¿Seguro que desea borrar esta receta? (S/N): ")
-
+    confirmar = input(
+        "¿Seguro que desea borrar esta receta? (S/N/0 cancelar): ")
+    if confirmar == "0":
+        return
     if confirmar.lower() == "s":
         os.remove(os.path.join(RECETAS_DIR, archivo))
         print("Receta eliminada.")
@@ -106,6 +179,7 @@ def borrar():
 # MENÚ PRINCIPAL
 # ------------------------------------------------------------
 
+
 def menu():
 
     while True:
@@ -113,21 +187,29 @@ def menu():
         print("\nSISTEMA DE CAPTURA DE RECETAS\n")
         print("1 Capturar receta")
         print("2 Listar recetas")
-        print("3 Modificar receta")
-        print("4 Borrar receta")
-        print("5 Salir")
+        print("3 Ver receta")
+        print("4 Modificar receta")
+        print("5 Borrar receta")
+        print("6 Salir")
 
         opcion = input("\nSeleccione una opción: ")
 
         if opcion == "1":
             capturar()
+
         elif opcion == "2":
             listar()
+
         elif opcion == "3":
-            modificar()
+            ver()
+
         elif opcion == "4":
-            borrar()
+            modificar()
+
         elif opcion == "5":
+            borrar()
+
+        elif opcion == "6":
             break
         else:
             print("Opción inválida")
@@ -135,6 +217,7 @@ def menu():
 # ------------------------------------------------------------
 # EJECUCIÓN DEL SISTEMA
 # ------------------------------------------------------------
+
 
 if __name__ == "__main__":
     menu()

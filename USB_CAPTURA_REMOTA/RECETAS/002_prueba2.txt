@@ -1,0 +1,16 @@
+RECETA
+nombre: prueba2
+raciones: 4
+
+INGREDIENTES
+aceite 45 g
+harina 123 g
+
+PREPARACION
+tener todo preparado
+
+ELABORACION
+cocinar todo junto
+
+PRESENTACION
+servir en un plato

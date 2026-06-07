@@ -20,6 +20,8 @@ echo.
 echo 5. Git Push
 echo 6. Deploy Render
 echo.
+echo 7. Nomenclador de commits
+echo.
 echo 0. SALIR
 echo.
 
@@ -31,6 +33,7 @@ if "%opcion%"=="3" call "%~dp0backup_proyecto.bat"
 if "%opcion%"=="4" call "%~dp0backup_recetas.bat"
 if "%opcion%"=="5" call "%~dp0git_push.bat"
 if "%opcion%"=="6" call "%~dp0deploy_render.bat"
+if "%opcion%"=="7" call "%~dp0nomenclador_commits.bat"
 if "%opcion%"=="0" goto fin
 
 goto menu

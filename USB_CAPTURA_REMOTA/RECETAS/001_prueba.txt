@@ -1,0 +1,17 @@
+RECETA
+nombre: prueba
+raciones: 2
+
+INGREDIENTES
+arroz
+100
+g
+
+PREPARACION
+lavar
+
+ELABORACION
+cocinar
+
+PRESENTACION
+servir

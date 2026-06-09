@@ -17,6 +17,56 @@ echo ===== ESTADO GIT =====
 git status
 
 echo.
+for /f %%a in ('git rev-list --count origin/main..HEAD') do set commits_pendientes=%%a
+
+if not "!commits_pendientes!"=="0" (
+
+    echo =====================================
+    echo COMMITS PENDIENTES DE PUSH DETECTADOS
+    echo =====================================
+    echo.
+    echo Hay !commits_pendientes! commits pendientes.
+    echo.
+    echo 1. Realizar Push
+    echo 9. Cancelar
+    echo.
+
+    set /p opcion_push=Seleccione una opcion:
+
+    if "!opcion_push!"=="9" (
+        echo.
+        echo PUSH CANCELADO POR EL USUARIO
+        echo.
+        pause
+        exit /b
+    )
+
+    if "!opcion_push!"=="1" (
+
+        echo.
+        echo ===== PUSH A GITHUB =====
+        git push origin main
+
+        if errorlevel 1 (
+            echo.
+            echo ERROR EN PUSH
+            pause
+            exit /b
+        )
+
+        echo.
+        echo =====================================
+        echo PUSH COMPLETADO CORRECTAMENTE
+        echo =====================================
+        echo.
+        pause
+        exit /b
+    )
+
+    exit /b
+)
+
+echo.
 echo =====================================
 echo MENSAJES DE COMMIT DISPONIBLES
 echo =====================================

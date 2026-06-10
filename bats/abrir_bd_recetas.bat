@@ -2,4 +2,6 @@
 
 @echo off
 
-start "" "C:\Program Files\DB Browser for SQLite\DB Browser for SQLite.exe" "modulo_web\recetas.db"
+set PROYECTO=%~dp0..
+
+start "" "C:\Program Files\DB Browser for SQLite\DB Browser for SQLite.exe" "%PROYECTO%\modulo_web\recetas.db"

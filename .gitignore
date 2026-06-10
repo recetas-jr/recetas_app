@@ -109,3 +109,10 @@ python
 # =========================
 
 backups_proyecto/
+
+# =========================
+# BACKUPS LOCALES
+# =========================
+
+backups_proyecto/
+backups/

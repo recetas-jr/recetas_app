@@ -1,8 +1,11 @@
 :: Archivo: arranca_recetas.bat
 
 @echo off
+setlocal EnableDelayedExpansion
 
 title recetas_app
+
+set PROYECTO=%~dp0..
 
 echo Verificando Flask...
 
@@ -13,7 +16,7 @@ if errorlevel 1 (
     echo Flask no encontrado...
     echo Iniciando Flask en PowerShell...
 
-    start "Flask recetas_app" powershell -NoExit -Command "python -m modulo_web.web_app"
+    start "Flask recetas_app" powershell -NoExit -Command "cd '!PROYECTO!'; python -m modulo_web.web_app"
 
 :espera
     netstat -ano | findstr :5000 >nul

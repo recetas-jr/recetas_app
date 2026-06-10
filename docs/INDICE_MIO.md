@@ -300,3 +300,164 @@ SISTEMA: mejoras proceso de despliegue
 DOCS: actualización manual técnico
 
 Con esa convención, el historial Git de recetas_app queda prácticamente autodescriptivo y muy fácil de auditar cuando estemos trabajando también con ALLENDE. 🚀
+
+BATS:
+
+LEYENDA DE HERRAMIENTAS BAT
+
+PROYECTO: recetas_app
+
+UBICACIÓN
+
+Todos los BAT administrativos del proyecto se encuentran en:
+
+recetas_app\bats
+OBJETIVO
+
+Centralizar las tareas técnicas y administrativas del sistema en un único punto de acceso.
+
+menu_administracion_tecnica.bat
+FUNCIÓN
+
+Centro de Administración Técnica.
+
+RESPONSABILIDADES
+Mostrar el menú principal.
+Invocar las herramientas BAT del sistema.
+Retornar al menú tras finalizar cada operación.
+DEPENDENCIAS
+arranca_recetas.bat
+abrir_bd_recetas.bat
+backup_proyecto.bat
+backup_recetas.bat
+git_push.bat
+deploy_render.bat
+nomenclador_commits.bat
+arranca_recetas.bat
+FUNCIÓN
+
+Arranque del sistema web recetas_app.
+
+RESPONSABILIDADES
+Verificar si Flask ya está ejecutándose.
+Iniciar Flask cuando sea necesario.
+Esperar la disponibilidad del puerto 5000.
+Abrir automáticamente el navegador.
+DEPENDENCIAS
+modulo_web.web_app
+OBSERVACIÓN
+
+El correcto funcionamiento depende del directorio de trabajo utilizado al lanzar Python.
+
+abrir_bd_recetas.bat
+FUNCIÓN
+
+Abrir la base de datos principal del sistema.
+
+RESPONSABILIDADES
+Facilitar acceso rápido a la base SQLite.
+Evitar búsquedas manuales del archivo.
+backup_proyecto.bat
+FUNCIÓN
+
+Generar copia de seguridad completa del proyecto.
+
+RESPONSABILIDADES
+Respaldar código fuente.
+Respaldar documentación.
+Respaldar configuraciones.
+Respaldar estructura de trabajo.
+OBJETIVO
+
+Recuperación rápida ante errores o pérdidas de información.
+
+backup_recetas.bat
+FUNCIÓN
+
+Generar copia de seguridad de recetas.
+
+RESPONSABILIDADES
+Respaldar información culinaria.
+Preservar recetas capturadas.
+Facilitar restauraciones específicas.
+git_push.bat
+FUNCIÓN
+
+Publicación controlada de cambios hacia GitHub.
+
+RESPONSABILIDADES
+Detectar commits pendientes de push.
+Detectar cambios sin confirmar.
+Permitir selección de mensajes desde nomenclador.
+Permitir mensajes manuales.
+Crear commits.
+Ejecutar push.
+Mostrar revisión previa del commit.
+ESTADO
+
+Estabilizado y validado.
+
+deploy_render.bat
+FUNCIÓN
+
+Publicación para despliegue web.
+
+RESPONSABILIDADES
+Gestionar commit.
+Gestionar push.
+Integrarse con el nomenclador de commits.
+Activar actualización de la aplicación en Render.
+ESTADO
+
+Estabilizado y validado.
+
+nomenclador_commits.bat
+FUNCIÓN
+
+Administración del catálogo de mensajes de commit.
+
+RESPONSABILIDADES
+Mostrar mensajes disponibles.
+Agregar nuevos mensajes.
+Eliminar mensajes existentes.
+Gestionar numeración automática.
+DEPENDENCIA
+nomenclador_commits.txt
+nomenclador_commits.txt
+FUNCIÓN
+
+Repositorio centralizado de mensajes reutilizables de commit.
+
+UTILIZADO POR
+git_push.bat
+deploy_render.bat
+nomenclador_commits.bat
+git_push_backup.bat
+FUNCIÓN
+
+Versión histórica de respaldo del proceso Git Push.
+
+ESTADO
+
+Archivo de respaldo.
+
+No es utilizado por el menú principal.
+
+Conservar únicamente como referencia histórica mientras sea necesario.
+
+RELACIÓN ENTRE BATS
+menu_administracion_tecnica.bat
+
+├── arranca_recetas.bat
+├── abrir_bd_recetas.bat
+├── backup_proyecto.bat
+├── backup_recetas.bat
+├── git_push.bat
+├── deploy_render.bat
+└── nomenclador_commits.bat
+ESTADO GENERAL
+Fase BAT finalizada.
+Herramientas administrativas estabilizadas.
+GitHub sincronizado.
+Repositorio limpio.
+Infraestructura técnica lista para continuar el desarrollo funcional de recetas_app.

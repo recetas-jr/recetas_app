@@ -5,3 +5,4 @@ RECETAS: mejoras modulo Contactos Web
 RECETAS: ajustes editor de recetas
 RECETAS: reorganizacion herramientas BAT
 RECETAS: mejoras proceso Deploy Render
+RECETAS: estabilizacion herramientas administrativas BAT

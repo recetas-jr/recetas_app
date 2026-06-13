@@ -43,10 +43,10 @@
             border: 2px solid #5b21b6;
         }
 
-        /* Campo código más estrecho (solo letras 1–2) */
+        /* Campo código UM */
         #codigo {
-            width: 60px;
-            max-width: 60px;
+            width: 80px;
+            max-width: 80px;
             text-transform: uppercase;
         }
 
@@ -131,7 +131,7 @@
                 this.value = this.value
                     .toUpperCase()
                     .replace(/[^A-Z]/g, '')
-                    .slice(0, 2);
+                    .slice(0, 5);
             });
 
             /* Enter en código -> pasa a nombre */
@@ -216,7 +216,7 @@
 
     <form id="form-um" method="post" action="/admin/unidades" autocomplete="off">
         <label>Código:</label>
-        <input type="text" id="codigo" name="codigo" maxlength="2" placeholder="UM" autofocus>
+        <input type="text" id="codigo" name="codigo" maxlength="5" placeholder="UM" autofocus>
 
         <label>Nombre:</label>
         <input type="text" id="nombre" name="nombre" placeholder="nombre de la unidad">

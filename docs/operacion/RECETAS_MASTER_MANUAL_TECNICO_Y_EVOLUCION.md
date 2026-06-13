@@ -1746,3 +1746,142 @@ Documentación
 ✅ Manual Técnico y Evolución actualizado
 ✅ arquitectura documentada
 ✅ saneamiento Git registrado
+
+UM - UNIDADES DE MEDIDA
+SISTEMA: recetas_app
+DOCUMENTO DE DISEÑO FUNCIONAL
+AMPLIACIÓN DE UNIDADES DE MEDIDA (UM)
+Versión 1.0
+1. OBJETIVO
+
+Ampliar el nomenclador de Unidades de Medida para permitir la captura y publicación de recetas gastronómicas nacionales e internacionales.
+
+El diseño debe:
+
+Mantener compatibilidad con el sistema actual.
+No afectar recetas existentes.
+No afectar ingredientes existentes.
+Preparar el terreno para futuras conversiones automáticas.
+2. ARQUITECTURA ACTUAL
+
+Confirmada durante análisis:
+
+UNIDADES
+    ↓
+INGREDIENTES
+    ↓
+RECETAS
+
+Características:
+
+Las recetas NO almacenan UM.
+Los ingredientes almacenan unidad_id.
+Las UM se administran dinámicamente.
+Existe control de integridad para borrado.
+3. CATÁLOGO UM OBJETIVO V1
+Masa
+G      gramos
+KG     kilogramos
+OZ     onza
+LB     libra
+Volumen
+ML     mililitros
+L      litro
+Medidas culinarias
+TSP    cucharadita
+TBSP   cucharada
+CUP    taza
+Conteo
+U      unidad
+DOC    docena
+4. CRITERIO DE CÓDIGOS
+
+Objetivo:
+
+Compatibilidad internacional.
+Lectura rápida.
+Uso frecuente en literatura gastronómica.
+
+Ejemplos:
+
+TSP
+TBSP
+CUP
+
+Por tanto:
+
+La limitación actual de 2 caracteres
+debe considerarse insuficiente.
+5. LONGITUD FUTURA DE CÓDIGO
+
+Propuesta:
+
+Hasta 5 caracteres.
+
+Motivos:
+
+TSP
+TBSP
+CUP
+DOC
+PZA
+
+y margen para futuras ampliaciones.
+
+6. PREPARACIÓN PARA FASE 2
+
+NO implementar todavía.
+
+Solo respetar estas reglas:
+
+Regla 1
+
+Las UM siguen siendo independientes.
+
+UNIDADES
+
+NO almacena equivalencias.
+
+Regla 2
+
+Las equivalencias futuras dependerán del ingrediente.
+
+Ejemplos:
+
+1 CUP harina = 140 g
+
+1 CUP azúcar = 170 g
+
+1 CUP arroz = 200 g
+Regla 3
+
+Nunca asumir:
+
+1 CUP = X gramos
+
+porque depende del ingrediente.
+
+7. ALCANCE DE ESTA FASE
+
+Incluye:
+
+Revisión del catálogo UM.
+Definición de códigos.
+Preparación para crecimiento futuro.
+
+No incluye:
+
+Conversión automática.
+Escalado inteligente.
+Densidades.
+Factores por ingrediente.
+
+Eso pertenece a:
+
+FASE 2
+Conversión de Medidas Culinarias
+CONCLUSIÓN
+
+La arquitectura actual de recetas_app ya soporta la ampliación propuesta.
+
+La principal decisión pendiente es aprobar el catálogo UM v1.0 y la política de códigos antes de iniciar cualquier modificación técnica.

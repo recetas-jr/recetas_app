@@ -461,3 +461,13 @@ Herramientas administrativas estabilizadas.
 GitHub sincronizado.
 Repositorio limpio.
 Infraestructura técnica lista para continuar el desarrollo funcional de recetas_app.
+
+
+BLOQUE PARA LISTAR UN ARCHIVO VISUALIZANDO TODOS LOS NÚMEROS DE LINEAS DEL ARCHIVO:
+
+$linea=1
+Get-Content .\RUTA_DEL_ARCHIVO |
+ForEach-Object {
+    "{0,4}: {1}" -f $linea, $_
+    $linea++
+}

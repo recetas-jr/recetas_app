@@ -208,8 +208,8 @@ def admin_unidades():
 
         if not codigo:
             errores.append("El código es obligatorio.")
-        elif len(codigo) > 2:
-            errores.append("El código no puede tener más de 2 caracteres.")
+        elif len(codigo) > 5:
+            errores.append("El código no puede tener más de 5 caracteres.")
 
         if not nombre:
             errores.append("El nombre es obligatorio.")

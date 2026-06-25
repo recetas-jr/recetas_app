@@ -1,0 +1,216 @@
+<!-- Archivo: modulo_web/templates/admin_equivalencias.html -->
+
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Equivalencias</title>
+
+    <style>
+        body{
+            font-family: Arial, sans-serif;
+            background:#f2f4f8;
+            margin:0;
+            padding:0;
+        }
+
+        .container{
+            max-width:900px;
+            margin:20px auto;
+            background:white;
+            padding:20px;
+            border-radius:6px;
+        }
+
+        h2{
+            margin-top:0;
+        }
+
+        table{
+            width:100%;
+            border-collapse:collapse;
+            margin-top:15px;
+        }
+
+        th,td{
+            border:1px solid #ddd;
+            padding:8px;
+            text-align:left;
+        }
+
+        th{
+            background:#f0f0f0;
+        }
+    </style>
+
+</head>
+
+<body>
+
+{% include "componentes/menu_superior.html" %}
+
+<div class="container">
+
+    <h2>Administración de Equivalencias</h2>
+
+    <p>
+        Ingrediente ID:
+        <strong>{{ ingrediente_id }}</strong>
+    </p>
+
+    <form method="post" action="/admin/ingredientes/{{ ingrediente_id }}/equivalencias">
+
+        <label>
+            UM:
+        </label>
+
+        <select
+            id="unidad_id"
+            name="unidad_id"
+        >
+            {% for u in unidades %}
+                <option value="{{ u.id }}">
+                    {{ u.codigo }} - {{ u.nombre }}
+                </option>
+            {% endfor %}
+        </select>
+
+        &nbsp;&nbsp;
+
+        <label>
+            Factor:
+        </label>
+
+        <input
+            id="factor"
+            type="number"
+            name="factor"
+            step="0.0001"
+            placeholder="factor"
+            required
+        >
+
+        &nbsp;&nbsp;
+
+        <button
+            id="btn_agregar"
+            type="submit"
+        >
+            Agregar
+        </button>
+
+    </form>
+
+    <table>
+
+        <thead>
+            <tr>
+                <th>UM</th>
+                <th>Factor</th>
+            </tr>
+        </thead>
+
+        <tbody>
+            {% if equivalencias %}
+                {% for e in equivalencias %}
+                <tr>
+                    <td>
+                        {{ e.codigo }}
+                        -
+                        {{ e.nombre }}
+                    </td>
+                    <td>
+                        {{ e.factor }}
+                    </td>
+                </tr>
+                {% endfor %}
+            {% else %}
+                <tr>
+                    <td colspan="2">
+                        Aún no existen equivalencias.
+                    </td>
+                </tr>
+            {% endif %}
+        </tbody>
+
+    </table>
+
+</div>
+
+<script>
+
+window.onload = function(){
+
+    const unidad = document.getElementById("unidad_id");
+    const factor = document.getElementById("factor");
+    const btnAgregar = document.getElementById("btn_agregar");
+    const form = unidad.closest("form");
+
+    function esEnter(e){
+        return e.key === "Enter" || e.key === "NumpadEnter";
+    }
+
+    function cancelarFormulario(){
+        factor.value = "";
+        unidad.selectedIndex = 0;
+        unidad.focus();
+    }
+
+    unidad.focus();
+
+    unidad.addEventListener("keydown", function(e){
+        if(esEnter(e)){
+            e.preventDefault();
+            e.stopPropagation();
+            factor.focus();
+        }
+
+        if(e.key === "Escape"){
+            e.preventDefault();
+            e.stopPropagation();
+            cancelarFormulario();
+        }
+    });
+
+    factor.addEventListener("keydown", function(e){
+        if(esEnter(e)){
+            e.preventDefault();
+            e.stopPropagation();
+
+            if(factor.value.trim() === ""){
+                factor.focus();
+                return;
+            }
+
+            btnAgregar.focus();
+        }
+
+        if(e.key === "Escape"){
+            e.preventDefault();
+            e.stopPropagation();
+            cancelarFormulario();
+        }
+    });
+
+    btnAgregar.addEventListener("keydown", function(e){
+        if(esEnter(e)){
+            e.preventDefault();
+            e.stopPropagation();
+            form.requestSubmit();
+        }
+
+        if(e.key === "Escape"){
+            e.preventDefault();
+            e.stopPropagation();
+            cancelarFormulario();
+        }
+    });
+
+};
+
+</script>
+
+</body>
+
+</html>

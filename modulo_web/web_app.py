@@ -2,10 +2,15 @@ from flask import Flask, render_template, request, redirect, flash, abort, sessi
 from markupsafe import Markup
 from datetime import timedelta
 from datetime import datetime
+
+import sqlite3
+
 from modulo_web.persistencia_db import (
     db_cargar_platos,
     db_cargar_unidades,
     db_cargar_ingredientes,
+    db_cargar_equivalencias,
+    db_insertar_equivalencia,
     db_cargar_recetas_maestro_listado,
     db_cargar_tipos_plato,
     db_cargar_receta_detalle,
@@ -18,8 +23,6 @@ from modulo_web.persistencia_db import (
     db_cargar_contacto,
     db_marcar_contacto_atendido
 )
-
-print("🔥🔥🔥 ESTA ES MI APP REAL 🔥🔥🔥")
 
 app = Flask(__name__)
 app.secret_key = "recetas_app_secret_key_2026"
@@ -35,11 +38,6 @@ ADMIN_PASS = "Recetas2026_Admin!"
 @app.route("/")
 def inicio():
     return redirect("/recetas")
-
-
-print("WEB_APP CARGADO DESDE:", __file__)
-
-app.secret_key = "recetas_app_clave_segura_temporal"
 
 
 @app.route("/admin")
@@ -375,6 +373,51 @@ def admin_ingredientes():
     return render_template(
         "admin_ingredientes.html",
         ingredientes=ingredientes,
+        unidades=unidades,
+        errores=errores
+    )
+
+
+@app.route(
+    "/admin/ingredientes/<int:ingrediente_id>/equivalencias",
+    methods=["GET", "POST"]
+)
+def admin_equivalencias(ingrediente_id):
+    errores = []
+    if request.method == "POST":
+
+        unidad_id = request.form.get("unidad_id")
+
+        factor = request.form.get("factor")
+
+        try:
+
+            db_insertar_equivalencia(
+                ingrediente_id,
+                int(unidad_id),
+                float(factor)
+            )
+
+            return redirect(
+                f"/admin/ingredientes/{ingrediente_id}/equivalencias"
+            )
+
+        except sqlite3.IntegrityError:
+
+            errores.append(
+                "La unidad seleccionada ya existe para este ingrediente."
+            )
+
+    equivalencias = db_cargar_equivalencias(
+        ingrediente_id
+    )
+
+    unidades = db_cargar_unidades()
+
+    return render_template(
+        "admin_equivalencias.html",
+        ingrediente_id=ingrediente_id,
+        equivalencias=equivalencias,
         unidades=unidades,
         errores=errores
     )
@@ -948,10 +991,11 @@ def admin_recetas_editar(receta_id):
             return redirect(f"/admin/recetas/editar/{receta_id}")
 
         try:
+
             conn = get_connection()
+
             cur = conn.cursor()
 
-            # ACTUALIZAR CABECERA + TEXTOS
             cur.execute(
                 """
                 UPDATE recetas_maestro
@@ -974,14 +1018,13 @@ def admin_recetas_editar(receta_id):
                 )
             )
 
-            # BORRAR INGREDIENTES ANTERIORES
             cur.execute(
                 "DELETE FROM recetas_ingredientes WHERE receta_id=?",
                 (receta_id,)
             )
 
-            # INSERTAR INGREDIENTES NUEVOS
             for ing_id, cant_f, rol_f in filas_validas:
+
                 cur.execute(
                     """
                     INSERT INTO recetas_ingredientes
@@ -991,17 +1034,47 @@ def admin_recetas_editar(receta_id):
                     (receta_id, ing_id, cant_f, rol_f)
                 )
 
-            conn.commit()
-            conn.close()
+            print("ANTES DEL COMMIT")
 
-            flash("Receta actualizada correctamente.", "recetas")
+            conn.commit()
+
+            flash(
+                "Receta actualizada correctamente.",
+                "recetas"
+            )
 
             return redirect("/admin/recetas/listado")
 
         except Exception as e:
+
             print("ERROR actualizando receta:", e)
-            flash("Error al actualizar la receta.", "error")
-            return redirect(f"/admin/recetas/editar/{receta_id}")
+
+            try:
+
+                conn.rollback()
+
+            except Exception as e2:
+
+                print("ERROR EN ROLLBACK:", e2)
+
+            flash(
+                "Error al actualizar la receta.",
+                "error"
+            )
+
+            return redirect(
+                f"/admin/recetas/editar/{receta_id}"
+            )
+
+        finally:
+
+            try:
+
+                conn.close()
+
+            except Exception as e:
+
+                print("ERROR CERRANDO CONEXION:", e)
 
     # ==================================================
     # CARGAR RECETA PARA EDICIÓN
@@ -1290,9 +1363,4 @@ def admin_contacto_atender(contacto_id):
 
 if __name__ == "__main__":
 
-    print("\n=== RUTAS REGISTRADAS ===")
-    for rule in app.url_map.iter_rules():
-        print(rule)
-    print("=========================\n")
-
-    app.run(host="0.0.0.0", port=5000, debug=True)
+    app.run(host="0.0.0.0", port=5000, debug=False)

@@ -272,20 +272,43 @@
             <tr>
                 <th>Ingrediente</th>
                 <th>Unidad</th>
+                <th>Equivalencias</th>
                 <th>Acción</th>
             </tr>
         </thead>
         <tbody>
         {% for i in ingredientes %}
             <tr>
-                <td style="text-transform: lowercase;">{{ i.nombre }}</td>
-                <td style="text-transform: lowercase;">{{ i.unidad_nombre }}</td>
-                <td>
-                    <form method="post" action="/admin/ingredientes/borrar/{{ i.id }}" style="display:inline;"
-                          onsubmit="return confirmarBorrado('{{ i.nombre }}');">
-                        <button type="submit" class="btn-borrar">Borrar</button>
-                    </form>
+
+                <td style="text-transform: lowercase;">
+                    {{ i.nombre }}
                 </td>
+
+                <td style="text-transform: lowercase;">
+                    {{ i.unidad_nombre }}
+                </td>
+
+                <td>
+                    <a href="/admin/ingredientes/{{ i.id }}/equivalencias">
+                        Equivalencias
+                    </a>
+                </td>
+
+                <td>
+
+                    <form method="post"
+                          action="/admin/ingredientes/borrar/{{ i.id }}"
+                          style="display:inline;"
+                          onsubmit="return confirmarBorrado('{{ i.nombre }}');">
+
+                        <button type="submit" class="btn-borrar">
+                            Borrar
+                        </button>
+
+                    </form>
+
+                </td>
+
             </tr>
         {% endfor %}
         </tbody>

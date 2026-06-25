@@ -10,9 +10,18 @@ print("DEBUG DB_PATH en runtime:", DB_PATH)
 
 
 def get_connection():
-    conn = sqlite3.connect(DB_PATH)
+
+    conn = sqlite3.connect(
+        DB_PATH,
+        timeout=30
+    )
+
     conn.row_factory = sqlite3.Row
-    conn.execute("PRAGMA foreign_keys = ON;")
+
+    conn.execute(
+        "PRAGMA foreign_keys = ON;"
+    )
+
     return conn
 
 
@@ -137,15 +146,20 @@ def init_db():
 # ==================================================
 
 def db_crear_receta(plato_id, raciones_base, textos, ingredientes):
+
     conn = get_connection()
+
     try:
+
         cur = conn.cursor()
+
         conn.execute("BEGIN")
 
         cur.execute(
             "INSERT INTO recetas_maestro (plato_id, raciones_base) VALUES (?, ?)",
             (int(plato_id), int(raciones_base))
         )
+
         receta_id = cur.lastrowid
 
         cur.execute(
@@ -163,6 +177,7 @@ def db_crear_receta(plato_id, raciones_base, textos, ingredientes):
         )
 
         for it in ingredientes:
+
             cur.execute(
                 """
                 INSERT INTO recetas_ingredientes (receta_id, ingrediente_id, cantidad, rol)
@@ -177,11 +192,17 @@ def db_crear_receta(plato_id, raciones_base, textos, ingredientes):
             )
 
         conn.commit()
+
         return receta_id
+
     except Exception:
+
         conn.rollback()
+
         raise
+
     finally:
+
         conn.close()
 
 
@@ -190,7 +211,9 @@ def db_crear_receta(plato_id, raciones_base, textos, ingredientes):
 # ==================================================
 
 def db_cargar_tipos_plato():
+
     conn = get_connection()
+
     cur = conn.cursor()
 
     cur.execute("""
@@ -198,14 +221,18 @@ def db_cargar_tipos_plato():
         FROM tipos_plato
         ORDER BY nombre
     """)
+
     filas = cur.fetchall()
+
     conn.close()
 
     return [{"id": f["id"], "nombre": f["nombre"]} for f in filas]
 
 
 def db_cargar_platos():
+
     conn = get_connection()
+
     cur = conn.cursor()
 
     cur.execute("""
@@ -223,17 +250,22 @@ def db_cargar_platos():
     """)
 
     filas = cur.fetchall()
+
     conn.close()
 
     resultado = []
+
     for f in filas:
+
         resultado.append({
+
             "id": f["id"],
             "nombre": f["nombre"],
             "tipo_nombre": f["tipo_plato"] or "",
             "activo": f["activo"],
             "peso_racion": f["peso_racion"] if f["peso_racion"] is not None else 0.0,
             "foto": f["foto"]
+
         })
 
     return resultado
@@ -244,14 +276,18 @@ def db_cargar_unidades():
     cur = conn.cursor()
 
     cur.execute("SELECT id, codigo, nombre FROM unidades ORDER BY nombre")
+
     filas = cur.fetchall()
+
     conn.close()
 
     return [{"id": f["id"], "codigo": f["codigo"], "nombre": f["nombre"]} for f in filas]
 
 
 def db_cargar_ingredientes():
+
     conn = get_connection()
+
     cur = conn.cursor()
 
     cur.execute("""
@@ -260,7 +296,9 @@ def db_cargar_ingredientes():
         WHERE activo = 1
         ORDER BY nombre
     """)
+
     filas = cur.fetchall()
+
     conn.close()
 
     return [{"id": f["id"], "nombre": f["nombre"], "unidad_id": f["unidad_id"]} for f in filas]
@@ -272,7 +310,9 @@ def db_cargar_recetas_maestro_listado():
     - cantidad_ingredientes
     - tiene_decoracion = 1 SOLO si existe algún ingrediente con rol > 0
     """
+
     conn = get_connection()
+
     cur = conn.cursor()
 
     cur.execute("""
@@ -289,26 +329,52 @@ def db_cargar_recetas_maestro_listado():
                     ELSE 0
                 END
             ) AS tiene_decoracion
+
         FROM recetas_maestro r
-        JOIN platos p ON p.id = r.plato_id
-        LEFT JOIN recetas_ingredientes ri ON ri.receta_id = r.id
-        GROUP BY r.id, r.plato_id, p.nombre, r.raciones_base
+
+        JOIN platos p
+            ON p.id = r.plato_id
+
+        LEFT JOIN recetas_ingredientes ri
+            ON ri.receta_id = r.id
+
+        GROUP BY
+            r.id,
+            r.plato_id,
+            p.nombre,
+            r.raciones_base
+
         ORDER BY p.nombre
+
     """)
 
     filas = cur.fetchall()
+
     conn.close()
 
     resultado = []
+
     for f in filas:
+
         resultado.append({
+
             "id": f["id"],
+
             "plato_id": f["plato_id"],
+
             "plato_nombre": f["plato_nombre"],
+
             "raciones_base": f["raciones_base"],
+
             "visible_web": f["visible_web"],
+
             "cantidad_ingredientes": f["cantidad_ingredientes"],
-            "tiene_decoracion": f["tiene_decoracion"] if f["tiene_decoracion"] is not None else 0
+
+            "tiene_decoracion":
+                f["tiene_decoracion"]
+                if f["tiene_decoracion"] is not None
+                else 0
+
         })
 
     return resultado
@@ -317,24 +383,39 @@ def db_cargar_recetas_maestro_listado():
 def db_cargar_recetas_publicadas():
 
     conn = get_connection()
+
     cur = conn.cursor()
 
     cur.execute("""
+
         SELECT
+
             r.id,
+
             r.plato_id,
+
             p.nombre AS plato_nombre,
+
             r.raciones_base,
+
             COUNT(ri.id) AS cantidad_ingredientes
+
         FROM recetas_maestro r
+
         JOIN platos p ON p.id = r.plato_id
+
         LEFT JOIN recetas_ingredientes ri ON ri.receta_id = r.id
+
         WHERE r.visible_web = 1
+
         GROUP BY r.id, r.plato_id, p.nombre, r.raciones_base
+
         ORDER BY p.nombre
+
     """)
 
     filas = cur.fetchall()
+
     conn.close()
 
     resultado = []
@@ -342,86 +423,146 @@ def db_cargar_recetas_publicadas():
     for f in filas:
 
         resultado.append({
+
             "id": f["id"],
+
             "plato_id": f["plato_id"],
+
             "plato_nombre": f["plato_nombre"],
+
             "raciones_base": f["raciones_base"],
+
             "cantidad_ingredientes": f["cantidad_ingredientes"]
+
         })
 
     return resultado
 
 
 def db_cargar_receta_detalle(receta_id):
+
     conn = get_connection()
+
     cur = conn.cursor()
 
     cur.execute("""
+
         SELECT
+
             r.id,
+
             r.plato_id,
+
             r.raciones_base,
+
             r.preparacion,
+
             r.elaboracion,
+
             r.presentacion,
+
             r.nutricion,
+
             p.nombre AS plato_nombre,
+
             p.foto AS plato_foto
+
         FROM recetas_maestro r
+
         JOIN platos p ON p.id = r.plato_id
+
         WHERE r.id = ?
+
     """, (receta_id,))
 
     fila = cur.fetchone()
+
     if not fila:
+
         conn.close()
+
         return None
 
     receta = {
+
         "id": fila["id"],
+
         "plato_id": fila["plato_id"],
+
         "plato_nombre": fila["plato_nombre"],
+
         "plato_foto": fila["plato_foto"],
+
         "raciones_base": fila["raciones_base"],
 
         "preparacion": fila["preparacion"] or "",
+
         "elaboracion": fila["elaboracion"] or "",
+
         "presentacion": fila["presentacion"] or "",
+
         "nutricion": fila["nutricion"] or "",
 
         "textos": {
+
             "preparacion": fila["preparacion"] or "",
+
             "elaboracion": fila["elaboracion"] or "",
+
             "presentacion": fila["presentacion"] or "",
+
             "nutricion": fila["nutricion"] or ""
+
         },
+
         "ingredientes": []
+
     }
 
     cur.execute("""
+
         SELECT
+
             ri.ingrediente_id,
+
             i.nombre AS ingrediente_nombre,
+
             ri.cantidad,
+
             ri.rol,
+
             u.nombre AS unidad_nombre
+
         FROM recetas_ingredientes ri
+
         JOIN ingredientes i ON i.id = ri.ingrediente_id
+
         JOIN unidades u ON u.id = i.unidad_id
+
         WHERE ri.receta_id = ?
+
         ORDER BY i.nombre
+
     """, (receta_id,))
 
     filas_ing = cur.fetchall()
+
     conn.close()
 
     for f in filas_ing:
+
         receta["ingredientes"].append({
+
             "ingrediente_id": f["ingrediente_id"],
+
             "nombre": f["ingrediente_nombre"],
+
             "cantidad": f["cantidad"],
+
             "rol": f["rol"],
+
             "unidad_nombre": f["unidad_nombre"]
+
         })
 
     return receta
@@ -430,6 +571,7 @@ def db_cargar_receta_detalle(receta_id):
 def db_insertar_contacto(fecha, nombre, correo, asunto, mensaje):
 
     conn = get_connection()
+
     cur = conn.cursor()
 
     cur.execute("""
@@ -450,7 +592,9 @@ def db_insertar_contacto(fecha, nombre, correo, asunto, mensaje):
     ))
 
     conn.commit()
+
     conn.close()
+
 
 # ================================
 #
@@ -462,6 +606,7 @@ def db_insertar_contacto(fecha, nombre, correo, asunto, mensaje):
 def db_cargar_contactos():
 
     conn = get_connection()
+
     cur = conn.cursor()
 
     cur.execute("""
@@ -482,6 +627,7 @@ def db_cargar_contactos():
 
     return filas
 
+
 # ================================
 #
 #    CARGAR CONTACTO ESPECIFICO
@@ -492,6 +638,7 @@ def db_cargar_contactos():
 def db_cargar_contacto(contacto_id):
 
     conn = get_connection()
+
     cur = conn.cursor()
 
     cur.execute("""
@@ -517,6 +664,7 @@ def db_cargar_contacto(contacto_id):
 def db_listar_contactos():
 
     conn = get_connection()
+
     cur = conn.cursor()
 
     cur.execute("""
@@ -542,6 +690,7 @@ def db_listar_contactos():
 def db_marcar_contacto_atendido(contacto_id):
 
     conn = get_connection()
+
     cur = conn.cursor()
 
     cur.execute("""
@@ -551,7 +700,137 @@ def db_marcar_contacto_atendido(contacto_id):
     """, (contacto_id,))
 
     conn.commit()
+
     conn.close()
+
+
+def db_cargar_equivalencias(ingrediente_id):
+
+    print("[RTN-001] Entrando db_cargar_equivalencias")      # RTN-001
+
+    print("[RTN-002] ingrediente_id =", ingrediente_id)     # RTN-002
+
+    conn = get_connection()
+
+    print("[RTN-003] Conexion abierta")                     # RTN-003
+
+    cur = conn.cursor()
+
+    print("[RTN-004] Cursor creado")                        # RTN-004
+
+    print("[RTN-005] Ejecutando SELECT")                    # RTN-005
+
+    cur.execute("""
+
+        SELECT
+            e.id,
+            e.factor,
+            u.id as unidad_id,
+            u.codigo,
+            u.nombre
+
+        FROM ingredientes_equivalencias e
+
+        JOIN unidades u
+            ON u.id = e.unidad_id
+
+        WHERE e.ingrediente_id = ?
+
+        ORDER BY u.nombre
+
+    """, (ingrediente_id,))
+
+    print("[RTN-006] SELECT terminado")                     # RTN-006
+
+    filas = cur.fetchall()
+
+    print("[RTN-007] fetchall terminado")                   # RTN-007
+
+    print("[RTN-008] cantidad filas =", len(filas))         # RTN-008
+
+    conn.close()
+
+    print("[RTN-009] Conexion cerrada")                     # RTN-009
+
+    return filas
+
+
+def db_insertar_equivalencia(
+    ingrediente_id,
+    unidad_id,
+    factor
+):
+
+    conn = get_connection()
+
+    print("\n==========")
+
+    print("ABRIENDO CONEXION")
+
+    print("ingrediente =", ingrediente_id)
+
+    print("unidad =", unidad_id)
+
+    print("factor =", factor)
+
+    print("[RTN-010] Conexion abierta")                     # RTN-010
+
+    try:
+
+        cur = conn.cursor()
+
+        print("[RTN-011] Cursor creado")                    # RTN-011
+
+        print("ANTES DEL INSERT")
+
+        print("[RTN-012] Ejecutando INSERT")                # RTN-012
+
+        cur.execute(
+            """
+            INSERT INTO ingredientes_equivalencias
+            (
+                ingrediente_id,
+                unidad_id,
+                factor
+            )
+            VALUES (?, ?, ?)
+            """,
+            (
+                ingrediente_id,
+                unidad_id,
+                factor
+            )
+        )
+
+        print("INSERT EJECUTADO")
+
+        print("[RTN-013] INSERT terminado")                 # RTN-013
+
+        print("[RTN-014] Ejecutando COMMIT")                # RTN-014
+
+        conn.commit()
+
+        print("[RTN-015] COMMIT terminado")                 # RTN-015
+
+    except:
+
+        print("[RTN-016] ENTRO AL EXCEPT")                  # RTN-016
+
+        print("[RTN-017] Ejecutando ROLLBACK")              # RTN-017
+
+        conn.rollback()
+
+        print("[RTN-018] ROLLBACK terminado")               # RTN-018
+
+        raise
+
+    finally:
+
+        print("[RTN-019] Entrando al FINALLY")              # RTN-019
+
+        conn.close()
+
+        print("[RTN-020] Conexion cerrada")                 # RTN-020
 
 
 if __name__ == "__main__":

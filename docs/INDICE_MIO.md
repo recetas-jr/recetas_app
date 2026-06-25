@@ -471,3 +471,19 @@ ForEach-Object {
     "{0,4}: {1}" -f $linea, $_
     $linea++
 }
+
+Ó
+
+py .\modulo_web\herramientas_forense\listar_archivo.py ruta\archivo
+
+EJEMPLO:
+
+py .\modulo_web\herramientas_forense\listar_archivo.py modulo_web\templates\admin_equivalencias.html
+
+PARA RESTAURAR ARCHIVOS :
+
+type archivo_backup.py > archivo_original.py <--- REATAURA
+
+UNA FORMA DE GUARDAR UN ARCHIVO CON COPY:
+C:\Users\jrmon\Documents\recetas_app>copy /Y "bats\arranca_recetas.bat" "bats\arranca_recetas_backup.bat"
+

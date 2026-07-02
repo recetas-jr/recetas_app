@@ -11,6 +11,7 @@ from modulo_web.persistencia_db import (
     db_cargar_ingredientes,
     db_cargar_equivalencias,
     db_insertar_equivalencia,
+    db_borrar_equivalencia,
     db_cargar_recetas_maestro_listado,
     db_cargar_tipos_plato,
     db_cargar_receta_detalle,
@@ -384,6 +385,9 @@ def admin_ingredientes():
 )
 def admin_equivalencias(ingrediente_id):
     errores = []
+
+    unidades = db_cargar_unidades()
+
     if request.method == "POST":
 
         unidad_id = request.form.get("unidad_id")
@@ -398,28 +402,103 @@ def admin_equivalencias(ingrediente_id):
                 float(factor)
             )
 
+            unidad_txt = ""
+
+            for u in unidades:
+                if u["id"] == int(unidad_id):
+                    unidad_txt = f'{u["codigo"]} - {u["nombre"]}'
+                    break
+
+            flash(
+                f"Equivalencia '<span class='item'>{unidad_txt}</span>' creada correctamente.",
+                "ok"
+            )
+
             return redirect(
                 f"/admin/ingredientes/{ingrediente_id}/equivalencias"
             )
 
         except sqlite3.IntegrityError:
 
+            unidad_txt = ""
+
+            for u in unidades:
+                if u["id"] == int(unidad_id):
+                    unidad_txt = f'{u["codigo"]} - {u["nombre"]}'
+                    break
+
             errores.append(
-                "La unidad seleccionada ya existe para este ingrediente."
+                f"⚠️ "
+                f"<span style='color:#cc0000; font-weight:bold;'>{unidad_txt}</span> "
+                f"<span style='color:#0b5d1e; font-weight:bold;'>ya existe en</span> "
+                f"<span style='color:#cc0000; font-weight:bold;'>EQUIVALENCIAS DE INGREDIENTES</span>"
             )
+
+    ingredientes = db_cargar_ingredientes()
+
+    ingrediente_nombre = ""
+
+    for ing in ingredientes:
+        if ing["id"] == ingrediente_id:
+            ingrediente_nombre = ing["nombre"]
+            break
 
     equivalencias = db_cargar_equivalencias(
         ingrediente_id
     )
 
-    unidades = db_cargar_unidades()
-
     return render_template(
         "admin_equivalencias.html",
         ingrediente_id=ingrediente_id,
+        ingrediente_nombre=ingrediente_nombre,
         equivalencias=equivalencias,
         unidades=unidades,
-        errores=errores
+        errores=errores,
+        menu_url="/admin/ingredientes",
+        menu_texto="← Nomenclador de Ingredientes"
+    )
+
+
+@app.route(
+    "/admin/ingredientes/<int:ingrediente_id>/equivalencias/borrar/<int:equivalencia_id>",
+    methods=["POST"]
+)
+def borrar_equivalencia(ingrediente_id, equivalencia_id):
+    try:
+
+        conn = get_connection()
+        cur = conn.cursor()
+
+        cur.execute(
+            """
+            SELECT u.codigo, u.nombre
+            FROM ingredientes_equivalencias e
+            JOIN unidades u
+                ON u.id = e.unidad_id
+            WHERE e.id = ?
+            """,
+            (equivalencia_id,)
+        )
+
+        fila = cur.fetchone()
+
+        codigo = fila["codigo"] if fila else ""
+        nombre = fila["nombre"] if fila else ""
+
+        conn.close()
+
+        db_borrar_equivalencia(equivalencia_id)
+
+        flash(
+            f"Equivalencia '<span class='item'>{codigo} - {nombre}</span>' borrada correctamente.",
+            "ok"
+        )
+
+    except Exception as e:
+        print("ERROR borrando equivalencia:", e)
+
+    return redirect(
+        f"/admin/ingredientes/{ingrediente_id}/equivalencias"
     )
 
 
@@ -1033,8 +1112,6 @@ def admin_recetas_editar(receta_id):
                     """,
                     (receta_id, ing_id, cant_f, rol_f)
                 )
-
-            print("ANTES DEL COMMIT")
 
             conn.commit()
 

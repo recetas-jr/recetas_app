@@ -6,8 +6,6 @@ from pathlib import Path
 BASE_DIR = Path(__file__).resolve().parent
 DB_PATH = BASE_DIR / "recetas.db"
 
-print("DEBUG DB_PATH en runtime:", DB_PATH)
-
 
 def get_connection():
 
@@ -706,20 +704,8 @@ def db_marcar_contacto_atendido(contacto_id):
 
 def db_cargar_equivalencias(ingrediente_id):
 
-    print("[RTN-001] Entrando db_cargar_equivalencias")      # RTN-001
-
-    print("[RTN-002] ingrediente_id =", ingrediente_id)     # RTN-002
-
     conn = get_connection()
-
-    print("[RTN-003] Conexion abierta")                     # RTN-003
-
     cur = conn.cursor()
-
-    print("[RTN-004] Cursor creado")                        # RTN-004
-
-    print("[RTN-005] Ejecutando SELECT")                    # RTN-005
-
     cur.execute("""
 
         SELECT
@@ -740,17 +726,9 @@ def db_cargar_equivalencias(ingrediente_id):
 
     """, (ingrediente_id,))
 
-    print("[RTN-006] SELECT terminado")                     # RTN-006
-
     filas = cur.fetchall()
 
-    print("[RTN-007] fetchall terminado")                   # RTN-007
-
-    print("[RTN-008] cantidad filas =", len(filas))         # RTN-008
-
     conn.close()
-
-    print("[RTN-009] Conexion cerrada")                     # RTN-009
 
     return filas
 
@@ -763,27 +741,9 @@ def db_insertar_equivalencia(
 
     conn = get_connection()
 
-    print("\n==========")
-
-    print("ABRIENDO CONEXION")
-
-    print("ingrediente =", ingrediente_id)
-
-    print("unidad =", unidad_id)
-
-    print("factor =", factor)
-
-    print("[RTN-010] Conexion abierta")                     # RTN-010
-
     try:
 
         cur = conn.cursor()
-
-        print("[RTN-011] Cursor creado")                    # RTN-011
-
-        print("ANTES DEL INSERT")
-
-        print("[RTN-012] Ejecutando INSERT")                # RTN-012
 
         cur.execute(
             """
@@ -802,35 +762,42 @@ def db_insertar_equivalencia(
             )
         )
 
-        print("INSERT EJECUTADO")
+    except Exception as e:
 
-        print("[RTN-013] INSERT terminado")                 # RTN-013
-
-        print("[RTN-014] Ejecutando COMMIT")                # RTN-014
-
-        conn.commit()
-
-        print("[RTN-015] COMMIT terminado")                 # RTN-015
-
-    except:
-
-        print("[RTN-016] ENTRO AL EXCEPT")                  # RTN-016
-
-        print("[RTN-017] Ejecutando ROLLBACK")              # RTN-017
+        print("[RTN-016A] ERROR REAL EN INSERTAR EQUIVALENCIA:", repr(e))
 
         conn.rollback()
-
-        print("[RTN-018] ROLLBACK terminado")               # RTN-018
 
         raise
 
     finally:
 
-        print("[RTN-019] Entrando al FINALLY")              # RTN-019
-
         conn.close()
 
-        print("[RTN-020] Conexion cerrada")                 # RTN-020
+
+def db_borrar_equivalencia(equivalencia_id):
+
+    conn = get_connection()
+
+    try:
+        cur = conn.cursor()
+
+        cur.execute(
+            """
+            DELETE FROM ingredientes_equivalencias
+            WHERE id = ?
+            """,
+            (equivalencia_id,)
+        )
+
+        conn.commit()
+
+    except:
+        conn.rollback()
+        raise
+
+    finally:
+        conn.close()
 
 
 if __name__ == "__main__":

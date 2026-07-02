@@ -27,7 +27,8 @@ echo.
 
 set /p opcion=Seleccione opcion: 
 
-if "%opcion%"=="1" call "%~dp0arranca_recetas.bat"
+start "" "%~dp0arranca_recetas.bat"
+goto fin
 if "%opcion%"=="2" call "%~dp0abrir_bd_recetas.bat"
 if "%opcion%"=="3" call "%~dp0backup_proyecto.bat"
 if "%opcion%"=="4" call "%~dp0backup_recetas.bat"
@@ -39,4 +40,4 @@ if "%opcion%"=="0" goto fin
 goto menu
 
 :fin
-exit /b
+exit

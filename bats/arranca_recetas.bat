@@ -51,6 +51,15 @@ echo.
 echo Cerrando proceso PID !PID_FLASK!...
 taskkill /PID !PID_FLASK! /F
 
+echo.
+echo ===== PROCESOS PYTHON ACTIVOS =====
+tasklist | findstr /I python
+
+echo.
+wmic process where "name='python.exe'" get ProcessId,ParentProcessId,CommandLine
+
+pause
+
 echo Esperando liberacion del puerto 5000...
 
 :espera_liberacion
@@ -86,6 +95,19 @@ if not defined PID_FLASK (
 )
 
 echo Flask detectado en puerto 5000. PID: !PID_FLASK!
+
+echo.
+echo Verificando que Flask responda...
+
+:espera_respuesta
+
+curl -s http://127.0.0.1:5000/login >nul 2>&1
+
+if errorlevel 1 (
+    timeout /t 1 >nul
+    goto espera_respuesta
+)
+
 goto abrir_navegador
 
 

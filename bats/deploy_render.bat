@@ -24,12 +24,12 @@ for /f %%a in ('git rev-list --count origin/main..HEAD') do set commits_pendient
 if not "!commits_pendientes!"=="0" (
 
     echo =====================================
-    echo COMMITS PENDIENTES DE DEPLOY DETECTADOS
+    echo COMMITS PENDIENTES DE PUSH DETECTADOS
     echo =====================================
     echo.
     echo Hay !commits_pendientes! commits pendientes.
     echo.
-    echo 1. Realizar Deploy
+    echo 1. Publicar cambios
     echo 9. Cancelar
     echo.
 
@@ -44,6 +44,35 @@ if not "!commits_pendientes!"=="0" (
     )
 
     if "!opcion_deploy!"=="1" (
+
+        echo.
+        echo =====================================
+        echo ULTIMO COMMIT A PUBLICAR
+        echo =====================================
+        echo.
+
+        git show --stat --oneline HEAD
+
+        echo.
+        echo =====================================
+        echo REVISE LOS CAMBIOS ANTES DE PUBLICAR
+        echo =====================================
+        echo.
+        echo 1. Publicar cambios
+        echo 9. Cancelar
+        echo.
+
+        set /p confirmar_push=Seleccione una opcion:
+
+        if "!confirmar_push!"=="9" (
+            echo.
+            echo PUSH CANCELADO POR EL USUARIO
+            echo.
+            pause
+            exit /b
+        )
+
+        echo.
 
         echo.
         echo ===== PUSH A GITHUB =====
@@ -77,123 +106,14 @@ if not "!commits_pendientes!"=="0" (
 
 echo.
 echo =====================================
-echo MENSAJES DE COMMIT DISPONIBLES
+echo NO HAY COMMITS PENDIENTES
 echo =====================================
 echo.
-
-set i=0
-
-for /f "usebackq delims=" %%a in ("bats\nomenclador_commits.txt") do (
-    set /a i+=1
-    call echo %%i%%. %%a
-)
-
-echo 0. Escribir mensaje manualmente
-echo 9. Cancelar deploy
+echo El ultimo Push ya fue realizado.
 echo.
-
-set /p opcion=Seleccione una opcion:
-
-if "%opcion%"=="9" (
-    echo.
-    echo =====================================
-    echo DEPLOY CANCELADO POR EL USUARIO
-    echo =====================================
-    echo.
-    pause
-    exit /b
-)
-
-if "%opcion%"=="0" (
-    echo.
-    set /p mensaje=Escriba mensaje del commit:
-)
-
-if not "%opcion%"=="0" if not "%opcion%"=="9" (
-
-    set i=0
-
-    for /f "usebackq delims=" %%a in ("bats\nomenclador_commits.txt") do (
-
-        set /a i+=1
-
-        if "!i!"=="%opcion%" (
-            set mensaje=%%a
-        )
-    )
-)
-
+echo Si Render tiene Auto Deploy activado,
+echo la publicacion ya se encuentra en proceso
+echo o ya fue completada.
 echo.
-echo ===== AGREGANDO ARCHIVOS =====
-git add modulo_web
-git add docs
-git add bats
-
-REM ===== VALIDAR CAMBIOS =====
-
-git diff --cached --quiet
-
-if %errorlevel%==0 (
-    echo.
-    echo =====================================
-    echo   NO HAY CAMBIOS PARA PUBLICAR
-    echo =====================================
-    echo.
-    pause
-    exit
-)
-
-echo.
-echo ===== COMMIT =====
-git commit -m "%mensaje%"
-
-if errorlevel 1 (
-    echo.
-    echo ERROR EN COMMIT
-    pause
-    exit
-)
-
-echo.
-echo =====================================
-echo ULTIMO COMMIT REALIZADO
-echo =====================================
-git show --stat --oneline HEAD
-
-echo.
-echo =====================================
-echo REVISE EL COMMIT ANTES DEL PUSH
-echo.
-echo Verifique:
-echo - Que los archivos esperados esten incluidos
-echo - Que no entren backups por error
-echo - Que recetas.db este incluida cuando corresponda
-echo.
-echo Pulse una tecla para continuar con el PUSH...
-echo =====================================
 pause
 
-echo.
-echo ===== PUSH A GITHUB =====
-git push origin main
-
-if errorlevel 1 (
-    echo.
-    echo ERROR EN PUSH
-    pause
-    exit
-)
-
-echo.
-echo =====================================
-echo CAMBIOS ENVIADOS A GITHUB
-echo PUSH COMPLETADO CORRECTAMENTE
-echo.
-echo RENDER ACTUALIZARA LA WEB
-echo EN SEGUNDO PLANO
-echo.
-echo YA PUEDE CERRAR ESTA VENTANA
-echo =====================================
-echo.
-
-pause

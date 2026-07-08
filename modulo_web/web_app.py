@@ -25,6 +25,10 @@ from modulo_web.persistencia_db import (
     db_marcar_contacto_atendido
 )
 
+from modulo_web.motor_conversion import (
+    obtener_equivalencias
+)
+
 app = Flask(__name__)
 app.secret_key = "recetas_app_secret_key_2026"
 app.permanent_session_lifetime = timedelta(hours=4)
@@ -443,7 +447,7 @@ def admin_equivalencias(ingrediente_id):
             ingrediente_nombre = ing["nombre"]
             break
 
-    equivalencias = db_cargar_equivalencias(
+    equivalencias = obtener_equivalencias(
         ingrediente_id
     )
 

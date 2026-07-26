@@ -1,4 +1,13 @@
-from flask import Flask, render_template, request, redirect, flash, abort, session
+from flask import (
+    Flask,
+    render_template,
+    request,
+    redirect,
+    flash,
+    abort,
+    session,
+    jsonify
+)
 from markupsafe import Markup
 from datetime import timedelta
 from datetime import datetime
@@ -8,8 +17,7 @@ import sqlite3
 from modulo_web.persistencia_db import (
     db_cargar_platos,
     db_cargar_unidades,
-    db_cargar_ingredientes,
-    db_cargar_equivalencias,
+
     db_insertar_equivalencia,
     db_borrar_equivalencia,
     db_cargar_recetas_maestro_listado,
@@ -22,11 +30,19 @@ from modulo_web.persistencia_db import (
     db_listar_contactos,
     db_cargar_contactos,
     db_cargar_contacto,
-    db_marcar_contacto_atendido
+    db_marcar_contacto_atendido,
+    db_cargar_unidades_disponibles_por_ingrediente,
+    db_cargar_ingredientes,
+    db_cargar_ingrediente_por_id,
+    db_cargar_expresiones_culinarias
 )
 
 from modulo_web.motor_conversion import (
-    obtener_equivalencias
+    obtener_equivalencias,
+    representar,
+    normalizar,
+    puede_convertir,
+    IngredienteSinEquivalencias
 )
 
 app = Flask(__name__)
@@ -314,10 +330,153 @@ def borrar_unidad(unidad_id):
 
     return redirect("/admin/unidades")
 
+# ==================================================
+# ADMIN EXPRESIONES CULINARIAS
+# ==================================================
+
+
+@app.route("/admin/expresiones_culinarias", methods=["GET", "POST"])
+def admin_expresiones_culinarias():
+
+    errores = []
+
+    if request.method == "POST":
+
+        codigo = (request.form.get("codigo") or "").strip()
+
+        nombre = (request.form.get("nombre") or "").strip()
+
+        if not codigo:
+            errores.append("El código es obligatorio.")
+
+        if not nombre:
+            errores.append("El nombre es obligatorio.")
+
+        if not errores:
+            conn = get_connection()
+            cur = conn.cursor()
+
+            cur.execute(
+                "SELECT id FROM expresiones_culinarias WHERE LOWER(codigo) = LOWER(?)",
+                (codigo,)
+            )
+
+            existe = cur.fetchone()
+            if existe:
+
+                conn.close()
+
+                errores.append(
+                    f"⚠️ "
+                    f"<span style='color:#cc0000; font-weight:bold;'>CÓDIGO {codigo}</span> "
+                    f"<span style='color:#0b5d1e; font-weight:bold;'>ya existe en</span> "
+                    f"<span style='color:#cc0000; font-weight:bold;'>EXPRESIONES CULINARIAS</span>"
+                )
+
+            else:
+
+                cur.execute(
+                    "SELECT id FROM expresiones_culinarias WHERE LOWER(nombre) = LOWER(?)",
+                    (nombre,)
+                )
+
+                existe = cur.fetchone()
+
+                if existe:
+
+                    conn.close()
+
+                    errores.append(
+                        f"⚠️ "
+                        f"<span style='color:#cc0000; font-weight:bold;'>{nombre}</span> "
+                        f"<span style='color:#0b5d1e; font-weight:bold;'>ya existe en</span> "
+                        f"<span style='color:#cc0000; font-weight:bold;'>EXPRESIONES CULINARIAS</span>"
+                    )
+
+                else:
+
+                    cur.execute(
+                        """
+                        INSERT INTO expresiones_culinarias
+                        (codigo, nombre)
+                        VALUES (?, ?)
+                        """,
+                        (codigo, nombre)
+                    )
+
+                    conn.commit()
+
+                    conn.close()
+
+                    flash(
+                        f"Expresión culinaria '<span class='item'>{codigo} - {nombre}</span>' creada correctamente.",
+                        "ok"
+                    )
+
+                    return redirect("/admin/expresiones_culinarias")
+
+    expresiones = db_cargar_expresiones_culinarias()
+
+    return render_template(
+        "admin_expresiones_culinarias.html",
+        expresiones=expresiones,
+        errores=errores
+    )
+
+
+@app.route("/admin/expresiones_culinarias/borrar/<int:expresion_id>", methods=["POST"])
+def borrar_expresion_culinaria(expresion_id):
+    try:
+
+        conn = get_connection()
+        cur = conn.cursor()
+
+        # Obtener código y nombre antes de borrar
+
+        cur.execute(
+            """
+            SELECT codigo, nombre
+            FROM expresiones_culinarias
+            WHERE id = ?
+            """,
+            (expresion_id,)
+        )
+
+        fila = cur.fetchone()
+
+        codigo = fila["codigo"] if fila else ""
+
+        nombre = fila["nombre"] if fila else ""
+
+        cur.execute(
+            "DELETE FROM expresiones_culinarias WHERE id = ?",
+            (expresion_id,)
+        )
+
+        conn.commit()
+
+        conn.close()
+
+        flash(
+            f"Expresión culinaria '<span class='item'>{codigo} - {nombre}</span>' borrada correctamente.",
+            "ok"
+        )
+
+    except Exception as e:
+
+        print("ERROR borrando expresión culinaria:", e)
+
+        flash(
+            "No se pudo borrar la expresión culinaria.",
+            "error"
+        )
+
+    return redirect("/admin/expresiones_culinarias")
 
 # ==================================================
 # ADMIN INGREDIENTES
 # ==================================================
+
 
 @app.route("/admin/ingredientes", methods=["GET", "POST"])
 def admin_ingredientes():
@@ -373,6 +532,7 @@ def admin_ingredientes():
                 errores.append("Error al crear el ingrediente.")
 
     ingredientes = cargar_ingredientes_con_unidad()
+
     unidades = db_cargar_unidades()
 
     return render_template(
@@ -438,18 +598,32 @@ def admin_equivalencias(ingrediente_id):
                 f"<span style='color:#cc0000; font-weight:bold;'>EQUIVALENCIAS DE INGREDIENTES</span>"
             )
 
-    ingredientes = db_cargar_ingredientes()
+    ingrediente = db_cargar_ingrediente_por_id(ingrediente_id)
 
-    ingrediente_nombre = ""
+    if ingrediente is None:
+        abort(404)
 
-    for ing in ingredientes:
-        if ing["id"] == ingrediente_id:
-            ingrediente_nombre = ing["nombre"]
-            break
+    ingrediente_nombre = ingrediente["nombre"]
 
-    equivalencias = obtener_equivalencias(
-        ingrediente_id
-    )
+    unidad_canonica = {
+        "codigo": ingrediente["unidad_codigo"],
+        "nombre": ingrediente["unidad_nombre"]
+    }
+
+    try:
+
+        equivalencias = obtener_equivalencias(
+            ingrediente_id
+        )
+
+    except IngredienteSinEquivalencias:
+
+        equivalencias = []
+
+        flash(
+            "Este ingrediente aún no tiene equivalencias registradas.",
+            "info"
+        )
 
     return render_template(
         "admin_equivalencias.html",
@@ -458,6 +632,7 @@ def admin_equivalencias(ingrediente_id):
         equivalencias=equivalencias,
         unidades=unidades,
         errores=errores,
+        unidad_canonica=unidad_canonica,
         menu_url="/admin/ingredientes",
         menu_texto="← Nomenclador de Ingredientes"
     )
@@ -761,6 +936,18 @@ def receta_detalle(receta_id):
         raciones_nuevas
     )
 
+    for ingrediente in ingredientes_escalados:
+
+        unidades = db_cargar_unidades_disponibles_por_ingrediente(
+            ingrediente["ingrediente_id"]
+        )
+
+        ingrediente["conversion"] = {
+            "permite": len(unidades) > 1,
+            "unidad_actual": ingrediente["unidad_codigo"],
+            "unidades": unidades,
+        }
+
     return render_template(
         "receta_detalle.html",
         receta=receta,
@@ -802,13 +989,162 @@ def admin_recetas_listado():
 
 
 # ==================================================
-# NUEVA RECETA (MASTER)
+# API TEMPORAL
+# VISOR DE NORMALIZACIÓN
+# (Instrumentación Fase IV)
 # ==================================================
+
+@app.route("/api/normalizar", methods=["POST"])
+def api_normalizar():
+
+    datos = request.get_json()
+
+    if datos is None:
+
+        return jsonify({
+            "ok": False,
+            "error": "No se recibió un JSON válido."
+        }), 400
+
+    try:
+
+        ingrediente_id = int(datos["ingrediente_id"])
+
+        cantidad = float(datos["cantidad"])
+
+        unidad_origen = str(datos["unidad_origen"])
+
+        cantidad_canonica = normalizar(
+
+            ingrediente_id=ingrediente_id,
+
+            cantidad=cantidad,
+
+            unidad_origen=unidad_origen
+
+        )
+
+        return jsonify({
+
+            "ok": True,
+
+            "cantidad_canonica": cantidad_canonica
+
+        })
+
+    except Exception as e:
+
+        return jsonify({
+
+            "ok": False,
+
+            "error": str(e)
+
+        }), 500
+
+# ==================================================
+# API DE REPRESENTACIÓN DEL MOTOR DE CONVERSIÓN
+# ==================================================
+
+
+@app.route("/api/convertir", methods=["POST"])
+def api_representar():
+
+    datos = request.get_json()
+
+    print("\n========== JSON RECIBIDO ==========")
+    print(datos)
+    print("==================================\n")
+
+    if datos is None:
+        return jsonify({
+            "ok": False,
+            "error": "No se recibió un JSON válido."
+        }), 400
+
+    ingrediente_id = int(datos["ingrediente_id"])
+
+    cantidad_canonica = float(datos["cantidad_canonica"])
+
+    cocina_canonica = float(
+        datos.get("cocina_canonica", cantidad_canonica)
+    )
+
+    deco_canonica = float(
+        datos.get("deco_canonica", 0)
+    )
+
+    unidad_canonica = str(datos["unidad_canonica"])
+
+    unidad_destino = str(datos["unidad_destino"])
+
+    print()
+    print("========== DATOS DE ENTRADA ==========")
+    print("ingrediente_id :", ingrediente_id)
+    print("unidad_canonica:", unidad_canonica)
+    print("unidad_destino :", unidad_destino)
+    print("cocina         :", cocina_canonica)
+    print("deco           :", deco_canonica)
+    print("cantidad       :", cantidad_canonica)
+    print("======================================")
+    print()
+
+    cocina_convertida = representar(
+
+        ingrediente_id,
+        cocina_canonica,
+        unidad_canonica,
+        unidad_destino
+
+    )
+
+    deco_convertida = representar(
+
+        ingrediente_id,
+        deco_canonica,
+        unidad_canonica,
+        unidad_destino
+
+    )
+
+    cantidad_convertida = representar(
+
+        ingrediente_id,
+        cantidad_canonica,
+        unidad_canonica,
+        unidad_destino
+
+    )
+
+    print("RESULTADO REPRESENTADO:", cantidad_convertida)
+
+    return jsonify({
+        "ok": True,
+        "cocina_convertida": cocina_convertida,
+        "deco_convertida": deco_convertida,
+        "total_convertido": cantidad_convertida
+    })
+
 
 @app.route("/admin/recetas/nueva", methods=["GET", "POST"])
 def admin_recetas_nueva():
     platos = db_cargar_platos()
     ingredientes = cargar_ingredientes_con_unidad()
+
+    unidades_por_ingrediente = {}
+
+    for ingrediente in ingredientes:
+        unidades_por_ingrediente[ingrediente["id"]] = (
+            db_cargar_unidades_disponibles_por_ingrediente(
+                ingrediente["id"]
+            )
+        )
+
+    contexto_receta = {
+        "platos": platos,
+        "ingredientes": ingredientes,
+        "unidades_por_ingrediente": unidades_por_ingrediente
+    }
 
     if request.method == "POST":
 
@@ -828,7 +1164,10 @@ def admin_recetas_nueva():
                 f"<span style='color:#cc0000; font-weight:bold;'>RECETAS</span>",
                 "recetas"
             )
-            return render_template("admin_recetas_nueva.html", platos=platos, ingredientes=ingredientes)
+            return render_template(
+                "admin_recetas_nueva.html",
+                **contexto_receta
+            )
 
         try:
             conn = get_connection()
@@ -850,12 +1189,18 @@ def admin_recetas_nueva():
                     f"<span style='color:#cc0000; font-weight:bold;'>RECETAS</span>",
                     "recetas"
                 )
-                return render_template("admin_recetas_nueva.html", platos=platos, ingredientes=ingredientes)
+                return render_template(
+                    "admin_recetas_nueva.html",
+                    **contexto_receta
+                )
             conn.close()
         except Exception as e:
             print("ERROR verificando duplicado de receta:", e)
             flash("Error verificando duplicado de receta.", "error")
-            return render_template("admin_recetas_nueva.html", platos=platos, ingredientes=ingredientes)
+            return render_template(
+                "admin_recetas_nueva.html",
+                **contexto_receta
+            )
 
         try:
             raciones_base_int = int(raciones_base)
@@ -867,7 +1212,10 @@ def admin_recetas_nueva():
                     f"<span style='color:#cc0000; font-weight:bold;'>RECETAS</span>",
                     "recetas"
                 )
-                return render_template("admin_recetas_nueva.html", platos=platos, ingredientes=ingredientes)
+                return render_template(
+                    "admin_recetas_nueva.html",
+                    **contexto_receta
+                )
         except:
             flash(
                 f"⚠️ "
@@ -876,14 +1224,52 @@ def admin_recetas_nueva():
                 f"<span style='color:#cc0000; font-weight:bold;'>RECETAS</span>",
                 "recetas"
             )
-            return render_template("admin_recetas_nueva.html", platos=platos, ingredientes=ingredientes)
+            return render_template(
+                "admin_recetas_nueva.html",
+                **contexto_receta
+            )
 
         ingredientes_ids = request.form.getlist("ingrediente_id[]")
         cantidades = request.form.getlist("cantidad[]")
         roles = request.form.getlist("rol[]")
+        unidades = request.form.getlist("unidad[]")
+
+        print("=" * 60)
+        print("ingredientes_ids:", ingredientes_ids)
+        print("unidades:", unidades)
+        print("=" * 60)
 
         vistos = set()
         filas_validas = []
+
+        print("=" * 60)
+        print("RECORRIDO DE FILAS RECIBIDAS")
+        print("=" * 60)
+
+        max_filas = max(
+            len(ingredientes_ids),
+            len(cantidades),
+            len(roles),
+            len(unidades)
+        )
+
+        for j in range(max_filas):
+
+            ing = ingredientes_ids[j] if j < len(
+                ingredientes_ids) else "<NO EXISTE>"
+            cant = cantidades[j] if j < len(cantidades) else "<NO EXISTE>"
+            rol = roles[j] if j < len(roles) else "<NO EXISTE>"
+            um = unidades[j] if j < len(unidades) else "<NO EXISTE>"
+
+            print(
+                f"Fila {j}: "
+                f"Ingrediente=[{ing}]  "
+                f"Cantidad=[{cant}]  "
+                f"Rol=[{rol}]  "
+                f"Unidad=[{um}]"
+            )
+
+            print("=" * 60)
 
         for i in range(len(ingredientes_ids)):
             ing_id = (ingredientes_ids[i] or "").strip()
@@ -893,21 +1279,35 @@ def admin_recetas_nueva():
             if not ing_id:
                 continue
 
+            unidad_id = (
+                (unidades[i] if i < len(unidades) else "")
+                or ""
+            ).strip()
+
             if ing_id in vistos:
                 flash("No se permiten ingredientes duplicados en la receta.", "error")
-                return render_template("admin_recetas_nueva.html", platos=platos, ingredientes=ingredientes)
+                return render_template(
+                    "admin_recetas_nueva.html",
+                    **contexto_receta
+                )
             vistos.add(ing_id)
 
             try:
                 cant_f = float(cant_txt)
             except:
                 flash("La cantidad debe ser numérica.", "error")
-                return render_template("admin_recetas_nueva.html", platos=platos, ingredientes=ingredientes)
+                return render_template(
+                    "admin_recetas_nueva.html",
+                    **contexto_receta
+                )
 
             if cant_f <= 0:
                 flash(
                     "La cantidad debe ser mayor que 0 en todos los ingredientes.", "error")
-                return render_template("admin_recetas_nueva.html", platos=platos, ingredientes=ingredientes)
+                return render_template(
+                    "admin_recetas_nueva.html",
+                    **contexto_receta
+                )
 
             if rol_txt == "":
                 rol_f = 0.0
@@ -915,23 +1315,43 @@ def admin_recetas_nueva():
                 try:
                     rol_f = float(rol_txt)
                 except:
-                    flash("El rol debe ser numérico.", "error")
-                    return render_template("admin_recetas_nueva.html", platos=platos, ingredientes=ingredientes)
+                    flash("La decoracion debe ser numérica.", "error")
+                    return render_template(
+                        "admin_recetas_nueva.html",
+                        **contexto_receta
+                    )
 
                 if rol_f < 0:
-                    flash("El rol no puede ser negativo.", "error")
-                    return render_template("admin_recetas_nueva.html", platos=platos, ingredientes=ingredientes)
+                    flash("La decoracion no puede ser negativa.", "error")
+                    return render_template(
+                        "admin_recetas_nueva.html",
+                        **contexto_receta
+                    )
 
                 if rol_f > cant_f:
-                    flash("El rol no puede ser mayor que la cantidad.", "error")
-                    return render_template("admin_recetas_nueva.html", platos=platos, ingredientes=ingredientes)
+                    flash("La decoracion no puede ser mayor que la cantidad.", "error")
+                    return render_template(
+                        "admin_recetas_nueva.html",
+                        **contexto_receta
+                    )
 
-            filas_validas.append((int(ing_id), cant_f, rol_f))
+            filas_validas.append(
+                (
+                    int(ing_id),
+                    cant_f,
+                    rol_f,
+                    unidad_id,
+                    unidad_id
+                )
+            )
 
         if not filas_validas:
             flash(
                 "La receta debe tener al menos un ingrediente con cantidad > 0.", "error")
-            return render_template("admin_recetas_nueva.html", platos=platos, ingredientes=ingredientes)
+            return render_template(
+                "admin_recetas_nueva.html",
+                **contexto_receta
+            )
 
         try:
             conn = get_connection()
@@ -961,10 +1381,33 @@ def admin_recetas_nueva():
             )
             receta_id = cur.lastrowid
 
-            for (ing_id, cant_f, rol_f) in filas_validas:
+            for (ing_id, cant_f, rol_f, unidad_id, unidad_presentacion) in filas_validas:
+
+                cantidad_canonica = normalizar(
+                    ingrediente_id=ing_id,
+                    cantidad=cant_f,
+                    unidad_origen=unidad_id
+                )
+
                 cur.execute(
-                    "INSERT INTO recetas_ingredientes (receta_id, ingrediente_id, cantidad, rol) VALUES (?, ?, ?, ?)",
-                    (receta_id, ing_id, cant_f, rol_f)
+                    """
+                    INSERT INTO recetas_ingredientes
+                    (
+                        receta_id,
+                        ingrediente_id,
+                        cantidad,
+                        unidad_codigo_presentacion,
+                        rol
+                    )
+                    VALUES (?, ?, ?, ?, ?)
+                    """,
+                    (
+                        receta_id,
+                        ing_id,
+                        cantidad_canonica,
+                        unidad_presentacion,
+                        rol_f
+                    )
                 )
 
             conn.commit()
@@ -974,10 +1417,17 @@ def admin_recetas_nueva():
             return redirect("/admin/recetas/listado")
 
         except Exception as e:
-            print("ERROR guardando receta:", e)
-            flash("Error al guardar la receta.", "error")
+            import traceback
 
-    return render_template("admin_recetas_nueva.html", platos=platos, ingredientes=ingredientes)
+            print("=" * 70)
+            print("ERROR GUARDANDO RECETA")
+            traceback.print_exc()
+            print("=" * 70)
+
+    return render_template(
+        "admin_recetas_nueva.html",
+        **contexto_receta
+    )
 
 
 # ==================================================
@@ -989,6 +1439,21 @@ def admin_recetas_editar(receta_id):
 
     platos = db_cargar_platos()
     ingredientes = cargar_ingredientes_con_unidad()
+
+    unidades_por_ingrediente = {}
+
+    for ingrediente in ingredientes:
+        unidades_por_ingrediente[ingrediente["id"]] = (
+            db_cargar_unidades_disponibles_por_ingrediente(
+                ingrediente["id"]
+            )
+        )
+
+    contexto_receta = {
+        "platos": platos,
+        "ingredientes": ingredientes,
+        "unidades_por_ingrediente": unidades_por_ingrediente
+    }
 
     # ==================================================
     # GUARDAR CAMBIOS DE RECETA
@@ -1021,34 +1486,44 @@ def admin_recetas_editar(receta_id):
         ingredientes_ids = request.form.getlist("ingrediente_id[]")
         cantidades = request.form.getlist("cantidad[]")
         roles = request.form.getlist("rol[]")
+        unidades = request.form.getlist("unidad[]")
 
         vistos = set()
         filas_validas = []
 
         for i in range(len(ingredientes_ids)):
-
             ing_id = (ingredientes_ids[i] or "").strip()
             cant_txt = (cantidades[i] or "").strip()
             rol_txt = (roles[i] or "").strip()
+            unidad_id = (unidades[i] if i < len(unidades) else "").strip()
 
             if not ing_id:
                 continue
 
             if ing_id in vistos:
-                flash("No se permiten ingredientes duplicados.", "error")
-                return redirect(f"/admin/recetas/editar/{receta_id}")
-
+                flash("No se permiten ingredientes duplicados en la receta.", "error")
+                return render_template(
+                    "admin_recetas_nueva.html",
+                    **contexto_receta
+                )
             vistos.add(ing_id)
 
             try:
                 cant_f = float(cant_txt)
             except:
                 flash("La cantidad debe ser numérica.", "error")
-                return redirect(f"/admin/recetas/editar/{receta_id}")
+                return render_template(
+                    "admin_recetas_nueva.html",
+                    **contexto_receta
+                )
 
             if cant_f <= 0:
-                flash("La cantidad debe ser mayor que 0.", "error")
-                return redirect(f"/admin/recetas/editar/{receta_id}")
+                flash(
+                    "La cantidad debe ser mayor que 0 en todos los ingredientes.", "error")
+                return render_template(
+                    "admin_recetas_nueva.html",
+                    **contexto_receta
+                )
 
             if rol_txt == "":
                 rol_f = 0.0
@@ -1056,18 +1531,35 @@ def admin_recetas_editar(receta_id):
                 try:
                     rol_f = float(rol_txt)
                 except:
-                    flash("El rol debe ser numérico.", "error")
-                    return redirect(f"/admin/recetas/editar/{receta_id}")
+                    flash("La decoracion debe ser numérica.", "error")
+                    return render_template(
+                        "admin_recetas_nueva.html",
+                        **contexto_receta
+                    )
 
                 if rol_f < 0:
-                    flash("El rol no puede ser negativo.", "error")
-                    return redirect(f"/admin/recetas/editar/{receta_id}")
+                    flash("La decoracion no puede ser negativa.", "error")
+                    return render_template(
+                        "admin_recetas_nueva.html",
+                        **contexto_receta
+                    )
 
                 if rol_f > cant_f:
-                    flash("El rol no puede ser mayor que la cantidad.", "error")
-                    return redirect(f"/admin/recetas/editar/{receta_id}")
+                    flash("La decoracion no puede ser mayor que la cantidad.", "error")
+                    return render_template(
+                        "admin_recetas_nueva.html",
+                        **contexto_receta
+                    )
 
-            filas_validas.append((int(ing_id), cant_f, rol_f))
+            filas_validas.append(
+                (
+                    int(ing_id),
+                    cant_f,
+                    rol_f,
+                    unidad_id,
+                    unidad_id
+                )
+            )
 
         if not filas_validas:
             flash("La receta no puede quedar sin ingredientes.", "error")
@@ -1106,15 +1598,33 @@ def admin_recetas_editar(receta_id):
                 (receta_id,)
             )
 
-            for ing_id, cant_f, rol_f in filas_validas:
+            for ing_id, cant_f, rol_f, unidad_id, unidad_presentacion in filas_validas:
+
+                cantidad_canonica = normalizar(
+                    ingrediente_id=ing_id,
+                    cantidad=cant_f,
+                    unidad_origen=unidad_id
+                )
 
                 cur.execute(
                     """
                     INSERT INTO recetas_ingredientes
-                    (receta_id, ingrediente_id, cantidad, rol)
-                    VALUES (?,?,?,?)
+                    (
+                        receta_id,
+                        ingrediente_id,
+                        cantidad,
+                        unidad_codigo_presentacion,
+                        rol
+                    )
+                    VALUES (?,?,?,?,?)
                     """,
-                    (receta_id, ing_id, cant_f, rol_f)
+                    (
+                        receta_id,
+                        ing_id,
+                        cantidad_canonica,
+                        unidad_presentacion,
+                        rol_f
+                    )
                 )
 
             conn.commit()
@@ -1127,8 +1637,6 @@ def admin_recetas_editar(receta_id):
             return redirect("/admin/recetas/listado")
 
         except Exception as e:
-
-            print("ERROR actualizando receta:", e)
 
             try:
 
@@ -1202,12 +1710,12 @@ def admin_recetas_editar(receta_id):
         flash("Error cargando receta.", "error")
         return redirect("/admin/recetas/listado")
 
+    contexto_receta["receta"] = receta
+    contexto_receta["ingredientes_receta"] = ingredientes_receta
+
     return render_template(
         "admin_recetas_editar.html",
-        platos=platos,
-        ingredientes=ingredientes,
-        receta=receta,
-        ingredientes_receta=ingredientes_receta
+        **contexto_receta
     )
 
 # ==================================================
@@ -1344,13 +1852,15 @@ def ver_nomencladores():
     unidades = db_cargar_unidades()
     ingredientes = db_cargar_ingredientes()
     platos = db_cargar_platos()
+    expresiones_culinarias = db_cargar_expresiones_culinarias()
 
     return render_template(
         "admin_nomencladores.html",
         tipos=tipos,
         unidades=unidades,
         ingredientes=ingredientes,
-        platos=platos
+        platos=platos,
+        expresiones_culinarias=expresiones_culinarias
     )
 
 
@@ -1436,6 +1946,46 @@ def admin_contacto_atender(contacto_id):
     )
 
     return redirect("/admin/contactos")
+
+
+@app.route("/test_motor_conversion")
+def test_motor_conversion():
+
+    ingrediente_id = 26      # cebolla
+
+    cantidad_lb = 2.0
+
+    print()
+    print("===================================")
+    print("PRUEBA DEL MOTOR DE CONVERSIÓN")
+    print("===================================")
+
+    cantidad_canonica = normalizar(
+        ingrediente_id,
+        cantidad_lb,
+        "lb"
+    )
+
+    cantidad_representada = representar(
+        ingrediente_id,
+        cantidad_canonica,
+        "CAN",
+        "lb"
+    )
+
+    print()
+    print("RESULTADO FINAL")
+    print("cantidad inicial :", cantidad_lb, "lb")
+    print("cantidad canónica:", cantidad_canonica)
+    print("cantidad final   :", cantidad_representada, "lb")
+    print()
+
+    return (
+        f"<h2>Prueba Motor de Conversión</h2>"
+        f"<p>Inicial: {cantidad_lb} lb</p>"
+        f"<p>Canónica: {cantidad_canonica}</p>"
+        f"<p>Final: {cantidad_representada} lb</p>"
+    )
 
 # ==================================================
 # EJECUCIÓN

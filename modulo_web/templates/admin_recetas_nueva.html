@@ -34,15 +34,31 @@
         }
         .tabla th, .tabla td { border:1px solid #ddd; padding:6px; }
         .tabla th { background:#f0f0f0; font-weight:bold; }
-        .col-qty { width:90px; text-align:right; }
-        .col-rol { width:80px; text-align:right; }
-        .col-um { width:90px; color:#333; }
+        .col-ing {
+            width:220px;
+        }
+
+        .col-qty {
+            width:75px;
+            text-align:right;
+        }
+
+        .col-rol {
+            width:65px;
+            text-align:right;
+        }
+
+        .col-um {
+            width:170px;
+            color:#333;
+        }
         .ing-cocina{
             width:70px;
             display:inline-block;
             text-align:right;
         }
         .row-actions{
+            width:90px;
             text-align:center;
             vertical-align:middle;
         }
@@ -117,6 +133,14 @@
             border-radius:4px;
 
             display:inline-block;
+
+        }
+
+        .ing-um-select{
+
+            width:100%;
+
+            box-sizing:border-box;
 
         }
 
@@ -201,7 +225,7 @@ autocomplete="off">
         <table class="tabla">
             <thead>
                 <tr>
-                    <th>Ingrediente</th>
+                    <th class="col-ing">Ingrediente</th>
                     <th class="col-qty">Cantidad</th>
                     <th class="col-um">UM</th>
                     <th class="col-rol">Deco</th>
@@ -214,12 +238,16 @@ autocomplete="off">
             <tbody id="tbody-ingredientes">
                 {% if ingredientes_receta %}
                 {% for item in ingredientes_receta %}
-                <tr>
-                    <td>
+                <tr
+                    data-cantidad-canonica=""
+                    data-unidad-canonica="">
+                    <td class="col-ing">
                         <select class="ing-select" name="ingrediente_id[]">
                             <option value="">— Seleccione —</option>
                             {% for ing in ingredientes %}
                             <option value="{{ ing.id }}"
+                                data-unidad-id="{{ ing.unidad_id }}"
+                                data-unidad-codigo="{{ ing.unidad_codigo }}"
                                 data-um="{{ ing.unidad_nombre }}"
                                 {% if ing.id == item.ingrediente_id %}selected{% endif %}>
                                 {{ ing.nombre }}
@@ -238,7 +266,16 @@ autocomplete="off">
                     </td>
 
                     <td class="col-um">
-                        <span class="ing-um">—</span>
+                        <!-- UM Base (compatibilidad temporal durante la Fase III-B) -->
+                        <span
+                            class="ing-um"
+                            style="display:none;">—</span>
+
+                        <!-- Unidad de captura (preparación para integración del Motor) -->
+                        <select
+                            class="ing-um-select"
+                            name="unidad[]">
+        </select>
                     </td>
 
                     <td class="col-rol">
@@ -267,38 +304,108 @@ autocomplete="off">
                 </tr>
                 {% endfor %}
                 {% endif %}    
-                <tr id="fila-plantilla" class="oculta">
-                    <td>
-                        <select class="ing-select" name="ingrediente_id[]">
-                            <option value="">— Seleccione —</option>
-                            {% for ing in ingredientes %}
-                              <option value="{{ ing.id }}" data-um="{{ ing.unidad_nombre }}">{{ ing.nombre }}</option>
-                            {% endfor %}
-                        </select>
-                    </td>
-                    <td class="col-qty">
-                        <input type="text" class="ing-cantidad" name="cantidad[]" value="0" maxlength="6" style="width:70px; text-align:right;">
-                    </td>
-                    <td class="col-um">
-                        <span class="ing-um">—</span>
-                    </td>
-                    <td class="col-rol">
-                        <input type="text" class="ing-rol" name="rol[]" value="0" maxlength="6" style="width:70px; text-align:right;">
-                    </td>
-                    <td class="col-um">
-                        <span class="ing-um-rol">—</span>
-                    </td>
-                    <td class="col-qty">
-                       <span class="ing-cocina">0.00</span>
-                    </td>
+                <tr
+                    id="fila-plantilla"
+                    class="oculta"
+                    data-cantidad-canonica=""
+                    data-unidad-canonica="">
 
-                    <td class="col-um">
-                        <span class="ing-um-cocina">—</span>
-                    </td>
-                    <td class="row-actions">
-                        <button type="button" class="btn btn-borrar">Borrar</button>
-                    </td>
-                </tr>
+                    <td class="col-ing">
+
+                         <select class="ing-select" name="ingrediente_id[]" disabled>
+
+                             <option value="">— Seleccione —</option>
+
+                             {% for ing in ingredientes %}
+
+                             <option
+                                 value="{{ ing.id }}"
+                                 data-unidad-id="{{ ing.unidad_id }}"
+                                 data-unidad-codigo="{{ ing.unidad_codigo }}"
+                                 data-um="{{ ing.unidad_nombre }}">
+
+                                 {{ ing.nombre }}
+
+                             </option>
+
+                             {% endfor %}
+
+        </select>
+
+    </td>
+
+    <td class="col-qty">
+
+        <input
+            type="text"
+            class="ing-cantidad"
+            name="cantidad[]"
+            disabled
+            value="0"
+            maxlength="6"
+            style="width:70px; text-align:right;">
+
+    </td>
+
+    <td class="col-um">
+
+        <!-- UM Base (compatibilidad temporal durante la Fase III-B) -->
+
+        <span
+            class="ing-um"
+            style="display:none;">—</span>
+
+        <!-- Unidad de captura (Motor Fase III-B) -->
+
+        <select
+            class="ing-um-select"
+            name="unidad[]" disabled>
+        </select>
+
+    </td>
+
+    <td class="col-rol">
+
+        <input
+            type="text"
+            class="ing-rol"
+            name="rol[]"
+            disabled
+            value="0"
+            maxlength="6"
+            style="width:70px; text-align:right;">
+
+    </td>
+
+    <td class="col-um">
+
+        <span class="ing-um-rol">—</span>
+
+    </td>
+
+    <td class="col-qty">
+
+        <span class="ing-cocina">0.00</span>
+
+    </td>
+
+    <td class="col-um">
+
+        <span class="ing-um-cocina">—</span>
+
+    </td>
+
+    <td class="row-actions">
+
+        <button
+            type="button"
+            class="btn btn-borrar">
+            Borrar
+        </button>
+
+    </td>
+
+</tr>
             </tbody>
         </table>
 
@@ -339,6 +446,12 @@ autocomplete="off">
     const btnCancelar = document.getElementById("btn-cancelar");
 
     const msgJs = document.getElementById("msg-js");
+
+    const unidadesPorIngrediente =
+        {{ unidades_por_ingrediente | tojson }};
+
+        console.log("UNIDADES POR INGREDIENTE");
+        console.log(unidadesPorIngrediente);
 
     // IMPORTANTE: usamos innerHTML para permitir colores en mensajes
     function showMsg(html){
@@ -447,6 +560,12 @@ autocomplete="off">
 
     function crearFilaYEnfocarIngrediente(){
         const fila = filaPlantilla.cloneNode(true);
+
+        fila.querySelector(".ing-select").disabled = false;
+        fila.querySelector(".ing-cantidad").disabled = false;
+        fila.querySelector(".ing-um-select").disabled = false;
+        fila.querySelector(".ing-rol").disabled = false;
+        
         fila.id = "";
         fila.classList.remove("oculta");
         tbody.appendChild(fila);
@@ -478,6 +597,18 @@ autocomplete="off">
         const cocinaSpan = fila.querySelector(".ing-cocina");
 
         const btnBorrar = fila.querySelector(".btn-borrar");
+        /*----------------------------------------------------------
+        Motor de Conversión
+        Fase III-B
+
+        Referencia única al selector de Unidad de Medida.
+
+        Durante la transición este selector permanece oculto,
+        pero ya forma parte de la infraestructura permanente
+        del Motor.
+        ----------------------------------------------------------*/
+
+        const selectorUM = fila.querySelector(".ing-um-select");
         function activarFila(){
 
             document.querySelectorAll("#tbody-ingredientes tr").forEach(f=>{
@@ -493,33 +624,198 @@ autocomplete="off">
         rol.addEventListener("focus", activarFila);    
 
         sel.addEventListener("change", function(){
+
             const opt = sel.options[sel.selectedIndex];
-            const um = opt ? (opt.getAttribute("data-um") || "—") : "—";
+
+            const um = opt
+                ? (opt.getAttribute("data-um") || "—")
+                : "—";
+
+            const ingredienteId = sel.value;
+
+            /*-----------------------------------------
+            Inicialización del estado canónico
+            de la fila para el Motor de Conversión.
+            -----------------------------------------*/
+
+            fila.dataset.cantidadCanonica = qty.value || "0";
+
+            const codigoCanonico =
+                opt.getAttribute("data-unidad-codigo") || "";
+
+            fila.dataset.unidadCanonica = codigoCanonico;
+
             umSpan.textContent = um;
-            umRolSpan.textContent = um;
-            if(umCocinaSpan){
-                umCocinaSpan.textContent = um;
+umRolSpan.textContent = um;
+
+if (umCocinaSpan) {
+    umCocinaSpan.textContent = um;
+}
+
+clearMsg();
+
+if (!selectorUM) {
+    return;
+}
+
+/* Durante la transición de la Fase III-B
+   el selector sustituye visualmente al span. */
+
+// umSpan.style.display = "none";
+
+// selectorUM.style.display = "inline-block";
+
+selectorUM.innerHTML = "";
+
+
+            const unidades =
+                unidadesPorIngrediente[ingredienteId] || [];
+
+            for (const unidad of unidades) {
+
+                const option = document.createElement("option");
+
+                option.value = unidad.codigo;
+
+                option.textContent = unidad.nombre;
+
+                if (unidad.nombre === um) {
+                    option.selected = true;
+                }
+
+                selectorUM.appendChild(option);
+
             }
-            clearMsg();
+
+            console.log(
+                "Motor Fase III-B",
+                {
+                    ingrediente: ingredienteId,
+                    unidades: unidades
+                }
+            ); 
+
+            console.log(
+                "Motor Fase III-B -> Opciones creadas:",
+                selectorUM.options.length
+            );
+
         });
+
+        /*----------------------------------------------------------
+        Inicialización automática del selector de UM.
+
+        Si la fila ya posee un ingrediente seleccionado
+        (receta existente o fila preparada antes del envío),
+        forzamos una ejecución del mismo flujo utilizado por
+        el evento "change", garantizando que el selector
+        unidad[] nunca permanezca vacío.
+        ----------------------------------------------------------*/
+        if (sel.value) {
+            sel.dispatchEvent(new Event("change"));
+        }
+
+        /*==========================================================
+        MOTOR DE CONVERSIÓN
+        FASE III-B
+
+        Detección del cambio de Unidad de Medida.
+
+        En esta etapa únicamente se valida el evento.
+
+        La conversión de cantidades será incorporada
+        en el siguiente bloque funcional.
+        ==========================================================*/
+
+        selectorUM.addEventListener("keydown", function(e){
+
+            if(e.key === "Enter"){
+
+                e.preventDefault();
+                e.stopPropagation();
+
+                rol.focus();
+                rol.select();
+
+            }
+
+        });
+
+        function actualizarCantidadCanonica(){
+
+            clearMsg();
+
+            fila.dataset.cantidadCanonica = qty.value || "0";
+
+            const cantidad =
+                parseFloat((qty.value || "0").replace(",", ".")) || 0;
+
+            if (!cocinaSpan) {
+                return;
+            }
+
+            if (!sel.value || !selectorUM.value) {
+
+                cocinaSpan.textContent = "0.00";
+                return;
+
+            }
+
+            fetch("/api/normalizar", {
+
+                method: "POST",
+
+                headers: {
+                    "Content-Type": "application/json"
+                },
+
+                body: JSON.stringify({
+
+                    ingrediente_id: Number(sel.value),
+
+                    cantidad: cantidad,
+
+                    unidad_origen: selectorUM.value
+
+                })
+
+            })
+            .then(r => r.json())
+            .then(json => {
+
+                if (json.ok) {
+
+                    cocinaSpan.textContent =
+                        Number(json.cantidad_canonica).toFixed(2);
+
+                }
+
+            })
+            .catch(() => {
+
+                cocinaSpan.textContent = "ERROR";
+
+            });
+
+        }
+
+        selectorUM.addEventListener("change", function(){
+
+            actualizarCantidadCanonica();
+
+            console.log(
+                "Unidad de captura seleccionada:",
+                selectorUM.value
+            );
+
+        });
+
         qty.addEventListener("input", function(){
 
-            clearMsg();
+            actualizarCantidadCanonica();
 
-        const cantidad = parseFloat((qty.value || "0").replace(",", ".")) || 0;
-        const deco = parseFloat((rol.value || "0").replace(",", ".")) || 0;
-
-        let cocina = cantidad - deco;
-
-        if(cocina < 0){
-            cocina = 0;
-        }
-
-        if(cocinaSpan){
-            cocinaSpan.textContent = cocina.toFixed(2);
-        }
-
-    });
+        });
+        
         rol.addEventListener("input", function(){
 
             clearMsg();
@@ -568,25 +864,32 @@ autocomplete="off">
         });
 
         qty.addEventListener("keydown", function(e){
+
             if(e.key === "Enter"){
+
                 e.preventDefault();
 
                 const val = (qty.value || "").replace(",", ".");
                 const num = parseFloat(val);
 
                 if(isNaN(num) || num <= 0){
+
                     showMsg("La cantidad debe ser mayor que 0.");
+
                     qty.focus();
                     qty.select();
+
                     return;
+
                 }
 
                 clearMsg();
-                rol.focus();
-                rol.select();
-            }
-        });
 
+                selectorUM.focus();
+
+            }
+
+        });
         rol.addEventListener("keydown", function(e){
             if(e.key === "Enter"){
                 e.preventDefault();
@@ -614,7 +917,7 @@ autocomplete="off">
                     return;
                 }
                 if(rolVal > qtyVal){
-                    showMsg("El rol no puede ser mayor que la cantidad.");
+                    showMsg("La decoración no puede ser mayor que la cantidad");
                     rol.focus();
                     rol.select();
                     return;

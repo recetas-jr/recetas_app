@@ -42,7 +42,10 @@ Estado:
 # ==========================================================
 # IMPORTACIONES
 # ==========================================================
-from modulo_web.persistencia_db import db_cargar_equivalencias
+from modulo_web.persistencia_db import (
+    db_cargar_equivalencias,
+    db_cargar_ingrediente_por_id
+)
 
 # ==========================================================
 # EXCEPCIONES DEL MOTOR
@@ -93,24 +96,43 @@ class UnidadDestinoNoEncontrada(ErrorConversion):
 #
 # - _buscar_equivalencia()
 
-# Función principal prevista:
+# Servicios públicos previstos:
 #
-# convertir(
-#     ingrediente_id,
-#     cantidad,
-#     unidad_origen,
-#     unidad_destino
-# )
-
-# Flujo general previsto:
+# - puede_convertir()
+#       Indica si el ingrediente posee equivalencias registradas.
 #
-# 1. Validar parámetros.
-# 2. Cargar equivalencias.
-# 3. Verificar si existen equivalencias.
-# 4. Localizar unidad de origen.
-# 5. Localizar unidad destino.
-# 6. Calcular conversión.
-# 7. Devolver cantidad convertida.
+# - obtener_equivalencias()
+#       Devuelve las equivalencias del ingrediente.
+#
+# - obtener_unidades_disponibles()
+#       Devuelve las unidades en las que el ingrediente puede representarse.
+#
+# - representar()
+#       Recibe una cantidad expresada en la unidad canónica del ingrediente
+#       y la representa en la unidad solicitada.
+#
+# - normalizar()
+#       Recibe una cantidad expresada en cualquier unidad válida del
+#       ingrediente y devuelve su representación en la unidad canónica.
+#
+# Flujo conceptual:
+#
+# Captura del usuario
+#          │
+#          ▼
+#   normalizar()
+#          │
+#          ▼
+# Cantidad canónica
+#          │
+#          ▼
+# Persistencia
+#          │
+#          ▼
+# representar()
+#          │
+#          ▼
+# Visualización al usuario
 
 
 def puede_convertir(ingrediente_id):
@@ -137,7 +159,14 @@ def obtener_equivalencias(ingrediente_id):
 
 def obtener_unidades_disponibles(ingrediente_id):
     """
-    Obtiene las unidades disponibles para un ingrediente.
+    Obtiene las unidades disponibles para representar un
+    ingrediente.
+
+    Esta función no realiza conversiones.
+
+    Su propósito es informar a los consumidores del Motor
+    cuáles unidades pueden utilizarse posteriormente mediante
+    representar() o normalizar().
     """
     equivalencias = obtener_equivalencias(ingrediente_id)
 
@@ -152,31 +181,34 @@ def obtener_unidades_disponibles(ingrediente_id):
     return unidades
 
 
-def convertir(
+def representar(
     ingrediente_id,
     cantidad,
     unidad_origen,
     unidad_destino
 ):
     """
-    Convierte una cantidad de un ingrediente desde una
-    unidad de origen hacia una unidad de destino.
+    Representa una cantidad de un ingrediente desde su
+    unidad canónica hacia una unidad de visualización.
 
-    La conversión se realiza utilizando la unidad
-    canónica del ingrediente como punto de referencia.
+    La cantidad recibida ya se encuentra expresada en la
+    unidad canónica del ingrediente.
     """
     # Obtener las equivalencias registradas para el ingrediente.
     equivalencias = obtener_equivalencias(ingrediente_id)
 
-    # Localizar la equivalencia de la unidad de origen.
+    # La cantidad recibida debe encontrarse expresada
+    # en la unidad canónica del ingrediente.
 
-    equivalencia_origen = _buscar_equivalencia(
-        equivalencias,
-        unidad_origen
-    )
+    cantidad_canonica = cantidad
 
-    if equivalencia_origen is None:
-        raise UnidadOrigenNoEncontrada
+    # Localizar la equivalencia de la unidad de destino.
+
+    # Si la representación solicitada es la unidad
+    # canónica, no es necesario convertir.
+
+    if unidad_destino == unidad_origen:
+        return cantidad_canonica
 
     # Localizar la equivalencia de la unidad de destino.
 
@@ -188,11 +220,6 @@ def convertir(
     if equivalencia_destino is None:
         raise UnidadDestinoNoEncontrada
 
-    cantidad_canonica = (
-        cantidad *
-        equivalencia_origen["factor"]
-    )
-
     cantidad_convertida = (
         cantidad_canonica /
         equivalencia_destino["factor"]
@@ -201,13 +228,84 @@ def convertir(
     return cantidad_convertida
 
 
+def convertir(  # Compatibilidad temporal (DEPRECATED)
+    ingrediente_id,
+    cantidad,
+    unidad_origen,
+    unidad_destino
+):
+    """
+    Función mantenida temporalmente por compatibilidad.
+
+    DEPRECATED.
+    Utilizar representar().
+    """
+
+    return representar(
+        ingrediente_id,
+        cantidad,
+        unidad_origen,
+        unidad_destino
+    )
+
+
+def normalizar(
+    ingrediente_id,
+    cantidad,
+    unidad_origen
+):
+    """
+    Convierte una cantidad expresada en cualquier unidad válida
+    del ingrediente hacia su unidad canónica.
+    """
+
+    ingrediente = db_cargar_ingrediente_por_id(
+        ingrediente_id
+    )
+
+    if (
+        ingrediente is not None
+        and
+        ingrediente["unidad_codigo"].upper() == unidad_origen.upper()
+    ):
+        return cantidad
+
+    equivalencias = obtener_equivalencias(ingrediente_id)
+
+    equivalencia_origen = _buscar_equivalencia(
+        equivalencias,
+        unidad_origen
+    )
+
+    if equivalencia_origen is None:
+        raise UnidadOrigenNoEncontrada
+
+    cantidad_canonica = (
+        cantidad *
+        equivalencia_origen["factor"]
+    )
+
+    return cantidad_canonica
+
+
 def _buscar_equivalencia(equivalencias, unidad):
     """
     Localiza la equivalencia correspondiente a una unidad
     dentro del conjunto de equivalencias del ingrediente.
     """
     for equivalencia in equivalencias:
-        if equivalencia["codigo"] == unidad:
+
+        print(
+            "COMPARANDO:",
+            equivalencia["codigo"],
+            "==",
+            unidad
+        )
+
+        if equivalencia["codigo"].upper() == unidad.upper():
+
+            print("COINCIDENCIA ENCONTRADA")
+
             return equivalencia
 
     return None

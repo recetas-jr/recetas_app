@@ -95,12 +95,21 @@ def init_db():
     except sqlite3.OperationalError:
         pass
 
+    try:
+        cur.execute("""
+            ALTER TABLE recetas_ingredientes
+            ADD COLUMN unidad_codigo_presentacion TEXT;
+        """)
+    except sqlite3.OperationalError:
+        pass
+
     cur.execute("""
     CREATE TABLE IF NOT EXISTS recetas_ingredientes (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         receta_id INTEGER NOT NULL,
         ingrediente_id INTEGER NOT NULL,
         cantidad REAL NOT NULL,
+        unidad_codigo_presentacion TEXT NOT NULL,
         rol REAL NOT NULL,
         FOREIGN KEY (receta_id) REFERENCES recetas_maestro(id),
         FOREIGN KEY (ingrediente_id) REFERENCES ingredientes(id)
@@ -135,7 +144,16 @@ def init_db():
     );
     """)
 
+    cur.execute("""
+    CREATE TABLE IF NOT EXISTS expresiones_culinarias (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        codigo TEXT NOT NULL UNIQUE,
+        nombre TEXT NOT NULL
+    );
+    """)
+
     conn.commit()
+
     conn.close()
 
 
@@ -281,6 +299,78 @@ def db_cargar_unidades():
 
     return [{"id": f["id"], "codigo": f["codigo"], "nombre": f["nombre"]} for f in filas]
 
+# ==================================================
+# EXPRESIONES CULINARIAS
+# ==================================================
+
+
+def db_cargar_expresiones_culinarias():
+
+    conn = get_connection()
+
+    cur = conn.cursor()
+
+    cur.execute("""
+        SELECT
+            id,
+            codigo,
+            nombre
+        FROM expresiones_culinarias
+        ORDER BY nombre
+    """)
+
+    filas = cur.fetchall()
+
+    conn.close()
+
+    return [
+        {
+            "id": f["id"],
+            "codigo": f["codigo"],
+            "nombre": f["nombre"]
+        }
+        for f in filas
+    ]
+
+
+def db_insertar_expresion_culinaria(
+    codigo,
+    nombre
+):
+
+    conn = get_connection()
+
+    try:
+
+        cur = conn.cursor()
+
+        cur.execute(
+            """
+            INSERT INTO expresiones_culinarias
+            (
+                codigo,
+                nombre
+            )
+            VALUES (?, ?)
+            """,
+            (
+                codigo,
+                nombre
+            )
+        )
+
+        conn.commit()
+
+    except:
+
+        conn.rollback()
+
+        raise
+
+    finally:
+
+        conn.close()
+
 
 def db_cargar_ingredientes():
 
@@ -289,17 +379,72 @@ def db_cargar_ingredientes():
     cur = conn.cursor()
 
     cur.execute("""
-        SELECT id, nombre, unidad_id
-        FROM ingredientes
-        WHERE activo = 1
-        ORDER BY nombre
+        SELECT
+            i.id,
+            i.nombre,
+            i.unidad_id,
+            u.codigo AS unidad_codigo,
+            u.nombre AS unidad_nombre
+        FROM ingredientes i
+        JOIN unidades u
+            ON u.id = i.unidad_id
+        WHERE i.activo = 1
+        ORDER BY i.nombre
     """)
 
     filas = cur.fetchall()
 
     conn.close()
 
-    return [{"id": f["id"], "nombre": f["nombre"], "unidad_id": f["unidad_id"]} for f in filas]
+    return [
+        {
+            "id": f["id"],
+            "nombre": f["nombre"],
+            "unidad_id": f["unidad_id"],
+            "unidad_codigo": f["unidad_codigo"],
+            "unidad_nombre": f["unidad_nombre"]
+        }
+        for f in filas
+    ]
+
+
+def db_cargar_ingrediente_por_id(ingrediente_id):
+
+    conn = get_connection()
+
+    cur = conn.cursor()
+
+    cur.execute(
+        """
+        SELECT
+            i.id,
+            i.nombre,
+            i.unidad_id,
+            u.codigo AS unidad_codigo,
+            u.nombre AS unidad_nombre
+        FROM ingredientes i
+        JOIN unidades u
+            ON u.id = i.unidad_id
+        WHERE i.id = ?
+          AND i.activo = 1
+        """,
+        (ingrediente_id,)
+    )
+
+    fila = cur.fetchone()
+
+    conn.close()
+
+    if fila is None:
+        return None
+
+    return {
+        "id": fila["id"],
+        "nombre": fila["nombre"],
+        "unidad_id": fila["unidad_id"],
+        "unidad_codigo": fila["unidad_codigo"],
+        "unidad_nombre": fila["unidad_nombre"]
+    }
 
 
 def db_cargar_recetas_maestro_listado():
@@ -529,6 +674,8 @@ def db_cargar_receta_detalle(receta_id):
 
             ri.rol,
 
+            u.codigo AS unidad_codigo,
+
             u.nombre AS unidad_nombre
 
         FROM recetas_ingredientes ri
@@ -558,6 +705,8 @@ def db_cargar_receta_detalle(receta_id):
             "cantidad": f["cantidad"],
 
             "rol": f["rol"],
+
+            "unidad_codigo": f["unidad_codigo"],
 
             "unidad_nombre": f["unidad_nombre"]
 
@@ -761,10 +910,9 @@ def db_insertar_equivalencia(
                 factor
             )
         )
+        conn.commit()
 
     except Exception as e:
-
-        print("[RTN-016A] ERROR REAL EN INSERTAR EQUIVALENCIA:", repr(e))
 
         conn.rollback()
 
@@ -798,6 +946,67 @@ def db_borrar_equivalencia(equivalencia_id):
 
     finally:
         conn.close()
+
+
+def db_cargar_unidades_disponibles_por_ingrediente(ingrediente_id):
+    """
+    Devuelve las unidades disponibles para un ingrediente.
+
+    Esta función adapta la información del Motor de Conversión
+    al formato que necesita la interfaz web.
+
+    No realiza conversiones.
+
+    No modifica información.
+
+    Devuelve únicamente los datos necesarios para poblar el
+    selector de unidades durante la captura de recetas.
+    """
+
+    conn = get_connection()
+
+    cur = conn.cursor()
+
+    cur.execute(
+        """
+        SELECT
+            u.codigo,
+            u.nombre
+        FROM ingredientes i
+        JOIN unidades u
+            ON u.id = i.unidad_id
+        WHERE i.id = ?
+        """,
+        (ingrediente_id,)
+    )
+
+    unidad_base = cur.fetchone()
+
+    conn.close()
+
+    equivalencias = db_cargar_equivalencias(ingrediente_id)
+
+    unidades = []
+
+    if unidad_base:
+
+        unidades.append({
+
+            "codigo": unidad_base["codigo"],
+            "nombre": unidad_base["nombre"]
+
+        })
+
+    for equivalencia in equivalencias:
+
+        unidades.append({
+
+            "codigo": equivalencia["codigo"],
+            "nombre": equivalencia["nombre"]
+
+        })
+
+    return unidades
 
 
 if __name__ == "__main__":

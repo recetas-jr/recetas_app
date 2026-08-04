@@ -226,8 +226,8 @@ autocomplete="off">
             <thead>
                 <tr>
                     <th class="col-ing">Ingrediente</th>
-                    <th class="col-qty">Cantidad</th>
                     <th class="col-um">UM</th>
+                    <th class="col-qty">Cantidad</th>
                     <th class="col-rol">Deco</th>
                     <th class="col-um">UM</th>
                     <th class="col-qty">Cocina</th>
@@ -239,8 +239,10 @@ autocomplete="off">
                 {% if ingredientes_receta %}
                 {% for item in ingredientes_receta %}
                 <tr
-                    data-cantidad-canonica=""
-                    data-unidad-canonica="">
+                   data-cantidad-canonica=""
+                   data-deco-canonica=""
+                   data-cocina-canonica=""
+                   data-unidad-canonica="">
                     <td class="col-ing">
                         <select class="ing-select" name="ingrediente_id[]">
                             <option value="">— Seleccione —</option>
@@ -256,15 +258,6 @@ autocomplete="off">
                         </select>
                     </td>
 
-                    <td class="col-qty">
-                        <input type="text"
-                             class="ing-cantidad"
-                             name="cantidad[]"
-                             value="{{ item.cantidad }}"
-                             maxlength="6"
-                             style="width:70px; text-align:right;">
-                    </td>
-
                     <td class="col-um">
                         <!-- UM Base (compatibilidad temporal durante la Fase III-B) -->
                         <span
@@ -275,7 +268,16 @@ autocomplete="off">
                         <select
                             class="ing-um-select"
                             name="unidad[]">
-        </select>
+                        </select>
+                    </td>
+
+                    <td class="col-qty">
+                        <input type="text"
+                             class="ing-cantidad"
+                             name="cantidad[]"
+                             value="{{ item.cantidad }}"
+                             maxlength="6"
+                             style="width:70px; text-align:right;">
                     </td>
 
                     <td class="col-rol">
@@ -308,6 +310,8 @@ autocomplete="off">
                     id="fila-plantilla"
                     class="oculta"
                     data-cantidad-canonica=""
+                    data-deco-canonica=""
+                    data-cocina-canonica=""
                     data-unidad-canonica="">
 
                     <td class="col-ing">
@@ -334,19 +338,6 @@ autocomplete="off">
 
     </td>
 
-    <td class="col-qty">
-
-        <input
-            type="text"
-            class="ing-cantidad"
-            name="cantidad[]"
-            disabled
-            value="0"
-            maxlength="6"
-            style="width:70px; text-align:right;">
-
-    </td>
-
     <td class="col-um">
 
         <!-- UM Base (compatibilidad temporal durante la Fase III-B) -->
@@ -361,6 +352,19 @@ autocomplete="off">
             class="ing-um-select"
             name="unidad[]" disabled>
         </select>
+
+    </td>
+
+    <td class="col-qty">
+
+        <input
+            type="text"
+            class="ing-cantidad"
+            name="cantidad[]"
+            disabled
+            value="0"
+            maxlength="6"
+            style="width:70px; text-align:right;">
 
     </td>
 
@@ -549,10 +553,18 @@ autocomplete="off">
     bindShiftJump(presentacion, nutricion);
 
     nutricion.addEventListener("keydown", function(e){
-        if(e.key === "Enter" && e.shiftKey){
-            e.preventDefault();
-            crearFilaYEnfocarIngrediente();
+
+          if(e.key === "Enter" && e.shiftKey){
+
+              e.preventDefault();
+              e.stopPropagation();
+
+              crearFilaYEnfocarIngrediente();
+
+              return;
+
         }
+
     });
 
     const tbody = document.getElementById("tbody-ingredientes");
@@ -584,34 +596,9 @@ autocomplete="off">
         return count > 1;
     }
 
-    function prepararFila(fila){
+    function activarFilaIngrediente(fila){
 
-        const sel = fila.querySelector(".ing-select");
-        const qty = fila.querySelector(".ing-cantidad");
-        const rol = fila.querySelector(".ing-rol");
-
-        const umSpan = fila.querySelector(".ing-um");
-        const umRolSpan = fila.querySelector(".ing-um-rol");
-
-        const umCocinaSpan = fila.querySelector(".ing-um-cocina");
-        const cocinaSpan = fila.querySelector(".ing-cocina");
-
-        const btnBorrar = fila.querySelector(".btn-borrar");
-        /*----------------------------------------------------------
-        Motor de Conversión
-        Fase III-B
-
-        Referencia única al selector de Unidad de Medida.
-
-        Durante la transición este selector permanece oculto,
-        pero ya forma parte de la infraestructura permanente
-        del Motor.
-        ----------------------------------------------------------*/
-
-        const selectorUM = fila.querySelector(".ing-um-select");
-        function activarFila(){
-
-            document.querySelectorAll("#tbody-ingredientes tr").forEach(f=>{
+        document.querySelectorAll("#tbody-ingredientes tr").forEach(f=>{
             f.classList.remove("fila-activa");
         });
 
@@ -619,9 +606,341 @@ autocomplete="off">
 
     }
 
-        sel.addEventListener("focus", activarFila);
-        qty.addEventListener("focus", activarFila);
-        rol.addEventListener("focus", activarFila);    
+    function obtenerSelectorUM(fila){
+
+        return fila.querySelector(".ing-um-select");
+
+    }
+
+    function obtenerMagnitudesCulinarias(fila){
+
+        return {
+
+            qty: fila.querySelector(".ing-cantidad"),
+
+            rol: fila.querySelector(".ing-rol"),
+
+            cocinaSpan: fila.querySelector(".ing-cocina")
+
+        };  
+
+    }
+
+    function obtenerRepresentacionVisual(fila){
+
+        return {
+
+            umSpan: fila.querySelector(".ing-um"),
+
+            umRolSpan: fila.querySelector(".ing-um-rol"),
+
+            umCocinaSpan: fila.querySelector(".ing-um-cocina")
+
+        };
+
+    }
+
+    function sincronizarEstadoCanonico(fila, qty, rol, cocinaSpan){
+
+        fila.dataset.cantidadCanonica = qty.value || "0";
+
+        fila.dataset.decoCanonica = rol.value || "0";
+
+        fila.dataset.cocinaCanonica =
+            cocinaSpan
+                ? cocinaSpan.textContent || "0"
+                : "0";
+
+    }
+
+    function construirSelectorUM(selectorUM, unidades, umActual){
+
+        selectorUM.innerHTML = "";
+
+        for(const unidad of unidades){
+
+            const option = document.createElement("option");
+
+            option.value = unidad.codigo;
+
+            option.textContent = unidad.nombre;
+
+            if(unidad.nombre === umActual){
+
+                option.selected = true;
+
+            }
+
+            selectorUM.appendChild(option);
+
+        }
+
+    }
+
+    function inicializarUnidadCanonica(fila, opt){
+
+        const codigoCanonico =
+            opt.getAttribute("data-unidad-codigo") || "";
+
+        fila.dataset.unidadCanonica = codigoCanonico;
+
+    }
+
+    function inicializarRepresentacionVisual(
+        umSpan,
+        umRolSpan,
+        umCocinaSpan,
+        um
+    ){
+
+        umSpan.textContent = um;
+
+        umRolSpan.textContent = um;
+
+        if(umCocinaSpan){
+            umCocinaSpan.textContent = um;
+        }
+
+    }
+
+    function inicializarIngredienteSeleccionado(
+        fila,
+        opt,
+        umSpan,
+        umRolSpan,
+        umCocinaSpan,
+        um
+    ){
+
+        inicializarUnidadCanonica(
+            fila,
+            opt
+        );
+
+        inicializarRepresentacionVisual(
+            umSpan,
+            umRolSpan,
+            umCocinaSpan,
+            um
+        );
+
+    }
+
+    function inicializarUnidadCaptura(
+        selectorUM,
+        ingredienteId,
+        um
+    ){
+
+        const unidades =
+            unidadesPorIngrediente[ingredienteId] || [];
+
+        construirSelectorUM(
+            selectorUM,
+            unidades,
+            um
+        );
+
+    }
+
+    function obtenerEstadoCanonico(
+        fila,
+        qty,
+        rol,
+        cocinaSpan
+    ){
+
+        return {
+
+            cantidad: qty.value || "0",
+
+            deco: rol.value || "0",
+
+            cocina: cocinaSpan
+                ? cocinaSpan.textContent || "0"
+                : "0",
+
+            unidad: fila.dataset.unidadCanonica || ""
+
+        };
+
+    }
+
+    async function normalizarEstadoCanonico(estadoCanonico){
+
+        /*
+        FASE V
+
+        Primer punto de integración con el Motor.
+
+        En esta etapa todavía no se realiza ninguna conversión.
+
+        Se prepara la infraestructura para que el Motor
+        reciba el Estado Canónico y devuelva el Estado
+        Normalizado.
+        */
+
+        const respuesta = await fetch(
+            "/api/normalizar",
+            {
+                method: "POST",
+
+                headers:{
+                    "Content-Type":"application/json"
+                },
+
+                body: JSON.stringify(
+                    estadoCanonico
+                )
+
+            }
+        );
+
+        if(!respuesta.ok){
+
+            throw new Error(
+                "Error al normalizar el estado canónico."
+            );
+
+        }
+
+        const estadoNormalizado =
+            await respuesta.json();
+
+        console.log(
+            "Estado Normalizado recibido del Motor:",
+            estadoNormalizado
+        );
+
+        return estadoNormalizado;
+
+    }
+
+   async function reconstruirDesdeCanonico(
+        fila,
+        estadoNormalizado
+    ){
+
+        if(!estadoNormalizado.ok){
+            return;
+        }
+
+        const cocinaSpan =
+            fila.querySelector(".ing-cocina");
+
+        cocinaSpan.textContent =
+            estadoNormalizado.cocina_captura;
+
+    }
+
+    function construirEstadoCanonico(
+        sel,
+        selectorUM,
+        cantidad,
+        deco,
+        cocina
+    ){
+
+        return {
+
+            ingredienteId: sel.value,
+
+            unidadCaptura: selectorUM.value,
+
+            cantidadCaptura: cantidad,
+
+            decoCaptura: deco,
+
+            cocinaCaptura: cocina
+
+        };
+
+    }
+
+    function calcularMagnitudesCulinarias(qty, rol){
+
+        const cantidad =
+            parseFloat((qty.value || "0").replace(",", ".")) || 0;
+
+        const deco =
+            parseFloat((rol.value || "0").replace(",", ".")) || 0;
+
+        const cocina =
+            Math.max(0, cantidad - deco);
+
+        return {
+
+            cantidad,
+
+            deco,
+
+            cocina
+
+        };
+
+    }
+
+    function prepararFila(fila){
+
+        // ==========================================================
+        // ==========================================================
+
+        const sel = fila.querySelector(".ing-select");
+
+        /*----------------------------------------------------------
+        Unidad de Captura de la Fila.
+
+        Representa el contexto compartido por las magnitudes
+        Cantidad, Deco y Cocina.
+
+        En la FASE V deja de interpretarse como la unidad de
+        Cantidad y pasa a representar la Unidad de Captura
+        de toda la fila.
+        ----------------------------------------------------------*/
+
+        const selectorUM = obtenerSelectorUM(fila);
+
+       // ==========================================================
+       // MAGNITUDES CULINARIAS
+       // ==========================================================
+
+        const magnitudes = obtenerMagnitudesCulinarias(fila);
+
+        const qty = magnitudes.qty;
+        const rol = magnitudes.rol;
+        const cocinaSpan = magnitudes.cocinaSpan;
+ 
+       // ==========================================================
+       // REPRESENTACIÓN VISUAL
+       // ==========================================================
+
+        const representacionVisual = obtenerRepresentacionVisual(fila);
+
+        const umSpan = representacionVisual.umSpan;
+        const umRolSpan = representacionVisual.umRolSpan;
+        const umCocinaSpan = representacionVisual.umCocinaSpan;
+
+       // ==========================================================
+       // ACCIONES
+       // ==========================================================
+
+        const btnBorrar = fila.querySelector(".btn-borrar");
+        
+        sel.addEventListener("focus", function(){
+            activarFilaIngrediente(fila);
+        });
+
+        qty.addEventListener("focus", function(){
+            activarFilaIngrediente(fila);
+        });
+
+        rol.addEventListener("focus", function(){
+            activarFilaIngrediente(fila);
+        }); 
+        
+        // ==========================================================
+        // INICIALIZACIÓN DEL INGREDIENTE
+        // ==========================================================
 
         sel.addEventListener("change", function(){
 
@@ -634,23 +953,30 @@ autocomplete="off">
             const ingredienteId = sel.value;
 
             /*-----------------------------------------
-            Inicialización del estado canónico
-            de la fila para el Motor de Conversión.
+            FASE V
+
+            Inicialización del contexto de la fila.
+
+            Al seleccionar un ingrediente quedan definidos:
+
+            • Ingrediente de la fila.
+            • Unidad canónica del ingrediente.
+            • Estado canónico inicial.
+
+            La Unidad de Captura de la fila se inicializa
+            a partir de la unidad canónica y posteriormente
+            podrá ser modificada por el operador sin alterar
+            la identidad del ingrediente.
             -----------------------------------------*/
 
-            fila.dataset.cantidadCanonica = qty.value || "0";
-
-            const codigoCanonico =
-                opt.getAttribute("data-unidad-codigo") || "";
-
-            fila.dataset.unidadCanonica = codigoCanonico;
-
-            umSpan.textContent = um;
-umRolSpan.textContent = um;
-
-if (umCocinaSpan) {
-    umCocinaSpan.textContent = um;
-}
+             inicializarIngredienteSeleccionado(
+                fila,
+                opt,
+                umSpan,
+                umRolSpan,
+                umCocinaSpan,
+                um
+            );
 
 clearMsg();
 
@@ -665,27 +991,14 @@ if (!selectorUM) {
 
 // selectorUM.style.display = "inline-block";
 
-selectorUM.innerHTML = "";
+inicializarUnidadCaptura(
+    selectorUM,
+    ingredienteId,
+    um
+);
 
-
-            const unidades =
-                unidadesPorIngrediente[ingredienteId] || [];
-
-            for (const unidad of unidades) {
-
-                const option = document.createElement("option");
-
-                option.value = unidad.codigo;
-
-                option.textContent = unidad.nombre;
-
-                if (unidad.nombre === um) {
-                    option.selected = true;
-                }
-
-                selectorUM.appendChild(option);
-
-            }
+const unidades =
+    unidadesPorIngrediente[ingredienteId] || [];
 
             console.log(
                 "Motor Fase III-B",
@@ -694,12 +1007,14 @@ selectorUM.innerHTML = "";
                     unidades: unidades
                 }
             ); 
+            // ==========================================================
+            // FIN INICIALIZACIÓN DEL INGREDIENTE
+            // ==========================================================
 
             console.log(
                 "Motor Fase III-B -> Opciones creadas:",
                 selectorUM.options.length
             );
-
         });
 
         /*----------------------------------------------------------
@@ -734,25 +1049,73 @@ selectorUM.innerHTML = "";
                 e.preventDefault();
                 e.stopPropagation();
 
-                rol.focus();
-                rol.select();
-
+                qty.focus();
+                qty.select();
             }
 
         });
 
-        function actualizarCantidadCanonica(){
+        /*----------------------------------------------------------
+        FASE V
+
+        Estado culinario de la Fila de Ingrediente.
+
+        Esta función será la única responsable de mantener
+        coherente el estado culinario asociado a una fila.
+
+        La fila contiene tres magnitudes culinarias:
+
+            • Cantidad
+            • Deco
+            • Cocina
+
+        Las tres comparten una única Unidad de Captura.
+
+        Cualquier modificación realizada por el operador sobre
+        estas magnitudes o sobre la Unidad de Captura deberá
+        mantener sincronizado el estado interno de la fila.
+
+        La implementación de esta responsabilidad será
+        incorporada progresivamente durante la FASE V.
+        ----------------------------------------------------------*/
+
+        async function actualizarEstadoCulinario(){
 
             clearMsg();
 
+            // ===== ESTADO CANÓNICO DE LA FILA =====
+
             fila.dataset.cantidadCanonica = qty.value || "0";
 
-            const cantidad =
-                parseFloat((qty.value || "0").replace(",", ".")) || 0;
+            /*----------------------------------------------------------
+            FASE V
 
-            if (!cocinaSpan) {
-                return;
-            }
+            Mientras no exista todavía la normalización individual
+            de Deco y Cocina, inicializamos explícitamente sus
+            representaciones canónicas.
+
+            Esto garantiza que el estado interno de la fila permanezca
+            completo desde el primer momento.
+            ----------------------------------------------------------*/
+
+            fila.dataset.decoCanonica = rol.value || "0";
+
+            fila.dataset.cocinaCanonica =
+                cocinaSpan
+                    ? cocinaSpan.textContent || "0"
+                    : "0";
+
+            const magnitudes =
+                calcularMagnitudesCulinarias(
+                    qty,
+                    rol
+                );
+
+            const cantidad = magnitudes.cantidad;
+
+            const deco = magnitudes.deco;
+
+            const cocina = magnitudes.cocina;
 
             if (!sel.value || !selectorUM.value) {
 
@@ -761,50 +1124,106 @@ selectorUM.innerHTML = "";
 
             }
 
-            fetch("/api/normalizar", {
+            /*----------------------------------------------------------
+            FASE V
 
-                method: "POST",
+            Punto de integración con el Motor.
 
-                headers: {
-                    "Content-Type": "application/json"
-                },
+            En la siguiente etapa la Cantidad expresada en la
+            Unidad de Captura será normalizada hacia la
+            representación canónica del ingrediente.
 
-                body: JSON.stringify({
+            La implementación se realizará utilizando el
+            Motor de Conversión sin modificar la receta.
+            ----------------------------------------------------------*/
 
-                    ingrediente_id: Number(sel.value),
+            const estadoCanonico = {
 
-                    cantidad: cantidad,
+                ingredienteId: sel.value,
 
-                    unidad_origen: selectorUM.value
+                unidadCaptura: selectorUM.value,
 
-                })
+                cantidadCaptura: cantidad,
 
-            })
-            .then(r => r.json())
-            .then(json => {
+                decoCaptura: deco,
 
-                if (json.ok) {
+                cocinaCaptura: cocina
 
-                    cocinaSpan.textContent =
-                        Number(json.cantidad_canonica).toFixed(2);
+            };
 
-                }
+            // El Motor recibirá estadoCanonico y devolverá
+            // estadoNormalizado sin modificar la receta.
 
-            })
-            .catch(() => {
+            const estadoNormalizado =
+                await normalizarEstadoCanonico(
+                    estadoCanonico
+                );
 
-                cocinaSpan.textContent = "ERROR";
+                await reconstruirDesdeCanonico(
+                    fila,
+                    estadoNormalizado
+                );
 
-            });
+            // ===== FIN DEL ESTADO CANÓNICO =====
+
+            /*----------------------------------------------------------
+            FASE V
+
+            Normalización de la representación culinaria.
+
+            La fila entrega al Motor una magnitud expresada en la
+            Unidad de Captura y recibe su representación canónica.
+
+            En esta etapa se normaliza únicamente la magnitud
+            Cantidad.
+
+            En fases posteriores este mismo patrón será reutilizado
+            para Deco y Cocina.
+            ----------------------------------------------------------*/
 
         }
 
+        /*----------------------------------------------------------
+        FASE V
+
+        Cambio de la Unidad de Captura de la fila.
+
+        Principio arquitectónico:
+
+        El cambio de Unidad de Captura NO modifica la receta.
+
+        Únicamente modifica su representación culinaria.
+
+        La reconstrucción de las magnitudes culinarias se
+        realizará siempre a partir de la representación
+        canónica almacenada por la fila.
+
+        Durante esta etapa se mantiene el comportamiento
+        actual mientras se incorpora el soporte de
+        conversión inversa del Motor.
+        ----------------------------------------------------------*/
+
         selectorUM.addEventListener("change", function(){
 
-            actualizarCantidadCanonica();
+            const textoUM =
+                selectorUM.options[selectorUM.selectedIndex].text;
+
+            umSpan.textContent = textoUM;
+
+            umRolSpan.textContent = textoUM;
+
+            umCocinaSpan.textContent = textoUM;
+
+            qty.value = "0";
+
+            rol.value = "0";
+
+            cocinaSpan.textContent = "0";
+
+            actualizarEstadoCulinario();
 
             console.log(
-                "Unidad de captura seleccionada:",
+                "Unidad de captura de la fila:",
                 selectorUM.value
             );
 
@@ -812,13 +1231,40 @@ selectorUM.innerHTML = "";
 
         qty.addEventListener("input", function(){
 
-            actualizarCantidadCanonica();
+            actualizarEstadoCulinario();
 
         });
         
         rol.addEventListener("input", function(){
 
-            clearMsg();
+            /*----------------------------------------------------------
+            FASE V
+
+            Toda modificación de una magnitud culinaria deberá
+            actualizar el Estado Culinario de la Fila.
+
+            Actualmente este bloque mantiene la lógica histórica
+            de Deco.
+
+            En las siguientes etapas esta lógica será absorbida
+            progresivamente por actualizarCantidadCanonica(),
+            convirtiéndose en el único punto de sincronización
+            del estado culinario.
+            ----------------------------------------------------------*/
+
+            /*----------------------------------------------------------
+            FASE V
+
+            INICIO DE LA MIGRACIÓN
+
+            A partir de este punto el bloque comienza a asumir
+            responsabilidades que progresivamente serán trasladadas
+            a actualizarCantidadCanonica().
+
+            La primera responsabilidad a migrar será la lectura de
+            la magnitud Cantidad, para que exista un único punto de
+            lectura y sincronización del estado culinario de la fila.
+            ----------------------------------------------------------*/
 
             const cantidad = parseFloat((qty.value || "0").replace(",", ".")) || 0;
             const deco = parseFloat((rol.value || "0").replace(",", ".")) || 0;
@@ -839,13 +1285,7 @@ selectorUM.innerHTML = "";
 
             }
 
-            if(cocina < 0){
-                cocina = 0;
-            }
-
-            if(cocinaSpan){
-                cocinaSpan.textContent = cocina.toFixed(2);
-            }
+            actualizarEstadoCulinario();
 
         });
 
@@ -858,8 +1298,7 @@ selectorUM.innerHTML = "";
                     return;
                 }
                 clearMsg();
-                qty.focus();
-                qty.select();
+                selectorUM.focus();
             }
         });
 
@@ -876,8 +1315,8 @@ selectorUM.innerHTML = "";
 
                     showMsg("La cantidad debe ser mayor que 0.");
 
-                    qty.focus();
-                    qty.select();
+                    selectorUM.focus();
+                    selectorUM.click();
 
                     return;
 
@@ -885,7 +1324,8 @@ selectorUM.innerHTML = "";
 
                 clearMsg();
 
-                selectorUM.focus();
+                rol.focus();
+                rol.select();
 
             }
 

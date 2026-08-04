@@ -1008,11 +1008,13 @@ def api_normalizar():
 
     try:
 
-        ingrediente_id = int(datos["ingrediente_id"])
+        ingrediente_id = int(datos["ingredienteId"])
 
-        cantidad = float(datos["cantidad"])
+        cantidad = float(datos["cantidadCaptura"])
 
-        unidad_origen = str(datos["unidad_origen"])
+        deco = float(datos["decoCaptura"])
+
+        unidad_origen = str(datos["unidadCaptura"])
 
         cantidad_canonica = normalizar(
 
@@ -1024,11 +1026,32 @@ def api_normalizar():
 
         )
 
+        deco_canonica = normalizar(
+
+            ingrediente_id=ingrediente_id,
+
+            cantidad=deco,
+
+            unidad_origen=unidad_origen
+
+        )
+
+        cocina_captura = cantidad - deco
+
         return jsonify({
 
             "ok": True,
 
-            "cantidad_canonica": cantidad_canonica
+            "cantidad_canonica": cantidad_canonica,
+
+            "cocina_canonica":
+            cantidad_canonica - deco_canonica,
+
+            "deco_canonica":
+                deco_canonica,
+
+            "cocina_captura":
+                cocina_captura,
 
         })
 
@@ -1052,10 +1075,6 @@ def api_representar():
 
     datos = request.get_json()
 
-    print("\n========== JSON RECIBIDO ==========")
-    print(datos)
-    print("==================================\n")
-
     if datos is None:
         return jsonify({
             "ok": False,
@@ -1077,17 +1096,6 @@ def api_representar():
     unidad_canonica = str(datos["unidad_canonica"])
 
     unidad_destino = str(datos["unidad_destino"])
-
-    print()
-    print("========== DATOS DE ENTRADA ==========")
-    print("ingrediente_id :", ingrediente_id)
-    print("unidad_canonica:", unidad_canonica)
-    print("unidad_destino :", unidad_destino)
-    print("cocina         :", cocina_canonica)
-    print("deco           :", deco_canonica)
-    print("cantidad       :", cantidad_canonica)
-    print("======================================")
-    print()
 
     cocina_convertida = representar(
 
@@ -1115,8 +1123,6 @@ def api_representar():
         unidad_destino
 
     )
-
-    print("RESULTADO REPRESENTADO:", cantidad_convertida)
 
     return jsonify({
         "ok": True,
@@ -1503,8 +1509,8 @@ def admin_recetas_editar(receta_id):
             if ing_id in vistos:
                 flash("No se permiten ingredientes duplicados en la receta.", "error")
                 return render_template(
-                    "admin_recetas_nueva.html",
-                    **contexto_receta
+                    "admin_recetas_editar.html"
+                    ** contexto_receta
                 )
             vistos.add(ing_id)
 
@@ -1513,16 +1519,16 @@ def admin_recetas_editar(receta_id):
             except:
                 flash("La cantidad debe ser numérica.", "error")
                 return render_template(
-                    "admin_recetas_nueva.html",
-                    **contexto_receta
+                    "admin_recetas_editar.html"
+                    ** contexto_receta
                 )
 
             if cant_f <= 0:
                 flash(
                     "La cantidad debe ser mayor que 0 en todos los ingredientes.", "error")
                 return render_template(
-                    "admin_recetas_nueva.html",
-                    **contexto_receta
+                    "admin_recetas_editar.html"
+                    ** contexto_receta
                 )
 
             if rol_txt == "":
@@ -1533,22 +1539,22 @@ def admin_recetas_editar(receta_id):
                 except:
                     flash("La decoracion debe ser numérica.", "error")
                     return render_template(
-                        "admin_recetas_nueva.html",
-                        **contexto_receta
+                        "admin_recetas_editar.html"
+                        ** contexto_receta
                     )
 
                 if rol_f < 0:
                     flash("La decoracion no puede ser negativa.", "error")
                     return render_template(
-                        "admin_recetas_nueva.html",
-                        **contexto_receta
+                        "admin_recetas_editar.html"
+                        ** contexto_receta
                     )
 
                 if rol_f > cant_f:
                     flash("La decoracion no puede ser mayor que la cantidad.", "error")
                     return render_template(
-                        "admin_recetas_nueva.html",
-                        **contexto_receta
+                        "admin_recetas_editar.html"
+                        ** contexto_receta
                     )
 
             filas_validas.append(
@@ -1637,6 +1643,8 @@ def admin_recetas_editar(receta_id):
             return redirect("/admin/recetas/listado")
 
         except Exception as e:
+
+            print("ERROR REAL AL GUARDAR:", repr(e))
 
             try:
 

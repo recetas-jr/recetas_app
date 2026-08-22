@@ -1,80 +1,189 @@
 <!-- Archivo: modulo_web/templates/admin_recetas_nueva.html -->
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <title>Master de Recetas — Nueva</title>
     <style>
-        body { font-family: Arial, sans-serif; background:#f2f4f8; margin:0; padding:0; }
-
-        
-
-        .container { max-width: 1250px; margin: 20px auto; background:#fff; padding:16px; border-radius:6px; }
-
-        h2 { margin-top:0; }
-        .fila { display:flex; gap:10px; align-items:center; margin-bottom:8px; flex-wrap:wrap; }
-        .campo { display:flex; align-items:center; gap:6px; }
-        label { font-weight:bold; }
-        input, select, textarea { padding:6px; font-size:14px; box-sizing:border-box; }
-
-        textarea { width:100%; min-height:60px; resize:vertical; }
-
-        .hint { color:#0b9b0b; font-weight:bold; font-size:12px; margin:4px 0 10px 0; }
-        .error { color:#cc0000; font-weight:bold; margin-bottom:10px; }
-        .ok { color:#0b9b0b; font-weight:bold; margin-bottom:10px; }
-        .btn { padding:6px 12px; border-radius:4px; border:none; cursor:pointer; }
-        .btn-prim { background:#1f6feb; color:#fff; }
-        .btn-sec { background:#777; color:#fff; }
-        .btn-ter { background:#4b7bec; color:#fff; }
-        .tabla{
-            width:100%;
-            border-collapse:collapse;
-            margin-top:10px;
-            table-layout:fixed;
+        body {
+            font-family: Arial, sans-serif;
+            background: #f2f4f8;
+            margin: 0;
+            padding: 0;
         }
-        .tabla th, .tabla td { border:1px solid #ddd; padding:6px; }
-        .tabla th { background:#f0f0f0; font-weight:bold; }
+
+
+
+        .container {
+            max-width: 1250px;
+            margin: 20px auto;
+            background: #fff;
+            padding: 16px;
+            border-radius: 6px;
+        }
+
+        h2 {
+            margin-top: 0;
+        }
+
+        .fila {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            margin-bottom: 8px;
+            flex-wrap: wrap;
+        }
+
+        .campo {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        label {
+            font-weight: bold;
+        }
+
+        input,
+        select,
+        textarea {
+            padding: 6px;
+            font-size: 14px;
+            box-sizing: border-box;
+        }
+
+        textarea {
+            width: 100%;
+            min-height: 60px;
+            resize: vertical;
+        }
+
+        .hint {
+            color: #0b9b0b;
+            font-weight: bold;
+            font-size: 12px;
+            margin: 4px 0 10px 0;
+        }
+
+        .error {
+            color: #cc0000;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .ok {
+            color: #0b9b0b;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .btn {
+            padding: 6px 12px;
+            border-radius: 4px;
+            border: none;
+            cursor: pointer;
+        }
+
+        .btn-prim {
+            background: #1f6feb;
+            color: #fff;
+        }
+
+        .btn-sec {
+            background: #777;
+            color: #fff;
+        }
+
+        .btn-ter {
+            background: #4b7bec;
+            color: #fff;
+        }
+
+        .tabla {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+            table-layout: fixed;
+        }
+
+        .tabla th,
+        .tabla td {
+            border: 1px solid #ddd;
+            padding: 6px;
+        }
+
+        .tabla th {
+            background: #f0f0f0;
+            font-weight: bold;
+        }
+
         .col-ing {
-            width:220px;
+            width: 220px;
         }
 
         .col-qty {
-            width:75px;
-            text-align:right;
+            width: 75px;
+            text-align: right;
         }
 
         .col-rol {
-            width:65px;
-            text-align:right;
+            width: 65px;
+            text-align: right;
+        }
+
+        .col-exp {
+            width: 110px;
+            text-align: center;
+            font-size: 12px;
         }
 
         .col-um {
-            width:170px;
-            color:#333;
-        }
-        .ing-cocina{
-            width:70px;
-            display:inline-block;
-            text-align:right;
-        }
-        .row-actions{
-            width:90px;
-            text-align:center;
-            vertical-align:middle;
+            width: 170px;
+            color: #333;
         }
 
-        .btn-borrar{
-            background:#cc0000;
-            color:#fff;
-
-            min-width:70px;
+        .ing-cocina {
+            width: 70px;
+            display: inline-block;
+            text-align: right;
         }
-        .btn-borrar { background:#cc0000; color:#fff; }
-        .oculta { display:none; }
 
-        input:focus, select:focus, textarea:focus, button:focus {
+        .row-actions {
+            width: 90px;
+            text-align: center;
+            vertical-align: middle;
+        }
+
+        .btn-borrar {
+            background: #cc0000;
+            color: #fff;
+
+            min-width: 70px;
+        }
+
+        .btn-borrar {
+            background: #cc0000;
+            color: #fff;
+        }
+
+        .oculta {
+            display: none;
+        }
+
+        input:focus,
+        select:focus,
+        textarea:focus,
+        button:focus {
             outline: none;
             background: #f1e9ff;
+        }
+
+        .ing-select:focus,
+        .ing-um-select:focus {
+            background: #d9ead3 !important;
+            border: 2px solid #388e3c !important;
+            box-shadow: 0 0 8px rgba(56, 142, 60, 0.75);
         }
 
         .acciones-top {
@@ -96,23 +205,53 @@
             gap: 16px;
             margin-bottom: 8px;
         }
-        .texto-bloque label { display:block; margin-bottom:4px; }
+
+        .texto-bloque label {
+            display: block;
+            margin-bottom: 4px;
+        }
 
         .modal-backdrop {
-            position:fixed; inset:0; background:rgba(0,0,0,.35); display:none; align-items:center; justify-content:center;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, .35);
+            display: none;
+            align-items: center;
+            justify-content: center;
         }
+
         .modal {
-            background:#fff; border-radius:6px; padding:10px; max-width:700px; width:90%;
+            background: #fff;
+            border-radius: 6px;
+            padding: 10px;
+            max-width: 700px;
+            width: 90%;
         }
-        .modal table { width:100%; border-collapse:collapse; }
-        .modal th, .modal td { border:1px solid #ddd; padding:6px; }
-        .modal th { background:#f0f0f0; }
-        .modal .actions { text-align:right; margin-top:8px; }
+
+        .modal table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .modal th,
+        .modal td {
+            border: 1px solid #ddd;
+            padding: 6px;
+        }
+
+        .modal th {
+            background: #f0f0f0;
+        }
+
+        .modal .actions {
+            text-align: right;
+            margin-top: 8px;
+        }
 
         .msg-js {
-            color:#cc0000;
-            font-weight:bold;
-            margin:6px 0 6px 0;
+            color: #cc0000;
+            font-weight: bold;
+            margin: 6px 0 6px 0;
         }
 
         .titulo-ingredientes {
@@ -123,1276 +262,1907 @@
 
         .ing-um,
         .ing-um-rol,
-        .ing-um-cocina{
+        .ing-um-cocina {
 
-            background:#fde68a;
-            color:#92400e;
+            background: #b8874f;
+            color: #ffffff;
 
-            padding:1px 4px;
+            padding: 1px 4px;
 
-            border-radius:4px;
+            border-radius: 4px;
 
-            display:inline-block;
-
-        }
-
-        .ing-um-select{
-
-            width:100%;
-
-            box-sizing:border-box;
+            display: inline-block;
 
         }
 
-        .fila-activa{
-             background:#fff2cc;
+        .ing-um-select {
+
+            width: 100%;
+
+            box-sizing: border-box;
+
+        }
+
+        .fila-activa {
+            background: #fff2cc;
+
+        }
+
+        .encabezado-azul {
+            background: #93c5fd !important;
+        }
+
+        .encabezado-naranja {
+            background: #fed7aa !important;
+        }
+
+
+
+        /* ==========================================================
+           INDICACIÓN VISUAL DEL USO DE EXPRESIONES CULINARIAS
+
+           AZUL  = EXPRESION-C
+           NARANJA   = EXPRESION-D
+           ========================================================== */
+
+        .ing-expresion.expresion-atencion-cantidad {
+            background: #93c5fd !important;
+        }
+
+        .ing-cantidad.atencion-cantidad {
+            background: #93c5fd !important;
+        }
+
+        .ing-expresion.expresion-atencion-deco {
+            background: #fed7aa !important;
+        }
+
+        .ing-rol.atencion-deco {
+            background: #fed7aa !important;
+        }
+
+        @keyframes expresionCantidad {
+
+            0%,
+            100% {
+                box-shadow: 0 0 0 rgba(25, 118, 210, 0);
+            }
+
+            50% {
+                box-shadow: 0 0 10px rgba(25, 118, 210, 0.9);
+            }
+        }
+
+        @keyframes expresionDeco {
+
+            0%,
+            100% {
+                box-shadow: 0 0 0 rgba(230, 126, 34, 0);
+            }
+
+            50% {
+                box-shadow: 0 0 10px rgba(230, 126, 34, 0.9);
+            }
         }
     </style>
 </head>
+
 <body>
 
-<!-- Botón al Menú principal -->
+    <!-- Botón al Menú principal -->
 
-{% include "componentes/menu_superior.html" %}
-    
-<div class="container">
+    {% include "componentes/menu_superior.html" %}
 
-    <h2>Master de Recetas — Nueva</h2>
+    <div class="container">
 
-    {% with messages = get_flashed_messages(with_categories=true) %}
-      {% if messages %}
+        <h2>Master de Recetas — Nueva</h2>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
         {% for category, message in messages %}
-          <div class="{{ category }}">{{ message|safe }}</div>
+        <div class="{{ category }}">{{ message|safe }}</div>
         {% endfor %}
-      {% endif %}
-    {% endwith %}
+        {% endif %}
+        {% endwith %}
 
-    <div class="acciones-top">
-        <button type="submit" form="form-master" class="btn btn-prim">Guardar receta</button>
-        <button type="button" id="btn-ir-listado" class="btn btn-ter">Ir al Listado</button>
-        <button type="button" id="btn-cancelar" class="btn btn-sec">Cancelar</button>
+        <div class="acciones-top">
+            <button type="submit" form="form-master" class="btn btn-prim">Guardar receta</button>
+            <button type="button" id="btn-ir-listado" class="btn btn-ter">Ir al Listado</button>
+            <button type="button" id="btn-cancelar" class="btn btn-sec">Cancelar</button>
+        </div>
+
+        <form id="form-master" method="post"
+            action="{{ '/admin/recetas/editar/' ~ receta.id if receta else '/admin/recetas/nueva' }}"
+            autocomplete="off">
+
+            <div class="fila">
+                <div class="campo">
+                    <label>Plato:</label>
+                    <input type="hidden" id="plato_id" name="plato_id">
+                    <input type="text" id="plato_nombre" placeholder="Seleccione un plato..." readonly
+                        style="width:420px;">
+                    <button type="button" id="btn-buscar-plato" class="btn btn-sec">Buscar</button>
+                </div>
+            </div>
+
+            <div class="fila">
+                <div class="campo">
+                    <label>Raciones base:</label>
+                    <input type="text" id="raciones" name="raciones_base" maxlength="3"
+                        style="width:55px; text-align:right;">
+                </div>
+            </div>
+
+            <div id="msg-js" class="msg-js" style="display:none;"></div>
+
+            <div class="textos-grid">
+                <div class="texto-bloque">
+                    <label>PREPARACIÓN:</label>
+                    <textarea id="preparacion" name="preparacion"
+                        placeholder="Describa la preparación...">{{ receta.preparacion if receta else '' }}</textarea>
+                    <div class="hint">&lt;Enter&gt; cambia de línea | &lt;Shift+Enter&gt; salta al siguiente campo</div>
+                </div>
+
+                <div class="texto-bloque">
+                    <label>ELABORACIÓN:</label>
+                    <textarea id="elaboracion" name="elaboracion"
+                        placeholder="Describa la elaboración...">{{ receta.elaboracion if receta else '' }}</textarea>
+                    <div class="hint">&lt;Enter&gt; cambia de línea | &lt;Shift+Enter&gt; salta al siguiente campo</div>
+                </div>
+
+                <div class="texto-bloque">
+                    <label>PRESENTACIÓN:</label>
+                    <textarea id="presentacion" name="presentacion"
+                        placeholder="Describa la presentación...">{{ receta.presentacion if receta else '' }}</textarea>
+                    <div class="hint">&lt;Enter&gt; cambia de línea | &lt;Shift+Enter&gt; salta al siguiente campo</div>
+                </div>
+
+                <div class="texto-bloque">
+                    <label>NUTRICIÓN:</label>
+                    <textarea id="nutricion" name="nutricion"
+                        placeholder="Información nutricional...">{{ receta.nutricion if receta else '' }}</textarea>
+                    <div class="hint">&lt;Enter&gt; cambia de línea | &lt;Shift+Enter&gt; crea fila de ingrediente</div>
+                </div>
+            </div>
+
+
+            <table class="tabla">
+                <thead>
+                    <tr>
+                        <th class="col-ing">Ingrediente</th>
+                        <th class="col-um">UM</th>
+                        <th class="col-exp" id="encabezado-expresion">EXPRESION-C</th>
+                        <th class="col-qty" id="encabezado-cantidad">Cantidad</th>
+                        <th class="col-rol">Deco</th>
+                        <th class="col-um">UM</th>
+                        <th class="col-qty">Cocina</th>
+                        <th class="col-um">UM</th>
+                        <th class="row-actions">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody id="tbody-ingredientes">
+                    {% if ingredientes_receta %}
+                    {% for item in ingredientes_receta %}
+                    <tr data-cantidad-canonica="" data-deco-canonica="" data-cocina-canonica="" data-unidad-canonica="">
+                        <td class="col-ing">
+                            <select class="ing-select" name="ingrediente_id[]">
+                                <option value="">— Seleccione —</option>
+                                {% for ing in ingredientes %}
+                                <option value="{{ ing.id }}" data-unidad-id="{{ ing.unidad_id }}"
+                                    data-unidad-codigo="{{ ing.unidad_codigo }}" data-um="{{ ing.unidad_nombre }}" {% if
+                                    ing.id==item.ingrediente_id %}selected{% endif %}>
+                                    {{ ing.nombre }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </td>
+
+                        <td class="col-um">
+
+                            <!-- UM Base (compatibilidad temporal durante la Fase III-B) -->
+                            <span class="ing-um" style="display:none;">—</span>
+
+                            <!-- Unidad de captura (preparación para integración del Motor) -->
+                            <select class="ing-um-select" name="unidad[]">
+                            </select>
+
+                        </td>
+
+                        <td class="col-exp">
+
+                            <select class="ing-expresion" name="expresion_id[]">
+
+                                <option value="">— Ninguna —</option>
+
+                            </select>
+
+                        </td>
+
+                        <td class="col-qty">
+                            <input type="text" class="ing-cantidad" name="cantidad[]" value="{{ item.cantidad }}"
+                                maxlength="6" style="width:70px; text-align:right;">
+                        </td>
+
+                        <td class="col-rol">
+                            <input type="text" class="ing-rol" name="rol[]" value="{{ item.rol }}" maxlength="6"
+                                style="width:70px; text-align:right;">
+                        </td>
+
+                        <td class="col-um">
+                            <span class="ing-um-rol">—</span>
+                        </td>
+                        <td class="col-qty">
+                            <span class="ing-cocina">0.00</span>
+                        </td>
+
+                        <td class="col-um">
+                            <span class="ing-um-cocina">—</span>
+                        </td>
+
+                        <td class="row-actions">
+                            <button type="button" class="btn btn-borrar">Borrar</button>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                    {% endif %}
+                    <tr id="fila-plantilla" class="oculta" data-cantidad-canonica="" data-deco-canonica=""
+                        data-cocina-canonica="" data-unidad-canonica="">
+
+                        <td class="col-ing">
+
+                            <select class="ing-select" name="ingrediente_id[]" disabled>
+
+                                <option value="">— Seleccione —</option>
+
+                                {% for ing in ingredientes %}
+
+                                <option value="{{ ing.id }}" data-unidad-id="{{ ing.unidad_id }}"
+                                    data-unidad-codigo="{{ ing.unidad_codigo }}" data-um="{{ ing.unidad_nombre }}">
+
+                                    {{ ing.nombre }}
+
+                                </option>
+
+                                {% endfor %}
+
+                            </select>
+
+                        </td>
+
+                        <td class="col-um">
+
+                            <!-- UM Base (compatibilidad temporal durante la Fase III-B) -->
+
+                            <span class="ing-um" style="display:none;">—</span>
+
+                            <!-- Unidad de captura (Motor Fase III-B) -->
+
+                            <select class="ing-um-select" name="unidad[]" disabled>
+                            </select>
+
+                        </td>
+
+                        <td class="col-exp">
+
+                            <select class="ing-expresion" name="expresion_id[]" disabled>
+
+                                <option value="">— Ninguna —</option>
+
+                            </select>
+
+                        </td>
+
+                        <td class="col-qty">
+
+                            <input type="text" class="ing-cantidad" name="cantidad[]" disabled value="0" maxlength="6"
+                                style="width:70px; text-align:right;">
+
+                        </td>
+
+                        <td class="col-rol">
+
+                            <input type="text" class="ing-rol" name="rol[]" disabled value="0" maxlength="6"
+                                style="width:70px; text-align:right;">
+
+                        </td>
+
+                        <td class="col-um">
+
+                            <span class="ing-um-rol">—</span>
+
+                        </td>
+
+                        <td class="col-qty">
+
+                            <span class="ing-cocina">0.00</span>
+
+                        </td>
+
+                        <td class="col-um">
+
+                            <span class="ing-um-cocina">—</span>
+
+                        </td>
+
+                        <td class="row-actions">
+
+                            <button type="button" class="btn btn-borrar">
+                                Borrar
+                            </button>
+
+                        </td>
+
+                    </tr>
+                </tbody>
+            </table>
+
+        </form>
     </div>
 
-    <form id="form-master" method="post"
-action="{{ '/admin/recetas/editar/' ~ receta.id if receta else '/admin/recetas/nueva' }}"
-autocomplete="off">
-
-        <div class="fila">
-            <div class="campo">
-                <label>Plato:</label>
-                <input type="hidden" id="plato_id" name="plato_id">
-                <input type="text" id="plato_nombre" placeholder="Seleccione un plato..." readonly style="width:420px;">
-                <button type="button" id="btn-buscar-plato" class="btn btn-sec">Buscar</button>
+    <div id="modal-backdrop" class="modal-backdrop">
+        <div class="modal">
+            <h3>Seleccione un plato</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Nombre</th>
+                        <th>Acción</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for p in platos %}
+                    <tr>
+                        <td>{{ p.nombre }}</td>
+                        <td><button type="button" class="btn btn-prim btn-sel-plato" data-id="{{ p.id }}"
+                                data-nombre="{{ p.nombre }}">Seleccionar</button></td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            <div class="actions">
+                <button type="button" id="btn-cerrar-modal" class="btn btn-sec">Cerrar</button>
             </div>
-        </div>
-
-        <div class="fila">
-            <div class="campo">
-                <label>Raciones base:</label>
-                <input type="text" id="raciones" name="raciones_base" maxlength="3" style="width:55px; text-align:right;">
-            </div>
-        </div>
-
-        <div id="msg-js" class="msg-js" style="display:none;"></div>
-
-        <div class="textos-grid">
-            <div class="texto-bloque">
-                <label>PREPARACIÓN:</label>
-                <textarea id="preparacion" name="preparacion" placeholder="Describa la preparación...">{{ receta.preparacion if receta else '' }}</textarea>
-                <div class="hint">&lt;Enter&gt; cambia de línea | &lt;Shift+Enter&gt; salta al siguiente campo</div>
-            </div>
-
-            <div class="texto-bloque">
-                <label>ELABORACIÓN:</label>
-                <textarea id="elaboracion" name="elaboracion" placeholder="Describa la elaboración...">{{ receta.elaboracion if receta else '' }}</textarea>
-                <div class="hint">&lt;Enter&gt; cambia de línea | &lt;Shift+Enter&gt; salta al siguiente campo</div>
-            </div>
-
-            <div class="texto-bloque">
-                <label>PRESENTACIÓN:</label>
-                <textarea id="presentacion" name="presentacion" placeholder="Describa la presentación...">{{ receta.presentacion if receta else '' }}</textarea>
-                <div class="hint">&lt;Enter&gt; cambia de línea | &lt;Shift+Enter&gt; salta al siguiente campo</div>
-            </div>
-
-            <div class="texto-bloque">
-                <label>NUTRICIÓN:</label>
-                <textarea id="nutricion" name="nutricion" placeholder="Información nutricional...">{{ receta.nutricion if receta else '' }}</textarea>
-                <div class="hint">&lt;Enter&gt; cambia de línea | &lt;Shift+Enter&gt; crea fila de ingrediente</div>
-            </div>
-        </div>
-
-        
-        <table class="tabla">
-            <thead>
-                <tr>
-                    <th class="col-ing">Ingrediente</th>
-                    <th class="col-um">UM</th>
-                    <th class="col-qty">Cantidad</th>
-                    <th class="col-rol">Deco</th>
-                    <th class="col-um">UM</th>
-                    <th class="col-qty">Cocina</th>
-                    <th class="col-um">UM</th>
-                    <th class="row-actions">Acciones</th>
-                </tr>
-            </thead>
-            <tbody id="tbody-ingredientes">
-                {% if ingredientes_receta %}
-                {% for item in ingredientes_receta %}
-                <tr
-                   data-cantidad-canonica=""
-                   data-deco-canonica=""
-                   data-cocina-canonica=""
-                   data-unidad-canonica="">
-                    <td class="col-ing">
-                        <select class="ing-select" name="ingrediente_id[]">
-                            <option value="">— Seleccione —</option>
-                            {% for ing in ingredientes %}
-                            <option value="{{ ing.id }}"
-                                data-unidad-id="{{ ing.unidad_id }}"
-                                data-unidad-codigo="{{ ing.unidad_codigo }}"
-                                data-um="{{ ing.unidad_nombre }}"
-                                {% if ing.id == item.ingrediente_id %}selected{% endif %}>
-                                {{ ing.nombre }}
-                            </option>
-                            {% endfor %}
-                        </select>
-                    </td>
-
-                    <td class="col-um">
-                        <!-- UM Base (compatibilidad temporal durante la Fase III-B) -->
-                        <span
-                            class="ing-um"
-                            style="display:none;">—</span>
-
-                        <!-- Unidad de captura (preparación para integración del Motor) -->
-                        <select
-                            class="ing-um-select"
-                            name="unidad[]">
-                        </select>
-                    </td>
-
-                    <td class="col-qty">
-                        <input type="text"
-                             class="ing-cantidad"
-                             name="cantidad[]"
-                             value="{{ item.cantidad }}"
-                             maxlength="6"
-                             style="width:70px; text-align:right;">
-                    </td>
-
-                    <td class="col-rol">
-                        <input type="text"
-                               class="ing-rol"
-                               name="rol[]"
-                               value="{{ item.rol }}"
-                               maxlength="6"
-                               style="width:70px; text-align:right;">
-                    </td>
-  
-                    <td class="col-um">
-                        <span class="ing-um-rol">—</span>
-                    </td>
-                    <td class="col-qty">
-                        <span class="ing-cocina">0.00</span>
-                    </td>
-
-                    <td class="col-um">
-                        <span class="ing-um-cocina">—</span>
-                    </td>
-
-                    <td class="row-actions">
-                        <button type="button" class="btn btn-borrar">Borrar</button>
-                    </td>
-                </tr>
-                {% endfor %}
-                {% endif %}    
-                <tr
-                    id="fila-plantilla"
-                    class="oculta"
-                    data-cantidad-canonica=""
-                    data-deco-canonica=""
-                    data-cocina-canonica=""
-                    data-unidad-canonica="">
-
-                    <td class="col-ing">
-
-                         <select class="ing-select" name="ingrediente_id[]" disabled>
-
-                             <option value="">— Seleccione —</option>
-
-                             {% for ing in ingredientes %}
-
-                             <option
-                                 value="{{ ing.id }}"
-                                 data-unidad-id="{{ ing.unidad_id }}"
-                                 data-unidad-codigo="{{ ing.unidad_codigo }}"
-                                 data-um="{{ ing.unidad_nombre }}">
-
-                                 {{ ing.nombre }}
-
-                             </option>
-
-                             {% endfor %}
-
-        </select>
-
-    </td>
-
-    <td class="col-um">
-
-        <!-- UM Base (compatibilidad temporal durante la Fase III-B) -->
-
-        <span
-            class="ing-um"
-            style="display:none;">—</span>
-
-        <!-- Unidad de captura (Motor Fase III-B) -->
-
-        <select
-            class="ing-um-select"
-            name="unidad[]" disabled>
-        </select>
-
-    </td>
-
-    <td class="col-qty">
-
-        <input
-            type="text"
-            class="ing-cantidad"
-            name="cantidad[]"
-            disabled
-            value="0"
-            maxlength="6"
-            style="width:70px; text-align:right;">
-
-    </td>
-
-    <td class="col-rol">
-
-        <input
-            type="text"
-            class="ing-rol"
-            name="rol[]"
-            disabled
-            value="0"
-            maxlength="6"
-            style="width:70px; text-align:right;">
-
-    </td>
-
-    <td class="col-um">
-
-        <span class="ing-um-rol">—</span>
-
-    </td>
-
-    <td class="col-qty">
-
-        <span class="ing-cocina">0.00</span>
-
-    </td>
-
-    <td class="col-um">
-
-        <span class="ing-um-cocina">—</span>
-
-    </td>
-
-    <td class="row-actions">
-
-        <button
-            type="button"
-            class="btn btn-borrar">
-            Borrar
-        </button>
-
-    </td>
-
-</tr>
-            </tbody>
-        </table>
-
-    </form>
-</div>
-
-<div id="modal-backdrop" class="modal-backdrop">
-    <div class="modal">
-        <h3>Seleccione un plato</h3>
-        <table>
-            <thead>
-                <tr><th>Nombre</th><th>Acción</th></tr>
-            </thead>
-            <tbody>
-                {% for p in platos %}
-                <tr>
-                    <td>{{ p.nombre }}</td>
-                    <td><button type="button" class="btn btn-prim btn-sel-plato" data-id="{{ p.id }}" data-nombre="{{ p.nombre }}">Seleccionar</button></td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-        <div class="actions">
-            <button type="button" id="btn-cerrar-modal" class="btn btn-sec">Cerrar</button>
         </div>
     </div>
-</div>
 
-<script>
-(function(){
-    const btnBuscar = document.getElementById("btn-buscar-plato");
-    const btnCerrar = document.getElementById("btn-cerrar-modal");
-    const modal = document.getElementById("modal-backdrop");
-    const platoNombre = document.getElementById("plato_nombre");
-    const platoId = document.getElementById("plato_id");
+    <script>
+        (function () {
+            const btnBuscar = document.getElementById("btn-buscar-plato");
+            const btnCerrar = document.getElementById("btn-cerrar-modal");
+            const modal = document.getElementById("modal-backdrop");
+            const platoNombre = document.getElementById("plato_nombre");
+            const platoId = document.getElementById("plato_id");
 
-    const btnIrListado = document.getElementById("btn-ir-listado");
-    const btnCancelar = document.getElementById("btn-cancelar");
+            const btnIrListado = document.getElementById("btn-ir-listado");
+            const btnCancelar = document.getElementById("btn-cancelar");
 
-    const msgJs = document.getElementById("msg-js");
+            const msgJs = document.getElementById("msg-js");
 
-    const unidadesPorIngrediente =
-        {{ unidades_por_ingrediente | tojson }};
+            const unidadesPorIngrediente =
+                {{ unidades_por_ingrediente | tojson
+        }};
 
-        console.log("UNIDADES POR INGREDIENTE");
-        console.log(unidadesPorIngrediente);
+        const expresionesCulinarias =
+            {{ expresiones_culinarias | tojson }};
 
-    // IMPORTANTE: usamos innerHTML para permitir colores en mensajes
-    function showMsg(html){
-        msgJs.innerHTML = html;
-        msgJs.style.display = "block";
-    }
-    function clearMsg(){
-        msgJs.innerHTML = "";
-        msgJs.style.display = "none";
-    }
+        // IMPORTANTE: usamos innerHTML para permitir colores en mensajes
+        function showMsg(html) {
+            msgJs.innerHTML = html;
+            msgJs.style.display = "block";
+        }
+        function clearMsg() {
+            msgJs.innerHTML = "";
+            msgJs.style.display = "none";
+        }
 
-    btnIrListado.addEventListener("click", function(){
-        window.location.href = "/admin/recetas/listado";
-    });
-    btnCancelar.addEventListener("click", function(){
-        window.location.href = "/admin/recetas/nueva";
-    });
+        btnIrListado.addEventListener("click", function () {
+            window.location.href = "/admin/recetas/listado";
+        });
+        btnCancelar.addEventListener("click", function () {
+            window.location.href = "/admin/recetas/nueva";
+        });
 
-    btnBuscar.addEventListener("click", function(){
-        modal.style.display = "flex";
-    });
-    btnCerrar.addEventListener("click", function(){
-        modal.style.display = "none";
-    });
-    document.querySelectorAll(".btn-sel-plato").forEach(btn=>{
-        btn.addEventListener("click", function(){
-            platoId.value = this.getAttribute("data-id");
-            platoNombre.value = this.getAttribute("data-nombre");
+        btnBuscar.addEventListener("click", function () {
+            modal.style.display = "flex";
+        });
+        btnCerrar.addEventListener("click", function () {
             modal.style.display = "none";
-            document.getElementById("raciones").focus();
         });
-    });
+        document.querySelectorAll(".btn-sel-plato").forEach(btn => {
+            btn.addEventListener("click", function () {
+                platoId.value = this.getAttribute("data-id");
+                platoNombre.value = this.getAttribute("data-nombre");
+                modal.style.display = "none";
+                document.getElementById("raciones").focus();
+            });
+        });
 
-    const raciones = document.getElementById("raciones");
-    const preparacion = document.getElementById("preparacion");
-    const elaboracion = document.getElementById("elaboracion");
-    const presentacion = document.getElementById("presentacion");
-    const nutricion = document.getElementById("nutricion");
+        const raciones = document.getElementById("raciones");
+        const preparacion = document.getElementById("preparacion");
+        const elaboracion = document.getElementById("elaboracion");
+        const presentacion = document.getElementById("presentacion");
+        const nutricion = document.getElementById("nutricion");
 
-    raciones.addEventListener("keydown", function(e){
-        if(e.key === "Enter"){
-            e.preventDefault();
-
-            const val = (raciones.value || "").trim();
-
-            if(val === ""){
-                showMsg(
-                    "<span style='color:#cc0000; font-weight:bold;'>RACIONES BASE</span> " +
-                    "<span style='color:#0b5d1e; font-weight:bold;'>es obligatorio en</span> " +
-                    "<span style='color:#cc0000; font-weight:bold;'>RECETAS</span>"
-                );
-                raciones.focus();
-                raciones.select();
-                return;
-            }
-  
-            if(!/^\d+$/.test(val)){
-                showMsg(
-                    "<span style='color:#cc0000; font-weight:bold;'>RACIONES BASE</span> " +
-                    "<span style='color:#0b5d1e; font-weight:bold;'>debe ser numérico en</span> " +
-                    "<span style='color:#cc0000; font-weight:bold;'>RECETAS</span>"
-                );
-                raciones.focus();
-                raciones.select();
-                return;
-            }
-
-            const num = parseInt(val, 10);
-
-            if(num <= 0){
-                showMsg(
-                    "<span style='color:#cc0000; font-weight:bold;'>RACIONES BASE</span> " +
-                    "<span style='color:#0b5d1e; font-weight:bold;'>debe ser mayor que 0 en</span> " +
-                    "<span style='color:#cc0000; font-weight:bold;'>RECETAS</span>"
-                );
-                raciones.focus();
-                raciones.select();
-                return;
-            }
-
-            clearMsg();
-            preparacion.focus();
-        }
-    });
-    function bindShiftJump(from, to){
-        from.addEventListener("keydown", function(e){
-            if(e.key === "Enter" && e.shiftKey){
+        raciones.addEventListener("keydown", function (e) {
+            if (e.key === "Enter") {
                 e.preventDefault();
-                to.focus();
+
+                const val = (raciones.value || "").trim();
+
+                if (val === "") {
+                    showMsg(
+                        "<span style='color:#cc0000; font-weight:bold;'>RACIONES BASE</span> " +
+                        "<span style='color:#0b5d1e; font-weight:bold;'>es obligatorio en</span> " +
+                        "<span style='color:#cc0000; font-weight:bold;'>RECETAS</span>"
+                    );
+                    raciones.focus();
+                    raciones.select();
+                    return;
+                }
+
+                if (!/^\d+$/.test(val)) {
+                    showMsg(
+                        "<span style='color:#cc0000; font-weight:bold;'>RACIONES BASE</span> " +
+                        "<span style='color:#0b5d1e; font-weight:bold;'>debe ser numérico en</span> " +
+                        "<span style='color:#cc0000; font-weight:bold;'>RECETAS</span>"
+                    );
+                    raciones.focus();
+                    raciones.select();
+                    return;
+                }
+
+                const num = parseInt(val, 10);
+
+                if (num <= 0) {
+                    showMsg(
+                        "<span style='color:#cc0000; font-weight:bold;'>RACIONES BASE</span> " +
+                        "<span style='color:#0b5d1e; font-weight:bold;'>debe ser mayor que 0 en</span> " +
+                        "<span style='color:#cc0000; font-weight:bold;'>RECETAS</span>"
+                    );
+                    raciones.focus();
+                    raciones.select();
+                    return;
+                }
+
+                clearMsg();
+                preparacion.focus();
             }
         });
-    }
-    bindShiftJump(preparacion, elaboracion);
-    bindShiftJump(elaboracion, presentacion);
-    bindShiftJump(presentacion, nutricion);
-
-    nutricion.addEventListener("keydown", function(e){
-
-          if(e.key === "Enter" && e.shiftKey){
-
-              e.preventDefault();
-              e.stopPropagation();
-
-              crearFilaYEnfocarIngrediente();
-
-              return;
-
+        function bindShiftJump(from, to) {
+            from.addEventListener("keydown", function (e) {
+                if (e.key === "Enter" && e.shiftKey) {
+                    e.preventDefault();
+                    to.focus();
+                }
+            });
         }
+        bindShiftJump(preparacion, elaboracion);
+        bindShiftJump(elaboracion, presentacion);
+        bindShiftJump(presentacion, nutricion);
 
-    });
+        nutricion.addEventListener("keydown", function (e) {
 
-    const tbody = document.getElementById("tbody-ingredientes");
-    const filaPlantilla = document.getElementById("fila-plantilla");
+            if (e.key === "Enter" && e.shiftKey) {
 
-    function crearFilaYEnfocarIngrediente(){
-        const fila = filaPlantilla.cloneNode(true);
+                e.preventDefault();
+                e.stopPropagation();
 
-        fila.querySelector(".ing-select").disabled = false;
-        fila.querySelector(".ing-cantidad").disabled = false;
-        fila.querySelector(".ing-um-select").disabled = false;
-        fila.querySelector(".ing-rol").disabled = false;
-        
-        fila.id = "";
-        fila.classList.remove("oculta");
-        tbody.appendChild(fila);
-        prepararFila(fila);
-        fila.querySelector(".ing-select").focus();
-    }
+                crearFilaYEnfocarIngrediente();
 
-    function ingredienteYaUsado(ingId){
-        const selects = tbody.querySelectorAll(".ing-select");
-        let count = 0;
-        selects.forEach(s=>{
-            if(s.value === ingId && ingId !== ""){
-                count++;
-            }
-        });
-        return count > 1;
-    }
-
-    function activarFilaIngrediente(fila){
-
-        document.querySelectorAll("#tbody-ingredientes tr").forEach(f=>{
-            f.classList.remove("fila-activa");
-        });
-
-        fila.classList.add("fila-activa");
-
-    }
-
-    function obtenerSelectorUM(fila){
-
-        return fila.querySelector(".ing-um-select");
-
-    }
-
-    function obtenerMagnitudesCulinarias(fila){
-
-        return {
-
-            qty: fila.querySelector(".ing-cantidad"),
-
-            rol: fila.querySelector(".ing-rol"),
-
-            cocinaSpan: fila.querySelector(".ing-cocina")
-
-        };  
-
-    }
-
-    function obtenerRepresentacionVisual(fila){
-
-        return {
-
-            umSpan: fila.querySelector(".ing-um"),
-
-            umRolSpan: fila.querySelector(".ing-um-rol"),
-
-            umCocinaSpan: fila.querySelector(".ing-um-cocina")
-
-        };
-
-    }
-
-    function sincronizarEstadoCanonico(fila, qty, rol, cocinaSpan){
-
-        fila.dataset.cantidadCanonica = qty.value || "0";
-
-        fila.dataset.decoCanonica = rol.value || "0";
-
-        fila.dataset.cocinaCanonica =
-            cocinaSpan
-                ? cocinaSpan.textContent || "0"
-                : "0";
-
-    }
-
-    function construirSelectorUM(selectorUM, unidades, umActual){
-
-        selectorUM.innerHTML = "";
-
-        for(const unidad of unidades){
-
-            const option = document.createElement("option");
-
-            option.value = unidad.codigo;
-
-            option.textContent = unidad.nombre;
-
-            if(unidad.nombre === umActual){
-
-                option.selected = true;
+                return;
 
             }
 
-            selectorUM.appendChild(option);
+        });
+
+        const tbody = document.getElementById("tbody-ingredientes");
+        const filaPlantilla = document.getElementById("fila-plantilla");
+
+        function crearFilaYEnfocarIngrediente() {
+            const fila = filaPlantilla.cloneNode(true);
+
+            fila.querySelector(".ing-select").disabled = false;
+            fila.querySelector(".ing-cantidad").disabled = false;
+            fila.querySelector(".ing-expresion").disabled = false;
+            fila.querySelector(".ing-um-select").disabled = false;
+            fila.querySelector(".ing-rol").disabled = false;
+
+            fila.id = "";
+            fila.classList.remove("oculta");
+
+            fila.querySelector(".ing-expresion").classList.remove(
+                "expresion-atencion-cantidad",
+                "expresion-atencion-deco"
+            );
+
+            fila.querySelector(".ing-cantidad").classList.remove(
+                "atencion-cantidad"
+            );
+
+            fila.querySelector(".ing-rol").classList.remove(
+                "atencion-deco"
+            );
+
+            tbody.appendChild(fila);
+            prepararFila(fila);
+            fila.querySelector(".ing-expresion").selectedIndex = 0;
+            fila.querySelector(".ing-select").focus();
+        }
+
+        function ingredienteYaUsado(ingId) {
+            const selects = tbody.querySelectorAll(".ing-select");
+            let count = 0;
+            selects.forEach(s => {
+                if (s.value === ingId && ingId !== "") {
+                    count++;
+                }
+            });
+            return count > 1;
+        }
+
+        function activarFilaIngrediente(fila) {
+
+            document.querySelectorAll("#tbody-ingredientes tr").forEach(f => {
+                f.classList.remove("fila-activa");
+            });
+
+            fila.classList.add("fila-activa");
 
         }
 
-    }
+        function obtenerSelectorUM(fila) {
 
-    function inicializarUnidadCanonica(fila, opt){
+            return fila.querySelector(".ing-um-select");
 
-        const codigoCanonico =
-            opt.getAttribute("data-unidad-codigo") || "";
-
-        fila.dataset.unidadCanonica = codigoCanonico;
-
-    }
-
-    function inicializarRepresentacionVisual(
-        umSpan,
-        umRolSpan,
-        umCocinaSpan,
-        um
-    ){
-
-        umSpan.textContent = um;
-
-        umRolSpan.textContent = um;
-
-        if(umCocinaSpan){
-            umCocinaSpan.textContent = um;
         }
 
-    }
+        function obtenerMagnitudesCulinarias(fila) {
 
-    function inicializarIngredienteSeleccionado(
-        fila,
-        opt,
-        umSpan,
-        umRolSpan,
-        umCocinaSpan,
-        um
-    ){
+            return {
 
-        inicializarUnidadCanonica(
-            fila,
-            opt
-        );
+                qty: fila.querySelector(".ing-cantidad"),
 
-        inicializarRepresentacionVisual(
+                rol: fila.querySelector(".ing-rol"),
+
+                cocinaSpan: fila.querySelector(".ing-cocina")
+
+            };
+
+        }
+
+        function obtenerRepresentacionVisual(fila) {
+
+            return {
+
+                umSpan: fila.querySelector(".ing-um"),
+
+                umRolSpan: fila.querySelector(".ing-um-rol"),
+
+                umCocinaSpan: fila.querySelector(".ing-um-cocina")
+
+            };
+
+        }
+
+        function construirSelectorUM(selectorUM, unidades, umActual) {
+
+            selectorUM.innerHTML = "";
+
+            for (const unidad of unidades) {
+
+                const option = document.createElement("option");
+
+                option.value = unidad.codigo;
+
+                option.textContent = unidad.nombre;
+
+                if (unidad.nombre === umActual) {
+
+                    option.selected = true;
+
+                }
+
+                selectorUM.appendChild(option);
+
+            }
+
+
+
+        }
+
+        async function inicializarExpresionesCulinarias(
+            selectorExpresion,
+            unidadCodigo
+        ) {
+
+            const resultado =
+                await obtenerExpresionesCulinariasPorUM(
+                    unidadCodigo
+                );
+
+            if (!resultado.ok) {
+                return;
+            }
+
+            selectorExpresion.innerHTML = "";
+
+            const opcionVacia = document.createElement("option");
+            opcionVacia.value = "";
+            opcionVacia.textContent = "— Ninguna —";
+            selectorExpresion.appendChild(opcionVacia);
+
+            for (const expresion of resultado.expresiones) {
+
+                const option =
+                    document.createElement("option");
+
+                option.value = expresion.id;
+                option.textContent = expresion.expresion;
+                option.dataset.factor = expresion.factor;
+
+                selectorExpresion.appendChild(option);
+            }
+        }
+
+        function actualizarEncabezadoExpresion(selectorExpresion) {
+
+            const encabezado =
+                document.getElementById("encabezado-expresion");
+
+            if (!encabezado) {
+                return;
+            }
+
+            const etapa =
+                selectorExpresion.dataset.etapa || "cantidad";
+
+            encabezado.classList.remove(
+                "encabezado-azul",
+                "encabezado-naranja"
+            );
+
+            if (etapa === "deco") {
+
+                encabezado.textContent = "EXPRESION-D";
+
+                encabezado.classList.add(
+                    "encabezado-naranja"
+                );
+
+            } else {
+
+                encabezado.textContent = "EXPRESION-C";
+
+                encabezado.classList.add(
+                    "encabezado-azul"
+                );
+            }
+        }
+
+        function inicializarUnidadCanonica(fila, opt) {
+
+            const codigoCanonico =
+                opt.getAttribute("data-unidad-codigo") || "";
+
+            fila.dataset.unidadCanonica = codigoCanonico;
+
+        }
+
+        function inicializarRepresentacionVisual(
             umSpan,
             umRolSpan,
             umCocinaSpan,
             um
-        );
+        ) {
 
-    }
+            umSpan.textContent = um;
 
-    function inicializarUnidadCaptura(
-        selectorUM,
-        ingredienteId,
-        um
-    ){
+            umRolSpan.textContent = um;
 
-        const unidades =
-            unidadesPorIngrediente[ingredienteId] || [];
-
-        construirSelectorUM(
-            selectorUM,
-            unidades,
-            um
-        );
-
-    }
-
-    function obtenerEstadoCanonico(
-        fila,
-        qty,
-        rol,
-        cocinaSpan
-    ){
-
-        return {
-
-            cantidad: qty.value || "0",
-
-            deco: rol.value || "0",
-
-            cocina: cocinaSpan
-                ? cocinaSpan.textContent || "0"
-                : "0",
-
-            unidad: fila.dataset.unidadCanonica || ""
-
-        };
-
-    }
-
-    async function normalizarEstadoCanonico(estadoCanonico){
-
-        /*
-        FASE V
-
-        Primer punto de integración con el Motor.
-
-        En esta etapa todavía no se realiza ninguna conversión.
-
-        Se prepara la infraestructura para que el Motor
-        reciba el Estado Canónico y devuelva el Estado
-        Normalizado.
-        */
-
-        const respuesta = await fetch(
-            "/api/normalizar",
-            {
-                method: "POST",
-
-                headers:{
-                    "Content-Type":"application/json"
-                },
-
-                body: JSON.stringify(
-                    estadoCanonico
-                )
-
+            if (umCocinaSpan) {
+                umCocinaSpan.textContent = um;
             }
-        );
 
-        if(!respuesta.ok){
+        }
 
-            throw new Error(
-                "Error al normalizar el estado canónico."
+        function inicializarIngredienteSeleccionado(
+            fila,
+            opt,
+            umSpan,
+            umRolSpan,
+            umCocinaSpan,
+            um
+        ) {
+
+            inicializarUnidadCanonica(
+                fila,
+                opt
             );
 
-        }
-
-        const estadoNormalizado =
-            await respuesta.json();
-
-        console.log(
-            "Estado Normalizado recibido del Motor:",
-            estadoNormalizado
-        );
-
-        return estadoNormalizado;
-
-    }
-
-   async function reconstruirDesdeCanonico(
-        fila,
-        estadoNormalizado
-    ){
-
-        if(!estadoNormalizado.ok){
-            return;
-        }
-
-        const cocinaSpan =
-            fila.querySelector(".ing-cocina");
-
-        cocinaSpan.textContent =
-            estadoNormalizado.cocina_captura;
-
-    }
-
-    function construirEstadoCanonico(
-        sel,
-        selectorUM,
-        cantidad,
-        deco,
-        cocina
-    ){
-
-        return {
-
-            ingredienteId: sel.value,
-
-            unidadCaptura: selectorUM.value,
-
-            cantidadCaptura: cantidad,
-
-            decoCaptura: deco,
-
-            cocinaCaptura: cocina
-
-        };
-
-    }
-
-    function calcularMagnitudesCulinarias(qty, rol){
-
-        const cantidad =
-            parseFloat((qty.value || "0").replace(",", ".")) || 0;
-
-        const deco =
-            parseFloat((rol.value || "0").replace(",", ".")) || 0;
-
-        const cocina =
-            Math.max(0, cantidad - deco);
-
-        return {
-
-            cantidad,
-
-            deco,
-
-            cocina
-
-        };
-
-    }
-
-    function prepararFila(fila){
-
-        // ==========================================================
-        // ==========================================================
-
-        const sel = fila.querySelector(".ing-select");
-
-        /*----------------------------------------------------------
-        Unidad de Captura de la Fila.
-
-        Representa el contexto compartido por las magnitudes
-        Cantidad, Deco y Cocina.
-
-        En la FASE V deja de interpretarse como la unidad de
-        Cantidad y pasa a representar la Unidad de Captura
-        de toda la fila.
-        ----------------------------------------------------------*/
-
-        const selectorUM = obtenerSelectorUM(fila);
-
-       // ==========================================================
-       // MAGNITUDES CULINARIAS
-       // ==========================================================
-
-        const magnitudes = obtenerMagnitudesCulinarias(fila);
-
-        const qty = magnitudes.qty;
-        const rol = magnitudes.rol;
-        const cocinaSpan = magnitudes.cocinaSpan;
- 
-       // ==========================================================
-       // REPRESENTACIÓN VISUAL
-       // ==========================================================
-
-        const representacionVisual = obtenerRepresentacionVisual(fila);
-
-        const umSpan = representacionVisual.umSpan;
-        const umRolSpan = representacionVisual.umRolSpan;
-        const umCocinaSpan = representacionVisual.umCocinaSpan;
-
-       // ==========================================================
-       // ACCIONES
-       // ==========================================================
-
-        const btnBorrar = fila.querySelector(".btn-borrar");
-        
-        sel.addEventListener("focus", function(){
-            activarFilaIngrediente(fila);
-        });
-
-        qty.addEventListener("focus", function(){
-            activarFilaIngrediente(fila);
-        });
-
-        rol.addEventListener("focus", function(){
-            activarFilaIngrediente(fila);
-        }); 
-        
-        // ==========================================================
-        // INICIALIZACIÓN DEL INGREDIENTE
-        // ==========================================================
-
-        sel.addEventListener("change", function(){
-
-            const opt = sel.options[sel.selectedIndex];
-
-            const um = opt
-                ? (opt.getAttribute("data-um") || "—")
-                : "—";
-
-            const ingredienteId = sel.value;
-
-            /*-----------------------------------------
-            FASE V
-
-            Inicialización del contexto de la fila.
-
-            Al seleccionar un ingrediente quedan definidos:
-
-            • Ingrediente de la fila.
-            • Unidad canónica del ingrediente.
-            • Estado canónico inicial.
-
-            La Unidad de Captura de la fila se inicializa
-            a partir de la unidad canónica y posteriormente
-            podrá ser modificada por el operador sin alterar
-            la identidad del ingrediente.
-            -----------------------------------------*/
-
-             inicializarIngredienteSeleccionado(
-                fila,
-                opt,
+            inicializarRepresentacionVisual(
                 umSpan,
                 umRolSpan,
                 umCocinaSpan,
                 um
             );
 
-clearMsg();
-
-if (!selectorUM) {
-    return;
-}
-
-/* Durante la transición de la Fase III-B
-   el selector sustituye visualmente al span. */
-
-// umSpan.style.display = "none";
-
-// selectorUM.style.display = "inline-block";
-
-inicializarUnidadCaptura(
-    selectorUM,
-    ingredienteId,
-    um
-);
-
-const unidades =
-    unidadesPorIngrediente[ingredienteId] || [];
-
-            console.log(
-                "Motor Fase III-B",
-                {
-                    ingrediente: ingredienteId,
-                    unidades: unidades
-                }
-            ); 
-            // ==========================================================
-            // FIN INICIALIZACIÓN DEL INGREDIENTE
-            // ==========================================================
-
-            console.log(
-                "Motor Fase III-B -> Opciones creadas:",
-                selectorUM.options.length
-            );
-        });
-
-        /*----------------------------------------------------------
-        Inicialización automática del selector de UM.
-
-        Si la fila ya posee un ingrediente seleccionado
-        (receta existente o fila preparada antes del envío),
-        forzamos una ejecución del mismo flujo utilizado por
-        el evento "change", garantizando que el selector
-        unidad[] nunca permanezca vacío.
-        ----------------------------------------------------------*/
-        if (sel.value) {
-            sel.dispatchEvent(new Event("change"));
         }
 
-        /*==========================================================
-        MOTOR DE CONVERSIÓN
-        FASE III-B
+        function inicializarUnidadCaptura(
+            selectorUM,
+            ingredienteId,
+            nombreIngrediente,
+            um
+        ) {
 
-        Detección del cambio de Unidad de Medida.
+            const unidades =
+                unidadesPorIngrediente[ingredienteId] || [];
 
-        En esta etapa únicamente se valida el evento.
+            construirSelectorUM(
+                selectorUM,
+                unidades,
+                um
+            );
 
-        La conversión de cantidades será incorporada
-        en el siguiente bloque funcional.
-        ==========================================================*/
+        }
 
-        selectorUM.addEventListener("keydown", function(e){
+        async function obtenerExpresionesCulinariasPorUM(unidadCodigo) {
 
-            if(e.key === "Enter"){
+            const respuesta = await fetch(
+                "/api/expresiones_culinarias/" +
+                encodeURIComponent(unidadCodigo)
+            );
 
-                e.preventDefault();
-                e.stopPropagation();
+            if (!respuesta.ok) {
 
-                qty.focus();
-                qty.select();
+                return {
+                    ok: false,
+                    expresiones: []
+                };
+
             }
 
-        });
+            const datos = await respuesta.json();
 
-        /*----------------------------------------------------------
-        FASE V
+            return datos;
+        }
 
-        Estado culinario de la Fila de Ingrediente.
+        async function normalizarEstadoCanonico(estadoCanonico) {
 
-        Esta función será la única responsable de mantener
-        coherente el estado culinario asociado a una fila.
-
-        La fila contiene tres magnitudes culinarias:
-
-            • Cantidad
-            • Deco
-            • Cocina
-
-        Las tres comparten una única Unidad de Captura.
-
-        Cualquier modificación realizada por el operador sobre
-        estas magnitudes o sobre la Unidad de Captura deberá
-        mantener sincronizado el estado interno de la fila.
-
-        La implementación de esta responsabilidad será
-        incorporada progresivamente durante la FASE V.
-        ----------------------------------------------------------*/
-
-        async function actualizarEstadoCulinario(){
-
-            clearMsg();
-
-            // ===== ESTADO CANÓNICO DE LA FILA =====
-
-            fila.dataset.cantidadCanonica = qty.value || "0";
-
-            /*----------------------------------------------------------
+            /*
             FASE V
+    
+            Primer punto de integración con el Motor.
+    
+            En esta etapa todavía no se realiza ninguna conversión.
+    
+            Se prepara la infraestructura para que el Motor
+            reciba el Estado Canónico y devuelva el Estado
+            Normalizado.
+            */
 
-            Mientras no exista todavía la normalización individual
-            de Deco y Cocina, inicializamos explícitamente sus
-            representaciones canónicas.
+            const respuesta = await fetch(
+                "/api/normalizar",
+                {
+                    method: "POST",
 
-            Esto garantiza que el estado interno de la fila permanezca
-            completo desde el primer momento.
-            ----------------------------------------------------------*/
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
 
-            fila.dataset.decoCanonica = rol.value || "0";
+                    body: JSON.stringify(
+                        estadoCanonico
+                    )
 
-            fila.dataset.cocinaCanonica =
-                cocinaSpan
-                    ? cocinaSpan.textContent || "0"
-                    : "0";
+                }
+            );
 
-            const magnitudes =
-                calcularMagnitudesCulinarias(
-                    qty,
-                    rol
-                );
+            if (!respuesta.ok) {
 
-            const cantidad = magnitudes.cantidad;
+                return {
 
-            const deco = magnitudes.deco;
+                    ok: false,
 
-            const cocina = magnitudes.cocina;
+                    error: "Error al normalizar el estado canónico."
 
-            if (!sel.value || !selectorUM.value) {
+                };
 
-                cocinaSpan.textContent = "0.00";
+            }
+
+            const estadoNormalizado =
+                await respuesta.json();
+
+            return estadoNormalizado;
+
+        }
+
+        async function obtenerEstadoNormalizado(
+            estadoCanonico
+        ) {
+
+            return await normalizarEstadoCanonico(
+                estadoCanonico
+            );
+
+        }
+
+        async function reconstruirDesdeCanonico(
+            fila,
+            estadoNormalizado
+        ) {
+
+            if (!estadoNormalizado.ok) {
+
+                console.error(estadoNormalizado.error);
+
                 return;
 
             }
 
-            /*----------------------------------------------------------
-            FASE V
+            const cocinaSpan =
+                fila.querySelector(".ing-cocina");
 
-            Punto de integración con el Motor.
+            const umCocinaSpan =
+                fila.querySelector(".ing-um-cocina");
 
-            En la siguiente etapa la Cantidad expresada en la
-            Unidad de Captura será normalizada hacia la
-            representación canónica del ingrediente.
+            if (cocinaSpan) {
 
-            La implementación se realizará utilizando el
-            Motor de Conversión sin modificar la receta.
-            ----------------------------------------------------------*/
+                console.log(
+                    "RECONSTRUCCION COCINA:",
+                    estadoNormalizado.cocina_captura,
+                    "DECO:",
+                    estadoNormalizado.deco_canonica,
+                    "CANTIDAD:",
+                    estadoNormalizado.cantidad_canonica
+                );
 
-            const estadoCanonico = {
+                cocinaSpan.textContent =
+                    representarCantidadCulinaria(
+                        estadoNormalizado.cocina_captura
+                    );
 
-                ingredienteId: sel.value,
+            }
 
-                unidadCaptura: selectorUM.value,
+            if (
+                umCocinaSpan &&
+                estadoNormalizado.unidadCapturaNombre
+            ) {
 
-                cantidadCaptura: cantidad,
+                umCocinaSpan.textContent =
+                    estadoNormalizado.unidadCapturaNombre;
 
-                decoCaptura: deco,
+            }
 
-                cocinaCaptura: cocina
+        }
+
+        function representarCantidadCulinaria(valor) {
+
+            if (valor === 0) {
+                return "0";
+            }
+
+            const entero = Math.floor(valor);
+            const fraccion = valor - entero;
+
+            const fracciones = [
+                [1 / 4, "1/4"],
+                [1 / 2, "1/2"],
+                [3 / 4, "3/4"]
+            ];
+
+            for (const [valorFraccion, textoFraccion] of fracciones) {
+
+                if (Math.abs(fraccion - valorFraccion) < 0.000001) {
+
+                    if (entero === 0) {
+                        return textoFraccion;
+                    }
+
+                    return entero + " " + textoFraccion;
+                }
+            }
+
+            if (Math.abs(valor - Math.round(valor)) < 0.000001) {
+                return String(Math.round(valor));
+            }
+
+            return String(valor);
+        }
+
+        function calcularMagnitudesCulinarias(qty, rol) {
+
+            const cantidad =
+                parseFloat(
+                    qty.dataset.valorNumerico ||
+                    (qty.value || "0").replace(",", ".")
+                ) || 0;
+
+            const deco =
+                parseFloat(
+                    rol.dataset.valorNumerico ||
+                    (rol.value || "0").replace(",", ".")
+                ) || 0;
+
+            const cocina =
+                Math.max(0, cantidad - deco);
+
+            return {
+
+                cantidad,
+
+                deco,
+
+                cocina
 
             };
 
-            // El Motor recibirá estadoCanonico y devolverá
-            // estadoNormalizado sin modificar la receta.
+        }
 
-            const estadoNormalizado =
-                await normalizarEstadoCanonico(
-                    estadoCanonico
+        function obtenerExpresionPorFactor(selectorExpresion, valor) {
+
+            if (valor === 0) {
+                return "0";
+            }
+
+            const opciones =
+                Array.from(selectorExpresion.options);
+
+            const opcion =
+                opciones.find(
+                    option =>
+                        option.value &&
+                        Math.abs(
+                            parseFloat(option.dataset.factor) - valor
+                        ) < 0.000001
                 );
 
-                await reconstruirDesdeCanonico(
-                    fila,
-                    estadoNormalizado
-                );
-
-            // ===== FIN DEL ESTADO CANÓNICO =====
-
-            /*----------------------------------------------------------
-            FASE V
-
-            Normalización de la representación culinaria.
-
-            La fila entrega al Motor una magnitud expresada en la
-            Unidad de Captura y recibe su representación canónica.
-
-            En esta etapa se normaliza únicamente la magnitud
-            Cantidad.
-
-            En fases posteriores este mismo patrón será reutilizado
-            para Deco y Cocina.
-            ----------------------------------------------------------*/
-
+            return opcion
+                ? opcion.textContent.trim()
+                : String(valor);
         }
 
         /*----------------------------------------------------------
         FASE V
-
-        Cambio de la Unidad de Captura de la fila.
-
-        Principio arquitectónico:
-
-        El cambio de Unidad de Captura NO modifica la receta.
-
-        Únicamente modifica su representación culinaria.
-
-        La reconstrucción de las magnitudes culinarias se
-        realizará siempre a partir de la representación
-        canónica almacenada por la fila.
-
-        Durante esta etapa se mantiene el comportamiento
-        actual mientras se incorpora el soporte de
-        conversión inversa del Motor.
+    
+        Obtención del Estado Culinario local.
+    
+        Centraliza la lectura de las magnitudes culinarias
+        capturadas por el operador.
+    
+        Durante la transición arquitectónica constituye el
+        único punto autorizado para obtener:
+    
+            • Cantidad
+            • Deco
+            • Cocina
+    
+        En etapas posteriores esta función evolucionará
+        hasta representar la construcción del Estado
+        Canónico de la fila.
         ----------------------------------------------------------*/
+        function obtenerEstadoCulinarioLocal(qty, rol) {
 
-        selectorUM.addEventListener("change", function(){
-
-            const textoUM =
-                selectorUM.options[selectorUM.selectedIndex].text;
-
-            umSpan.textContent = textoUM;
-
-            umRolSpan.textContent = textoUM;
-
-            umCocinaSpan.textContent = textoUM;
-
-            qty.value = "0";
-
-            rol.value = "0";
-
-            cocinaSpan.textContent = "0";
-
-            actualizarEstadoCulinario();
-
-            console.log(
-                "Unidad de captura de la fila:",
-                selectorUM.value
+            return calcularMagnitudesCulinarias(
+                qty,
+                rol
             );
 
-        });
+        }
 
-        qty.addEventListener("input", function(){
+        function prepararFila(fila) {
 
-            actualizarEstadoCulinario();
+            // ==========================================================
+            // ==========================================================
 
-        });
-        
-        rol.addEventListener("input", function(){
+            const sel = fila.querySelector(".ing-select");
+
+            const selectorExpresion =
+                fila.querySelector(".ing-expresion");
+
+            /*----------------------------------------------------------
+            Unidad de Captura de la Fila.
+    
+            Representa el contexto compartido por las magnitudes
+            Cantidad, Deco y Cocina.
+    
+            En la FASE V deja de interpretarse como la unidad de
+            Cantidad y pasa a representar la Unidad de Captura
+            de toda la fila.
+            ----------------------------------------------------------*/
+
+            const selectorUM = obtenerSelectorUM(fila);
+
+            // ==========================================================
+            // MAGNITUDES CULINARIAS
+            // ==========================================================
+
+            const magnitudes = obtenerMagnitudesCulinarias(fila);
+
+            const qty = magnitudes.qty;
+            const rol = magnitudes.rol;
+            const cocinaSpan = magnitudes.cocinaSpan;
+
+            // ==========================================================
+            // REPRESENTACIÓN VISUAL
+            // ==========================================================
+
+            const representacionVisual = obtenerRepresentacionVisual(fila);
+
+            const umSpan = representacionVisual.umSpan;
+            const umRolSpan = representacionVisual.umRolSpan;
+            const umCocinaSpan = representacionVisual.umCocinaSpan;
+
+            // ==========================================================
+            // ACCIONES
+            // ==========================================================
+
+            const btnBorrar = fila.querySelector(".btn-borrar");
+
+            sel.addEventListener("focus", function () {
+                activarFilaIngrediente(fila);
+            });
+
+            qty.addEventListener("focus", function () {
+                activarFilaIngrediente(fila);
+            });
+
+            rol.addEventListener("focus", function () {
+                activarFilaIngrediente(fila);
+            });
+
+            // ==========================================================
+            // INICIALIZACIÓN DEL INGREDIENTE
+            // ==========================================================
+
+            sel.addEventListener("change", async function () {
+
+                const opt = sel.options[sel.selectedIndex];
+
+                const um = opt
+                    ? (opt.getAttribute("data-um") || "—")
+                    : "—";
+
+                const ingredienteId = sel.value;
+
+                /*-----------------------------------------
+                FASE V
+    
+                Inicialización del contexto de la fila.
+    
+                Al seleccionar un ingrediente quedan definidos:
+    
+                • Ingrediente de la fila.
+                • Unidad canónica del ingrediente.
+                • Estado canónico inicial.
+    
+                La Unidad de Captura de la fila se inicializa
+                a partir de la unidad canónica y posteriormente
+                podrá ser modificada por el operador sin alterar
+                la identidad del ingrediente.
+                -----------------------------------------*/
+
+                inicializarIngredienteSeleccionado(
+                    fila,
+                    opt,
+                    umSpan,
+                    umRolSpan,
+                    umCocinaSpan,
+                    um
+                );
+
+                clearMsg();
+
+                if (!selectorUM) {
+                    return;
+                }
+
+                /* Durante la transición de la Fase III-B
+                   el selector sustituye visualmente al span. */
+
+                // umSpan.style.display = "none";
+
+                // selectorUM.style.display = "inline-block";
+
+                const nombreIngrediente =
+                    sel.options[
+                        sel.selectedIndex
+                    ].text;
+
+                inicializarUnidadCaptura(
+                    selectorUM,
+                    ingredienteId,
+                    nombreIngrediente,
+                    um
+                );
+
+                await inicializarExpresionesCulinarias(
+                    selectorExpresion,
+                    um
+                );
+
+                if (selectorExpresion) {
+
+                    selectorExpresion.selectedIndex = 0;
+                    selectorExpresion.dataset.etapa = "cantidad";
+                    actualizarEncabezadoExpresion(selectorExpresion);
+
+                    document
+                        .getElementById("encabezado-expresion")
+                        .classList.remove(
+                            "encabezado-azul",
+                            "encabezado-naranja"
+                        );
+
+                    selectorExpresion.classList.remove(
+                        "expresion-atencion-cantidad",
+                        "expresion-atencion-deco"
+                    );
+
+                    qty.classList.remove(
+                        "atencion-cantidad"
+                    );
+
+                    document
+                        .getElementById("encabezado-cantidad")
+                        .classList.remove("encabezado-azul");
+
+                    rol.classList.remove(
+                        "atencion-deco"
+                    );
+
+                }
+
+
+            });
+
+            /*----------------------------------------------------------
+            Inicialización automática del selector de UM.
+    
+            Si la fila ya posee un ingrediente seleccionado
+            (receta existente o fila preparada antes del envío),
+            forzamos una ejecución del mismo flujo utilizado por
+            el evento "change", garantizando que el selector
+            unidad[] nunca permanezca vacío.
+            ----------------------------------------------------------*/
+            if (sel.value) {
+                sel.dispatchEvent(new Event("change"));
+            }
+
+            /*==========================================================
+            MOTOR DE CONVERSIÓN
+            FASE III-B
+    
+            Detección del cambio de Unidad de Medida.
+    
+            En esta etapa únicamente se valida el evento.
+    
+            La conversión de cantidades será incorporada
+            en el siguiente bloque funcional.
+            ==========================================================*/
+
+            selectorUM.addEventListener("keydown", async function (e) {
+
+                if (e.key === "Enter") {
+
+                    e.preventDefault();
+                    e.stopPropagation();
+
+                    const unidadSeleccionada =
+                        selectorUM.value;
+
+                    if (!unidadSeleccionada) {
+                        return;
+                    }
+
+                    const unidadCanonica =
+                        fila.dataset.unidadCanonica;
+
+                    const unidadAnterior =
+                        fila.dataset.unidadCapturaActual || "";
+
+                    if (unidadSeleccionada === unidadAnterior) {
+
+                        if (unidadSeleccionada !== unidadCanonica) {
+
+                            selectorExpresion.focus();
+                            selectorExpresion.click();
+
+                        } else {
+
+                            qty.focus();
+                            qty.select();
+
+                        }
+
+                        return;
+                    }
+
+                    umSpan.textContent =
+                        selectorUM.options[
+                            selectorUM.selectedIndex
+                        ].text;
+
+                    umRolSpan.textContent =
+                        selectorUM.options[
+                            selectorUM.selectedIndex
+                        ].text;
+
+                    umCocinaSpan.textContent =
+                        selectorUM.options[
+                            selectorUM.selectedIndex
+                        ].text;
+
+                    qty.value = "0";
+                    qty.readOnly = false;
+
+                    rol.value = "0";
+                    rol.readOnly = false;
+
+                    rol.style.background = "";
+                    rol.style.border = "";
+
+                    qty.dataset.valorNumerico = "0";
+                    rol.dataset.valorNumerico = "0";
+
+                    fila.dataset.cantidadCanonica = "";
+                    fila.dataset.decoCanonica = "";
+                    fila.dataset.cocinaCanonica = "";
+
+                    fila.dataset.unidadCapturaActual =
+                        unidadSeleccionada;
+
+                    cocinaSpan.textContent = "0";
+
+                    selectorExpresion.selectedIndex = 0;
+                    selectorExpresion.dataset.etapa = "cantidad";
+
+                    const esUnidadCanonica =
+                        unidadSeleccionada === unidadCanonica;
+
+                    if (!esUnidadCanonica) {
+
+                        await inicializarExpresionesCulinarias(
+                            selectorExpresion,
+                            unidadSeleccionada
+                        );
+
+                        selectorExpresion.classList.remove(
+                            "expresion-atencion-deco"
+                        );
+
+                        qty.classList.add(
+                            "atencion-cantidad"
+                        );
+
+                        document
+                            .getElementById("encabezado-cantidad")
+                            .classList.add("encabezado-azul");
+
+                        rol.classList.remove(
+                            "atencion-deco"
+                        );
+
+                        selectorExpresion.classList.add(
+                            "expresion-atencion-cantidad"
+                        );
+
+                        actualizarEncabezadoExpresion(
+                            selectorExpresion
+                        );
+
+                        selectorExpresion.focus();
+                        selectorExpresion.click();
+
+                    } else {
+
+                        selectorExpresion.classList.remove(
+                            "expresion-atencion-cantidad",
+                            "expresion-atencion-deco"
+                        );
+
+                        qty.classList.remove(
+                            "atencion-cantidad"
+                        );
+
+                        document
+                            .getElementById("encabezado-cantidad")
+                            .classList.remove("encabezado-azul");
+
+                        rol.classList.remove(
+                            "atencion-deco"
+                        );
+
+                        document
+                            .getElementById("encabezado-expresion")
+                            .classList.remove(
+                                "encabezado-azul",
+                                "encabezado-naranja"
+                            );
+
+                        qty.focus();
+                        qty.select();
+
+                    }
+                }
+            });
 
             /*----------------------------------------------------------
             FASE V
-
-            Toda modificación de una magnitud culinaria deberá
-            actualizar el Estado Culinario de la Fila.
-
-            Actualmente este bloque mantiene la lógica histórica
-            de Deco.
-
-            En las siguientes etapas esta lógica será absorbida
-            progresivamente por actualizarCantidadCanonica(),
-            convirtiéndose en el único punto de sincronización
-            del estado culinario.
+     
+            Estado culinario de la Fila de Ingrediente.
+     
+            Esta función será la única responsable de mantener
+            coherente el estado culinario asociado a una fila.
+     
+            La fila contiene tres magnitudes culinarias:
+     
+                • Cantidad
+                • Deco
+                • Cocina
+     
+            Las tres comparten una única Unidad de Captura.
+     
+            Cualquier modificación realizada por el operador sobre
+            estas magnitudes o sobre la Unidad de Captura deberá
+            mantener sincronizado el estado interno de la fila.
+     
+            La implementación de esta responsabilidad será
+            incorporada progresivamente durante la FASE V.
             ----------------------------------------------------------*/
+
+            window.contadorNormalizacion = window.contadorNormalizacion || 0;
+
+            async function actualizarEstadoCulinario() {
+
+                const idSolicitud = ++window.contadorNormalizacion;
+
+                clearMsg();
+
+                // ===== ESTADO CANÓNICO DE LA FILA =====
+
+                const magnitudes =
+                    calcularMagnitudesCulinarias(
+                        qty,
+                        rol
+                    );
+
+                const {
+                    cantidad,
+                    deco,
+                    cocina
+                } = magnitudes;
+
+                if (!sel.value || !selectorUM.value) {
+
+                    if (cocinaSpan) {
+                        cocinaSpan.textContent = "0.00";
+                    }
+
+                    return;
+
+                }
+
+                /*----------------------------------------------------------
+                FASE V
+     
+                Punto de integración con el Motor.
+     
+                En la siguiente etapa la Cantidad expresada en la
+                Unidad de Captura será normalizada hacia la
+                representación canónica del ingrediente.
+     
+                La implementación se realizará utilizando el
+                Motor de Conversión sin modificar la receta.
+                ----------------------------------------------------------*/
+
+                const estadoCanonico = {
+
+                    ingredienteId: sel.value,
+
+                    expresionId: selectorExpresion.value || "",
+
+                    unidadCaptura: selectorUM.value,
+
+                    cantidadCaptura: cantidad,
+
+                    decoCaptura: deco,
+
+                    cocinaCaptura: cocina
+
+                };
+
+                // El Motor recibirá estadoCanonico y devolverá
+                // estadoNormalizado sin modificar la receta.
+
+                try {
+
+                    const estadoNormalizado =
+                        await normalizarEstadoCanonico(
+                            estadoCanonico
+                        );
+
+                    console.log("====================================");
+                    console.log("ESTADO NORMALIZADO");
+                    console.log(estadoNormalizado);
+                    console.log("====================================");
+
+                    console.log(">>> SOLICITUD NORMALIZAR", idSolicitud, estadoCanonico);
+
+                    await reconstruirDesdeCanonico(
+                        fila,
+                        estadoNormalizado
+                    );
+
+                    console.log("<<< RESPUESTA NORMALIZAR", idSolicitud, estadoNormalizado);
+                }
+                catch (error) {
+
+                    console.error(error);
+
+                }
+
+            }
 
             /*----------------------------------------------------------
             FASE V
-
-            INICIO DE LA MIGRACIÓN
-
-            A partir de este punto el bloque comienza a asumir
-            responsabilidades que progresivamente serán trasladadas
-            a actualizarCantidadCanonica().
-
-            La primera responsabilidad a migrar será la lectura de
-            la magnitud Cantidad, para que exista un único punto de
-            lectura y sincronización del estado culinario de la fila.
+     
+            Cambio de la Unidad de Captura de la fila.
+     
+            Principio arquitectónico:
+     
+            El cambio de Unidad de Captura NO modifica la receta.
+     
+            Únicamente modifica su representación culinaria.
+     
+            La reconstrucción de las magnitudes culinarias se
+            realizará siempre a partir de la representación
+            canónica almacenada por la fila.
+     
+            Durante esta etapa se mantiene el comportamiento
+            actual mientras se incorpora el soporte de
+            conversión inversa del Motor.
             ----------------------------------------------------------*/
 
-            const cantidad = parseFloat((qty.value || "0").replace(",", ".")) || 0;
-            const deco = parseFloat((rol.value || "0").replace(",", ".")) || 0;
 
-            let cocina = cantidad - deco;
 
-            if(deco > cantidad){
+            /*----------------------------------------------------------
+            FASE V
+     
+            Cantidad modificada por el operador.
+     
+            La fila no realiza cálculos locales.
+     
+            Únicamente informa que el Estado Culinario ha cambiado.
+     
+            Toda la sincronización queda delegada en 
+            actualizarEstadoCulinario().
+            ----------------------------------------------------------*/
 
-                rol.style.background = "#ffe5e5";
-                rol.style.border = "2px solid red";
+            qty.addEventListener("input", function (e) {
 
-                cocina = 0;
+                if (e.isTrusted) {
 
-            }else{
+                    const valorCantidad =
+                        parseFloat(
+                            (qty.value || "0").replace(",", ".")
+                        ) || 0;
 
-                rol.style.background = "";
-                rol.style.border = "";
-
-            }
-
-            actualizarEstadoCulinario();
-
-        });
-
-        sel.addEventListener("keydown", function(e){
-            if(e.key === "Enter"){
-                e.preventDefault();
-                if(!sel.value){
-                    showMsg("Debe seleccionar un ingrediente.");
-                    sel.focus();
-                    return;
-                }
-                clearMsg();
-                selectorUM.focus();
-            }
-        });
-
-        qty.addEventListener("keydown", function(e){
-
-            if(e.key === "Enter"){
-
-                e.preventDefault();
-
-                const val = (qty.value || "").replace(",", ".");
-                const num = parseFloat(val);
-
-                if(isNaN(num) || num <= 0){
-
-                    showMsg("La cantidad debe ser mayor que 0.");
-
-                    selectorUM.focus();
-                    selectorUM.click();
-
-                    return;
-
+                    qty.dataset.valorNumerico =
+                        String(valorCantidad);
                 }
 
-                clearMsg();
+                actualizarEstadoCulinario();
+            });
 
-                rol.focus();
-                rol.select();
+            /*----------------------------------------------------------
+            FASE V
+     
+            Deco modificada por el operador.
+     
+            Durante la transición arquitectónica este evento
+            mantiene temporalmente parte de la lógica histórica.
+     
+            La migración se realizará de forma gradual,
+            trasladando dichas responsabilidades hacia
+            actualizarEstadoCulinario(), que será el
+            único responsable de sincronizar el Estado
+            Culinario de la fila.
+    ----------------------------------------------------------*/
 
-            }
+            rol.addEventListener("beforeinput", function (e) {
 
-        });
-        rol.addEventListener("keydown", function(e){
-            if(e.key === "Enter"){
-                e.preventDefault();
-
-                const ingId = sel.value;
-                if(!ingId){
-                    showMsg("Debe seleccionar un ingrediente.");
-                    sel.focus();
-                    return;
+                if (
+                    selectorUM.value !==
+                    fila.dataset.unidadCanonica
+                ) {
+                    e.preventDefault();
                 }
 
-                const qtyVal = parseFloat((qty.value || "").replace(",", "."));
-                if(isNaN(qtyVal) || qtyVal <= 0){
-                    showMsg("La cantidad debe ser mayor que 0.");
-                    qty.focus();
-                    qty.select();
-                    return;
+            });
+
+            rol.addEventListener("input", function (e) {
+
+                if (e.isTrusted) {
+
+                    const valorDeco =
+                        parseFloat(
+                            (rol.value || "0").replace(",", ".")
+                        ) || 0;
+
+                    rol.dataset.valorNumerico =
+                        String(valorDeco);
+
                 }
 
-                const rolVal = parseFloat((rol.value || "").replace(",", "."));
-                if(isNaN(rolVal) || rolVal < 0){
-                    showMsg("El rol debe ser 0 o mayor.");
+                /*----------------------------------------------------------
+                FASE V
+     
+                Toda modificación de una magnitud culinaria deberá
+                actualizar el Estado Culinario de la Fila.
+     
+                Actualmente este bloque mantiene la lógica histórica
+                de Deco.
+     
+                En las siguientes etapas esta lógica será absorbida
+                progresivamente por actualizarCantidadCanonica(),
+                convirtiéndose en el único punto de sincronización
+                del estado culinario.
+                ----------------------------------------------------------*/
+
+                /*----------------------------------------------------------
+                FASE V
+     
+                INICIO DE LA MIGRACIÓN
+     
+                A partir de este punto el bloque comienza a asumir
+                responsabilidades que progresivamente serán trasladadas
+                a actualizarCantidadCanonica().
+     
+                La primera responsabilidad a migrar será la lectura de
+                la magnitud Cantidad, para que exista un único punto de
+                lectura y sincronización del estado culinario de la fila.
+                ----------------------------------------------------------*/
+
+                const cantidad =
+                    parseFloat(
+                        qty.dataset.valorNumerico ||
+                        (qty.value || "0").replace(",", ".")
+                    ) || 0;
+                const deco =
+                    parseFloat(
+                        rol.dataset.valorNumerico ||
+                        (rol.value || "0").replace(",", ".")
+                    ) || 0;
+
+                let cocina = cantidad - deco;
+
+                if (deco > cantidad) {
+
+                    rol.style.background = "#ffe5e5";
+                    rol.style.border = "2px solid red";
+
+                    cocina = 0;
+
+                } else {
+
+                    rol.style.background = "";
+                    rol.style.border = "";
+
+                }
+
+                actualizarEstadoCulinario();
+
+            });
+
+            sel.addEventListener("keydown", function (e) {
+
+                if (e.key === "Enter") {
+
+                    e.preventDefault();
+                    e.stopPropagation();
+
+                    if (!sel.value) {
+
+                        showMsg("Debe seleccionar un ingrediente.");
+                        sel.focus();
+
+                        return;
+                    }
+
+                    clearMsg();
+
+                    setTimeout(function () {
+                        selectorUM.focus();
+                    }, 0);
+
+
+                }
+
+            });
+
+            selectorExpresion.addEventListener("keydown", function (e) {
+
+                if (e.key === "Enter") {
+
+                    e.preventDefault();
+                    e.stopPropagation();
+
+                    clearMsg();
+
+                    const opcionSeleccionada =
+                        selectorExpresion.selectedOptions[0];
+
+                    const etapa =
+                        selectorExpresion.dataset.etapa || "cantidad";
+
+                    const hayExpresiones =
+                        Array.from(selectorExpresion.options).some(
+                            option => option.value
+                        );
+
+                    if (etapa === "cantidad" && !hayExpresiones) {
+
+                        qty.focus();
+                        qty.select();
+
+                        return;
+                    }
+
+                    if (etapa === "cantidad") {
+
+                        if (!selectorExpresion.value) {
+
+                            showMsg("Debe seleccionar una expresión.");
+
+                            selectorExpresion.focus();
+
+                            return;
+                        }
+
+                        const factor =
+                            parseFloat(
+                                opcionSeleccionada.dataset.factor
+                            );
+
+                        if (isNaN(factor) || factor <= 0) {
+
+                            showMsg("La expresión seleccionada no tiene un factor válido.");
+
+                            selectorExpresion.focus();
+
+                            return;
+                        }
+
+                        qty.dataset.valorNumerico = String(factor);
+                        qty.value = opcionSeleccionada.textContent.trim();
+                        qty.readOnly = true;
+
+                        qty.dispatchEvent(
+                            new Event("input", { bubbles: true })
+                        );
+
+                        qty.focus();
+                        qty.select();
+
+                        return;
+                    }
+
+                    if (!selectorExpresion.value) {
+
+                        showMsg("Debe seleccionar una expresión.");
+
+                        selectorExpresion.focus();
+
+                        return;
+                    } else {
+
+                        const factor =
+                            parseFloat(
+                                opcionSeleccionada.dataset.factor
+                            );
+
+                        if (isNaN(factor) || factor < 0) {
+
+                            showMsg("La expresión seleccionada no tiene un factor válido.");
+                            selectorExpresion.focus();
+
+                            return;
+                        }
+
+                        rol.dataset.valorNumerico = String(factor);
+                        rol.value = opcionSeleccionada.textContent.trim();
+                    }
+
+                    rol.dispatchEvent(
+                        new Event("input", { bubbles: true })
+                    );
+
                     rol.focus();
                     rol.select();
-                    return;
+
                 }
-                if(rolVal > qtyVal){
-                    showMsg("La decoración no puede ser mayor que la cantidad");
+
+            });
+
+            qty.addEventListener("keydown", function (e) {
+
+                if (e.key === "Enter") {
+
+                    e.preventDefault();
+
+                    const num =
+                        parseFloat(
+                            qty.dataset.valorNumerico ||
+                            (qty.value || "").replace(",", ".")
+                        );
+
+                    if (isNaN(num) || num <= 0) {
+
+                        showMsg("La cantidad debe ser mayor que 0.");
+
+                        selectorUM.focus();
+                        selectorUM.click();
+
+                        return;
+
+                    }
+
+                    clearMsg();
+
+                    document
+                        .getElementById("encabezado-cantidad")
+                        .classList.remove("encabezado-azul");
+
+
+                    if (
+                        selectorUM.value !==
+                        fila.dataset.unidadCanonica
+                    ) {
+
+                        /*
+                         * UM no canónica:
+                         * DECO comienza explícitamente en cero.
+                         *
+                         * EXPRESION-D queda preparada en etapa
+                         * "deco", pero no se obliga al operador
+                         * a abrirla cuando no existe decoración.
+                         */
+
+                        rol.value = "0";
+                        rol.dataset.valorNumerico = "0";
+                        rol.readOnly = true;
+
+                        selectorExpresion.selectedIndex = 0;
+                        selectorExpresion.dataset.etapa = "deco";
+
+                        selectorExpresion.classList.remove(
+                            "expresion-atencion-cantidad"
+                        );
+
+                        qty.classList.remove(
+                            "atencion-cantidad"
+                        );
+
+                        selectorExpresion.classList.add(
+                            "expresion-atencion-deco"
+                        );
+
+                        rol.classList.add(
+                            "atencion-deco"
+                        );
+
+                        actualizarEncabezadoExpresion(selectorExpresion);
+
+                        rol.focus();
+                        rol.select();
+
+                        return;
+                    }
+
                     rol.focus();
                     rol.select();
-                    return;
+
                 }
 
-                if(ingredienteYaUsado(ingId)){
-                    const nombre = sel.options[sel.selectedIndex].textContent;
-                    // Mensaje con colores: nombre en rojo, resto en verde intenso
-                    const msg =
-                        "<span style='color:#0b5d1e; font-weight:bold;'>El ingrediente </span>" +
-                        "<span style='color:#cc0000; font-weight:bold;'>" + nombre + "</span>" +
-                        "<span style='color:#0b5d1e; font-weight:bold;'> ya está en la receta.</span>";
-                    showMsg(msg);
-                    sel.value = "";
-                    umSpan.textContent = "—";
-                    umRolSpan.textContent = "—";
-                    sel.focus();
-                    return;
-                }
+            });
+            rol.addEventListener("keydown", function (e) {
+                if (e.key === "Enter") {
+                    e.preventDefault();
 
+                    const ingId = sel.value;
+                    if (!ingId) {
+                        showMsg("Debe seleccionar un ingrediente.");
+                        sel.focus();
+                        return;
+                    }
+
+                    const qtyVal =
+                        parseFloat(
+                            qty.dataset.valorNumerico ||
+                            (qty.value || "").replace(",", ".")
+                        );
+                    if (isNaN(qtyVal) || qtyVal <= 0) {
+                        showMsg("La cantidad debe ser mayor que 0.");
+                        qty.focus();
+                        qty.select();
+                        return;
+                    }
+
+                    const rolVal =
+                        parseFloat(
+                            rol.dataset.valorNumerico ||
+                            (rol.value || "").replace(",", ".")
+                        );
+                    if (isNaN(rolVal) || rolVal < 0) {
+                        showMsg("El rol debe ser 0 o mayor.");
+                        rol.focus();
+                        rol.select();
+                        return;
+                    }
+                    if (rolVal > qtyVal) {
+                        showMsg("La decoración no puede ser mayor que la cantidad");
+                        rol.focus();
+                        rol.select();
+                        return;
+                    }
+
+                    if (ingredienteYaUsado(ingId)) {
+                        const nombre = sel.options[sel.selectedIndex].textContent;
+                        // Mensaje con colores: nombre en rojo, resto en verde intenso
+                        const msg =
+                            "<span style='color:#0b5d1e; font-weight:bold;'>El ingrediente </span>" +
+                            "<span style='color:#cc0000; font-weight:bold;'>" + nombre + "</span>" +
+                            "<span style='color:#0b5d1e; font-weight:bold;'> ya está en la receta.</span>";
+                        showMsg(msg);
+                        sel.value = "";
+                        umSpan.textContent = "—";
+                        umRolSpan.textContent = "—";
+                        sel.focus();
+                        return;
+                    }
+
+                    clearMsg();
+
+                    selectorExpresion.classList.remove(
+                        "expresion-atencion-deco"
+                    );
+
+                    rol.classList.remove(
+                        "atencion-deco"
+                    );
+
+                    document
+                        .getElementById("encabezado-expresion")
+                        .classList.remove(
+                            "encabezado-azul",
+                            "encabezado-naranja"
+                        );
+
+                    crearFilaYEnfocarIngrediente();
+                }
+            });
+
+            btnBorrar.addEventListener("click", function () {
+                fila.remove();
                 clearMsg();
-                crearFilaYEnfocarIngrediente();
-            }
-        });
 
-        btnBorrar.addEventListener("click", function(){
-            fila.remove();
-            clearMsg();
-        });
-    }
+                const encabezadoExpresion =
+                    document.getElementById("encabezado-expresion");
 
-})();
-</script>
+                encabezadoExpresion.classList.remove(
+                    "encabezado-azul",
+                    "encabezado-naranja"
+                );
+
+                encabezadoExpresion.textContent = "EXPRESION-C";
+            });
+        }
+
+}) ();
+    </script>
 
 </body>
+
 </html>
 <!-- Fin del archivo: modulo_web/templates/admin_recetas_nueva.html -->
 <!-- URL del archivo a probar: http://127.0.0.1:5000/admin/recetas/nueva -->

@@ -3,7 +3,7 @@
 <div style="padding:20px 20px 0 20px;">
 
 <a
-href="/admin"
+href="{{ menu_url if menu_url else '/admin' }}"
 
 tabindex="-1"
 
@@ -17,7 +17,7 @@ display:inline-block;
 "
 >
 
-🏠 Menú Principal Administrativo
+{{ menu_texto if menu_texto else "🏠 Menú Principal Administrativo" }}
 
 </a>
 

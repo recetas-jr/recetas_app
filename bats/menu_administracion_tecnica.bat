@@ -25,10 +25,13 @@ echo.
 echo 0. SALIR
 echo.
 
-set /p opcion=Seleccione opcion: 
+set /p opcion=Seleccione opcion:
 
-start "" "%~dp0arranca_recetas.bat"
-goto fin
+if "%opcion%"=="1" (
+    start "" "%~dp0arranca_recetas.bat"
+    goto fin
+)
+
 if "%opcion%"=="2" call "%~dp0abrir_bd_recetas.bat"
 if "%opcion%"=="3" call "%~dp0backup_proyecto.bat"
 if "%opcion%"=="4" call "%~dp0backup_recetas.bat"

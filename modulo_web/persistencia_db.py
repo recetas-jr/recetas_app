@@ -95,10 +95,89 @@ def init_db():
     except sqlite3.OperationalError:
         pass
 
+    cur.execute("""
+    CREATE TABLE IF NOT EXISTS expresiones_culinarias (
+
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+
+        unidad_codigo TEXT NOT NULL,
+
+        expresion TEXT NOT NULL,
+
+        factor REAL NOT NULL,
+
+        orden INTEGER NOT NULL,
+
+        activo INTEGER NOT NULL DEFAULT 1,
+
+        UNIQUE (
+            unidad_codigo,
+            expresion
+        )
+
+    );
+    """)
+
     try:
         cur.execute("""
             ALTER TABLE recetas_ingredientes
             ADD COLUMN unidad_codigo_presentacion TEXT;
+        """)
+    except sqlite3.OperationalError:
+        pass
+
+    try:
+        cur.execute("""
+            ALTER TABLE recetas_ingredientes
+            ADD COLUMN expresion_id INTEGER;
+        """)
+    except sqlite3.OperationalError:
+        pass
+
+    try:
+        cur.execute("""
+            ALTER TABLE recetas_ingredientes
+            ADD COLUMN expresion_c_id INTEGER;
+        """)
+    except sqlite3.OperationalError:
+        pass
+
+    try:
+        cur.execute("""
+            ALTER TABLE recetas_ingredientes
+            ADD COLUMN expresion_c_texto TEXT;
+        """)
+    except sqlite3.OperationalError:
+        pass
+
+    try:
+        cur.execute("""
+            ALTER TABLE recetas_ingredientes
+            ADD COLUMN cantidad_captura TEXT;
+        """)
+    except sqlite3.OperationalError:
+        pass
+
+    try:
+        cur.execute("""
+            ALTER TABLE recetas_ingredientes
+            ADD COLUMN expresion_d_id INTEGER;
+        """)
+    except sqlite3.OperationalError:
+        pass
+
+    try:
+        cur.execute("""
+            ALTER TABLE recetas_ingredientes
+            ADD COLUMN expresion_d_texto TEXT;
+        """)
+    except sqlite3.OperationalError:
+        pass
+
+    try:
+        cur.execute("""
+            ALTER TABLE recetas_ingredientes
+            ADD COLUMN deco_captura TEXT;
         """)
     except sqlite3.OperationalError:
         pass
@@ -111,8 +190,16 @@ def init_db():
         cantidad REAL NOT NULL,
         unidad_codigo_presentacion TEXT NOT NULL,
         rol REAL NOT NULL,
+        expresion_c_id INTEGER,
+        expresion_c_texto TEXT,
+        cantidad_captura TEXT,
+        expresion_d_id INTEGER,
+        expresion_d_texto TEXT,
+        deco_captura TEXT,
         FOREIGN KEY (receta_id) REFERENCES recetas_maestro(id),
-        FOREIGN KEY (ingrediente_id) REFERENCES ingredientes(id)
+        FOREIGN KEY (ingrediente_id) REFERENCES ingredientes(id),
+        FOREIGN KEY (expresion_c_id) REFERENCES expresiones_culinarias(id),
+        FOREIGN KEY (expresion_d_id) REFERENCES expresiones_culinarias(id)
     );
     """)
 
@@ -141,14 +228,6 @@ def init_db():
         asunto TEXT NOT NULL,
         mensaje TEXT NOT NULL,
         atendido INTEGER NOT NULL DEFAULT 0
-    );
-    """)
-
-    cur.execute("""
-    CREATE TABLE IF NOT EXISTS expresiones_culinarias (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        codigo TEXT NOT NULL UNIQUE,
-        nombre TEXT NOT NULL
     );
     """)
 
@@ -298,39 +377,6 @@ def db_cargar_unidades():
     conn.close()
 
     return [{"id": f["id"], "codigo": f["codigo"], "nombre": f["nombre"]} for f in filas]
-
-# ==================================================
-# EXPRESIONES CULINARIAS
-# ==================================================
-
-
-def db_cargar_expresiones_culinarias():
-
-    conn = get_connection()
-
-    cur = conn.cursor()
-
-    cur.execute("""
-        SELECT
-            id,
-            codigo,
-            nombre
-        FROM expresiones_culinarias
-        ORDER BY nombre
-    """)
-
-    filas = cur.fetchall()
-
-    conn.close()
-
-    return [
-        {
-            "id": f["id"],
-            "codigo": f["codigo"],
-            "nombre": f["nombre"]
-        }
-        for f in filas
-    ]
 
 
 def db_insertar_expresion_culinaria(
@@ -986,6 +1032,12 @@ def db_cargar_unidades_disponibles_por_ingrediente(ingrediente_id):
 
     equivalencias = db_cargar_equivalencias(ingrediente_id)
 
+    print(
+        "DEBUG UNIDADES DISPONIBLES:",
+        ingrediente_id,
+        equivalencias
+    )
+
     unidades = []
 
     if unidad_base:
@@ -1007,6 +1059,114 @@ def db_cargar_unidades_disponibles_por_ingrediente(ingrediente_id):
         })
 
     return unidades
+
+# ==========================================================
+# NEC
+# Nomenclador de Expresiones Culinarias
+# ==========================================================
+
+#
+# Estructura lógica prevista
+#
+# Cada expresión culinaria representará:
+#
+# {
+#     "id": ...,
+#     "unidad_codigo": ...,
+#     "expresion": ...,
+#     "factor": ...,
+#     "orden": ...
+# }
+#
+# Esta estructura constituye el contrato de datos
+# entre Persistencia y el Motor de Conversión.
+#
+
+# ==================================================
+# EXPRESIONES CULINARIAS
+# ==================================================
+
+
+def db_cargar_expresiones_culinarias(
+    unidad_codigo
+):
+    """
+    Devuelve las expresiones culinarias
+    correspondientes a una Unidad de Medida.
+
+    La información se devuelve ordenada
+    según el orden definido por el NEC.
+    """
+
+    #
+    # Devuelve una lista con la estructura:
+    #
+    # [
+    #     {
+    #         "id": ...,
+    #         "expresion": ...,
+    #         "factor": ...
+    #     }
+    # ]
+    #
+
+    conn = get_connection()
+
+    cur = conn.cursor()
+
+    cur.execute(
+        """
+        SELECT
+            id,
+            expresion,
+            factor
+        FROM expresiones_culinarias
+        WHERE unidad_codigo = ?
+          AND activo = 1
+        ORDER BY orden
+        """,
+        (unidad_codigo,)
+    )
+
+    filas = cur.fetchall()
+
+    conn.close()
+
+    return [
+        {
+            "id": f["id"],
+            "expresion": f["expresion"],
+            "factor": f["factor"]
+        }
+        for f in filas
+    ]
+
+
+def db_cargar_expresiones_culinarias_admin():
+
+    conn = get_connection()
+
+    try:
+
+        cur = conn.cursor()
+
+        cur.execute("""
+            SELECT
+                id,
+                unidad_codigo,
+                expresion,
+                factor,
+                orden,
+                activo
+            FROM expresiones_culinarias
+            ORDER BY orden
+        """)
+
+        return cur.fetchall()
+
+    finally:
+
+        conn.close()
 
 
 if __name__ == "__main__":

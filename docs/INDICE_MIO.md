@@ -474,11 +474,209 @@ ForEach-Object {
 
 Ó
 
-py .\modulo_web\herramientas_forense\listar_archivo.py ruta\archivo
+ 951: # ==================================================
+ 952: 
+ 953: @app.route("/admin/recetas/editar/<int:receta_id>", methods=["GET", "POST"])
+ 954: def admin_recetas_editar(receta_id):
+ 955: 
+ 956:     platos = db_cargar_platos()
+ 957:     ingredientes = cargar_ingredientes_con_unidad()
+ 958: 
+ 959:     # ==================================================
+ 960:     # GUARDAR CAMBIOS DE RECETA
+ 961:     # ==================================================
+ 962: 
+ 963:     if request.method == "POST":
+ 964: 
+ 965:         plato_id = request.form.get("plato_id", "").strip()
+ 966:         raciones_base = request.form.get("raciones_base", "").strip()
+ 967: 
+ 968:         # NUEVO: textos de la receta
+ 969:         preparacion = request.form.get("preparacion", "").strip()
+ 970:         elaboracion = request.form.get("elaboracion", "").strip()
+ 971:         presentacion = request.form.get("presentacion", "").strip()
+ 972:         nutricion = request.form.get("nutricion", "").strip()
+ 973: 
+ 974:         if not plato_id:
+ 975:             flash("Debe seleccionar un plato.", "error")
+ 976:             return redirect(f"/admin/recetas/editar/{receta_id}")
+ 977: 
+ 978:         try:
+ 979:             raciones_base_int = int(raciones_base)
+ 980:             if raciones_base_int <= 0:
+ 981:                 flash("RACIONES BASE debe ser mayor que 0.", "error")
+ 982:                 return redirect(f"/admin/recetas/editar/{receta_id}")
+ 983:         except:
+ 984:             flash("RACIONES BASE debe ser numérico.", "error")
+ 985:             return redirect(f"/admin/recetas/editar/{receta_id}")
+ 986: 
+ 987:         ingredientes_ids = request.form.getlist("ingrediente_id[]")
+ 988:         cantidades = request.form.getlist("cantidad[]")
+ 989:         roles = request.form.getlist("rol[]")
+ 990: 
+ 991:         vistos = set()
+ 992:         filas_validas = []
+ 993: 
+ 994:         for i in range(len(ingredientes_ids)):
+ 995: 
+ 996:             ing_id = (ingredientes_ids[i] or "").strip()
+ 997:             cant_txt = (cantidades[i] or "").strip()
+ 998:             rol_txt = (roles[i] or "").strip()
+ 999: 
+1000:             if not ing_id:
+1001:                 continue
+1002: 
+1003:             if ing_id in vistos:
+1004:                 flash("No se permiten ingredientes duplicados.", "error")
+1005:                 return redirect(f"/admin/recetas/editar/{receta_id}")
+1006: 
+1007:             vistos.add(ing_id)
+1008: 
+1009:             try:
+1010:                 cant_f = float(cant_txt)
+1011:             except:
+1012:                 flash("La cantidad debe ser numérica.", "error")
+1013:                 return redirect(f"/admin/recetas/editar/{receta_id}")
+1014: 
+1015:             if cant_f <= 0:
+1016:                 flash("La cantidad debe ser mayor que 0.", "error")
+1017:                 return redirect(f"/admin/recetas/editar/{receta_id}")
+1018: 
+1019:             if rol_txt == "":
+1020:                 rol_f = 0.0
+1021:             else:
+1022:                 try:
+1023:                     rol_f = float(rol_txt)
+1024:                 except:
+1025:                     flash("El rol debe ser numérico.", "error")
+1026:                     return redirect(f"/admin/recetas/editar/{receta_id}")
+1027: 
+1028:                 if rol_f < 0:
+1029:                     flash("El rol no puede ser negativo.", "error")
+1030:                     return redirect(f"/admin/recetas/editar/{receta_id}")
+1031: 
+1032:                 if rol_f > cant_f:
+1033:                     flash("El rol no puede ser mayor que la cantidad.", "error")
+1034:                     return redirect(f"/admin/recetas/editar/{receta_id}")
+1035: 
+1036:             filas_validas.append((int(ing_id), cant_f, rol_f))
+1037: 
+1038:         if not filas_validas:
+1039:             flash("La receta no puede quedar sin ingredientes.", "error")
+1040:             return redirect(f"/admin/recetas/editar/{receta_id}")
+1041: 
+1042:         try:
+1043: 
+1044:             conn = get_connection()
+1045: 
+1046:             cur = conn.cursor()
+1047: 
+1048:             cur.execute(
+1049:                 """
+1050:                 UPDATE recetas_maestro
+1051:                 SET plato_id=?,
+1052:                     raciones_base=?,
+1053:                     preparacion=?,
+1054:                     elaboracion=?,
+1055:                     presentacion=?,
+1056:                     nutricion=?
+1057:                 WHERE id=?
+1058:                 """,
+1059:                 (
+1060:                     int(plato_id),
+1061:                     raciones_base_int,
+1062:                     preparacion,
+1063:                     elaboracion,
+1064:                     presentacion,
+1065:                     nutricion,
+1066:                     receta_id
+1067:                 )
+1068:             )
+1069: 
+1070:             cur.execute(
+1071:                 "DELETE FROM recetas_ingredientes WHERE receta_id=?",
+1072:                 (receta_id,)
+1073:             )
+1074: 
+1075:             for ing_id, cant_f, rol_f in filas_validas:
+1076: 
+1077:                 cur.execute(
+1078:                     """
+1079:                     INSERT INTO recetas_ingredientes
+1080:                     (receta_id, ingrediente_id, cantidad, rol)
+1081:                     VALUES (?,?,?,?)
+1082:                     """,
+1083:                     (receta_id, ing_id, cant_f, rol_f)
+1084:                 )
+1085: 
+1086:             print("ANTES DEL COMMIT")
+1087: 
+1088:             conn.commit()
+1089: 
+1090:             flash(
+1091:                 "Receta actualizada correctamente.",
+1092:                 "recetas"
+1093:             )
+1094: 
+1095:             return redirect("/admin/recetas/listado")
+1096: 
+1097:         except Exception as e:
+1098: 
+1099:             print("ERROR actualizando receta:", e)
+1100: 
+1101:             try:
+1102: 
+1103:                 conn.rollback()
+1104: 
+1105:             except Exception as e2:
+1106: 
+1107:                 print("ERROR EN ROLLBACK:", e2)
+1108: 
+1109:             flash(
+1110:                 "Error al actualizar la receta.",
+1111:                 "error"
+1112:             )
+1113: 
+1114:             return redirect(
+1115:                 f"/admin/recetas/editar/{receta_id}"
+1116:             )
+1117: 
+1118:         finally:
+1119: 
+1120:             try:
+1121: 
+1122:                 conn.close()
+1123: 
+1124:             except Exception as e:
+1125: 
+1126:                 print("ERROR CERRANDO CONEXION:", e)
+1127: 
+1128:     # ==================================================
+1129:     # CARGAR RECETA PARA EDICIÓN
+1130:     # ==================================================
+1131: 
+1132:     try:
+1133:         conn = get_connection()
+1134:         cur = conn.cursor()
+1135: 
+1136:         cur.execute("""
+1137:             SELECT
+1138:                 r.id,
+1139:                 r.plato_id,
+1140:                 r.raciones_base,
+1141:                 r.preparacion,
+1142:                 r.elaboracion,
+1143:                 r.presentacion,
+1144:                 r.nutricion,
+1145:                 p.nombre as plato_nombre
+1146:             FROM recetas_maestro r
+1147:             JOIN platos p ON p.id = r.plato_id
+1148:             WHERE r.id = ?
+1149:         """, (receta_id,))
+1150: 
 
 EJEMPLO:
 
-py .\modulo_web\herramientas_forense\listar_archivo.py modulo_web\templates\admin_equivalencias.html
 
 PARA RESTAURAR ARCHIVOS :
 
@@ -487,3 +685,9 @@ type archivo_backup.py > archivo_original.py <--- REATAURA
 UNA FORMA DE GUARDAR UN ARCHIVO CON COPY:
 C:\Users\jrmon\Documents\recetas_app>copy /Y "bats\arranca_recetas.bat" "bats\arranca_recetas_backup.bat"
 
+
+SALIR DEL INTERPRETE DE PYTHON: exit()
+
+simil de cls pero en python: os.system("cls")
+
+py .\modulo_web\herramientas_forense\listar_archivo.py modulo_web\templates\admin_recetas_editar_nuevo.html

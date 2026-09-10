@@ -44,7 +44,8 @@ Estado:
 # ==========================================================
 from modulo_web.persistencia_db import (
     db_cargar_equivalencias,
-    db_cargar_ingrediente_por_id
+    db_cargar_ingrediente_por_id,
+    db_cargar_expresiones_culinarias
 )
 
 # ==========================================================
@@ -115,6 +116,21 @@ class UnidadDestinoNoEncontrada(ErrorConversion):
 #       Recibe una cantidad expresada en cualquier unidad válida del
 #       ingrediente y devuelve su representación en la unidad canónica.
 #
+# - obtener_expresiones_culinarias()
+#       Devuelve las expresiones culinarias disponibles para
+#       una Unidad de Captura determinada.
+#
+#       Este servicio será utilizado durante la captura de
+#       recetas para construir dinámicamente el selector de
+#       cantidades culinarias.
+#
+#       No realiza conversiones.
+#
+#       No modifica información.
+#
+#       Únicamente informa qué expresiones culinarias son
+#       válidas para la Unidad de Captura seleccionada.
+
 # Flujo conceptual:
 #
 # Captura del usuario
@@ -288,6 +304,26 @@ def normalizar(
     return cantidad_canonica
 
 
+def obtener_expresiones_culinarias(
+    unidad_codigo
+):
+    """
+    Devuelve las expresiones culinarias disponibles para un
+    ingrediente utilizando una determinada Unidad de Captura.
+
+    Esta función constituye el punto de entrada del Motor para
+    la Captura Inteligente de Recetas.
+
+    Por el momento no implementa ninguna lógica.
+    """
+
+    expresiones = db_cargar_expresiones_culinarias(
+        unidad_codigo
+    )
+
+    return expresiones
+
+
 def _buscar_equivalencia(equivalencias, unidad):
     """
     Localiza la equivalencia correspondiente a una unidad
@@ -295,16 +331,7 @@ def _buscar_equivalencia(equivalencias, unidad):
     """
     for equivalencia in equivalencias:
 
-        print(
-            "COMPARANDO:",
-            equivalencia["codigo"],
-            "==",
-            unidad
-        )
-
         if equivalencia["codigo"].upper() == unidad.upper():
-
-            print("COINCIDENCIA ENCONTRADA")
 
             return equivalencia
 

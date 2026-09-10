@@ -49,7 +49,7 @@ if /I "%opcion%"=="X" (
 
 if "%opcion%"=="0" (
     echo.
-    set /p mensaje=Escriba mensaje del commit:
+    set /p mensaje=Escriba el mensaje del commit y presione ENTER:
 )
 
 if not "%opcion%"=="0" if /I not "%opcion%"=="X" (
@@ -71,25 +71,40 @@ echo =====================================
 echo VERIFICANDO STAGING
 echo =====================================
 echo.
-echo Este BAT ya no ejecuta git add .
+echo Este BAT NO ejecuta automaticamente:
+echo.
+echo     git add .
 echo.
 echo Prepare previamente el staging con los archivos
 echo que desea incluir en el commit.
 echo.
-pause
+echo Al continuar se verificara si existe
+echo un staging valido.
+echo.
+set /p dummy=Presione ENTER para iniciar la verificacion del staging:
 
 git diff --cached --quiet
 
 if %errorlevel%==0 (
     echo.
     echo =====================================
-    echo NO HAY CAMBIOS PARA PUBLICAR
+    echo NO SE DETECTO STAGING
     echo =====================================
+    echo.
+    echo No existen archivos preparados para el commit.
+    echo.
+    echo Prepare previamente el staging y vuelva a ejecutar este BAT.
     echo.
     pause
     exit /b
 )
-
+echo.
+echo =====================================
+echo STAGING DETECTADO
+echo =====================================
+echo.
+echo Se encontraron archivos preparados para el commit.
+echo A continuacion se muestran los archivos incluidos:
 echo.
 echo =====================================
 echo ARCHIVOS INCLUIDOS EN EL COMMIT

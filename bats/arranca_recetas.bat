@@ -114,7 +114,7 @@ goto abrir_navegador
 :abrir_navegador
 echo.
 echo Abriendo navegador...
-start http://127.0.0.1:5000/login
+start http://127.0.0.1:5000/admin/recetas/listado
 goto fin
 
 

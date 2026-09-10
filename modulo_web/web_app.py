@@ -1,19 +1,3 @@
-from flask import (
-    Flask,
-    render_template,
-    request,
-    redirect,
-    flash,
-    abort,
-    session,
-    jsonify
-)
-from markupsafe import Markup
-from datetime import timedelta
-from datetime import datetime
-
-import sqlite3
-
 from modulo_web.persistencia_db import (
     db_cargar_platos,
     db_cargar_unidades,
@@ -34,16 +18,64 @@ from modulo_web.persistencia_db import (
     db_cargar_unidades_disponibles_por_ingrediente,
     db_cargar_ingredientes,
     db_cargar_ingrediente_por_id,
-    db_cargar_expresiones_culinarias
+    db_cargar_expresiones_culinarias,
+    db_cargar_expresiones_culinarias_admin
 )
-
 from modulo_web.motor_conversion import (
     obtener_equivalencias,
     representar,
     normalizar,
     puede_convertir,
+    obtener_expresiones_culinarias,
     IngredienteSinEquivalencias
 )
+from flask import (
+    Flask,
+    render_template,
+    request,
+    redirect,
+    flash,
+    abort,
+    session,
+    jsonify
+)
+from markupsafe import Markup
+from datetime import timedelta
+from datetime import datetime
+
+import sqlite3
+
+from fractions import Fraction
+
+
+def convertir_numero_culinario(texto):
+
+    texto = (texto or "").strip().replace(",", ".")
+
+    if not texto:
+        raise ValueError
+
+    try:
+        return float(texto)
+
+    except ValueError:
+
+        partes = texto.split()
+
+        if len(partes) == 2 and "/" in partes[1]:
+
+            signo = -1 if partes[0].startswith("-") else 1
+
+            entero = abs(float(partes[0]))
+            fraccion = float(Fraction(partes[1]))
+
+            return signo * (entero + fraccion)
+
+        if "/" in texto:
+            return float(Fraction(texto))
+
+        raise ValueError
+
 
 app = Flask(__name__)
 app.secret_key = "recetas_app_secret_key_2026"
@@ -342,42 +374,33 @@ def admin_expresiones_culinarias():
 
     if request.method == "POST":
 
-        codigo = (request.form.get("codigo") or "").strip()
+        unidad_codigo = (request.form.get("codigo") or "").strip().upper()
 
-        nombre = (request.form.get("nombre") or "").strip()
+        expresion = (request.form.get("nombre") or "").strip()
 
-        if not codigo:
-            errores.append("El código es obligatorio.")
+        if not unidad_codigo:
+            errores.append("El código de unidad es obligatorio.")
 
-        if not nombre:
-            errores.append("El nombre es obligatorio.")
+        if not expresion:
+            errores.append("La expresión culinaria es obligatoria.")
 
         if not errores:
-            conn = get_connection()
-            cur = conn.cursor()
 
-            cur.execute(
-                "SELECT id FROM expresiones_culinarias WHERE LOWER(codigo) = LOWER(?)",
-                (codigo,)
-            )
+            try:
 
-            existe = cur.fetchone()
-            if existe:
+                factor = convertir_numero_culinario(expresion)
 
-                conn.close()
-
-                errores.append(
-                    f"⚠️ "
-                    f"<span style='color:#cc0000; font-weight:bold;'>CÓDIGO {codigo}</span> "
-                    f"<span style='color:#0b5d1e; font-weight:bold;'>ya existe en</span> "
-                    f"<span style='color:#cc0000; font-weight:bold;'>EXPRESIONES CULINARIAS</span>"
-                )
-
-            else:
+                conn = get_connection()
+                cur = conn.cursor()
 
                 cur.execute(
-                    "SELECT id FROM expresiones_culinarias WHERE LOWER(nombre) = LOWER(?)",
-                    (nombre,)
+                    """
+                    SELECT id
+                    FROM expresiones_culinarias
+                    WHERE LOWER(unidad_codigo) = LOWER(?)
+                      AND LOWER(expresion) = LOWER(?)
+                    """,
+                    (unidad_codigo, expresion)
                 )
 
                 existe = cur.fetchone()
@@ -388,20 +411,48 @@ def admin_expresiones_culinarias():
 
                     errores.append(
                         f"⚠️ "
-                        f"<span style='color:#cc0000; font-weight:bold;'>{nombre}</span> "
-                        f"<span style='color:#0b5d1e; font-weight:bold;'>ya existe en</span> "
-                        f"<span style='color:#cc0000; font-weight:bold;'>EXPRESIONES CULINARIAS</span>"
+                        f"<span style='color:#cc0000; font-weight:bold;'>"
+                        f"{unidad_codigo} - {expresion}"
+                        f"</span> "
+                        f"<span style='color:#0b5d1e; font-weight:bold;'>"
+                        f"ya existe en"
+                        f"</span> "
+                        f"<span style='color:#cc0000; font-weight:bold;'>"
+                        f"EXPRESIONES CULINARIAS"
+                        f"</span>"
                     )
 
                 else:
 
                     cur.execute(
                         """
-                        INSERT INTO expresiones_culinarias
-                        (codigo, nombre)
-                        VALUES (?, ?)
+                        SELECT COALESCE(MAX(orden), 0) + 1
+                        FROM expresiones_culinarias
+                        WHERE unidad_codigo = ?
                         """,
-                        (codigo, nombre)
+                        (unidad_codigo,)
+                    )
+
+                    orden = cur.fetchone()[0]
+
+                    cur.execute(
+                        """
+                        INSERT INTO expresiones_culinarias
+                        (
+                            unidad_codigo,
+                            expresion,
+                            factor,
+                            orden,
+                            activo
+                        )
+                        VALUES (?, ?, ?, ?, 1)
+                        """,
+                        (
+                            unidad_codigo,
+                            expresion,
+                            factor,
+                            orden
+                        )
                     )
 
                     conn.commit()
@@ -409,13 +460,24 @@ def admin_expresiones_culinarias():
                     conn.close()
 
                     flash(
-                        f"Expresión culinaria '<span class='item'>{codigo} - {nombre}</span>' creada correctamente.",
+                        f"Expresión culinaria "
+                        f"'<span class='item'>"
+                        f"{unidad_codigo} - {expresion}"
+                        f"</span>' creada correctamente.",
                         "ok"
                     )
 
                     return redirect("/admin/expresiones_culinarias")
 
-    expresiones = db_cargar_expresiones_culinarias()
+            except Exception as e:
+
+                print("ERROR creando expresión culinaria:", e)
+
+                errores.append(
+                    "Error al crear la expresión culinaria."
+                )
+
+    expresiones = db_cargar_expresiones_culinarias_admin()
 
     return render_template(
         "admin_expresiones_culinarias.html",
@@ -435,18 +497,18 @@ def borrar_expresion_culinaria(expresion_id):
 
         cur.execute(
             """
-            SELECT codigo, nombre
-            FROM expresiones_culinarias
-            WHERE id = ?
-            """,
+        SELECT unidad_codigo, expresion
+        FROM expresiones_culinarias
+        WHERE id = ?
+        """,
             (expresion_id,)
         )
 
         fila = cur.fetchone()
 
-        codigo = fila["codigo"] if fila else ""
+        unidad_codigo = fila["unidad_codigo"] if fila else ""
 
-        nombre = fila["nombre"] if fila else ""
+        expresion = fila["expresion"] if fila else ""
 
         cur.execute(
             "DELETE FROM expresiones_culinarias WHERE id = ?",
@@ -458,7 +520,7 @@ def borrar_expresion_culinaria(expresion_id):
         conn.close()
 
         flash(
-            f"Expresión culinaria '<span class='item'>{codigo} - {nombre}</span>' borrada correctamente.",
+            f"Expresión culinaria '<span class='item'>{unidad_codigo} - {expresion}</span>' borrada correctamente.",
             "ok"
         )
 
@@ -999,6 +1061,14 @@ def api_normalizar():
 
     datos = request.get_json()
 
+    print()
+    print("============================================================")
+    print("API NORMALIZAR")
+    print("============================================================")
+    print(datos)
+    print("============================================================")
+    print()
+
     if datos is None:
 
         return jsonify({
@@ -1064,6 +1134,23 @@ def api_normalizar():
             "error": str(e)
 
         }), 500
+
+# ==================================================
+# API DE EXPRESIONES CULINARIAS DEL MOTOR
+# ==================================================
+
+
+@app.route("/api/expresiones_culinarias/<unidad_codigo>", methods=["GET"])
+def api_expresiones_culinarias(unidad_codigo):
+
+    expresiones = obtener_expresiones_culinarias(
+        unidad_codigo
+    )
+
+    return jsonify({
+        "ok": True,
+        "expresiones": expresiones
+    })
 
 # ==================================================
 # API DE REPRESENTACIÓN DEL MOTOR DE CONVERSIÓN
@@ -1149,7 +1236,8 @@ def admin_recetas_nueva():
     contexto_receta = {
         "platos": platos,
         "ingredientes": ingredientes,
-        "unidades_por_ingrediente": unidades_por_ingrediente
+        "unidades_por_ingrediente": unidades_por_ingrediente,
+        "expresiones_culinarias": [],
     }
 
     if request.method == "POST":
@@ -1239,10 +1327,36 @@ def admin_recetas_nueva():
         cantidades = request.form.getlist("cantidad[]")
         roles = request.form.getlist("rol[]")
         unidades = request.form.getlist("unidad[]")
+        expresiones = request.form.getlist("expresion_id[]")
+
+        expresiones_c_id = request.form.getlist("expresion_c_id[]")
+
+        expresiones_c_texto = request.form.getlist("expresion_c_texto[]")
+        cantidades_captura = request.form.getlist("cantidad_captura[]")
+        expresiones_d_id = request.form.getlist("expresion_d_id[]")
+        expresiones_d_texto = request.form.getlist("expresion_d_texto[]")
+        deco_captura = request.form.getlist("deco_captura[]")
 
         print("=" * 60)
+        print("DATOS RECIBIDOS POR FLASK — RECETA NUEVA")
+        print("=" * 60)
+        print("plato_id:", plato_id)
+        print("raciones_base:", raciones_base)
+        print("preparacion:", preparacion)
+        print("elaboracion:", elaboracion)
+        print("presentacion:", presentacion)
+        print("nutricion:", nutricion)
         print("ingredientes_ids:", ingredientes_ids)
+        print("cantidades:", cantidades)
+        print("roles:", roles)
         print("unidades:", unidades)
+        print("expresiones:", expresiones)
+        print("expresiones_c_id:", expresiones_c_id)
+        print("expresiones_c_texto:", expresiones_c_texto)
+        print("cantidades_captura:", cantidades_captura)
+        print("expresiones_d_id:", expresiones_d_id)
+        print("expresiones_d_texto:", expresiones_d_texto)
+        print("deco_captura:", deco_captura)
         print("=" * 60)
 
         vistos = set()
@@ -1256,7 +1370,8 @@ def admin_recetas_nueva():
             len(ingredientes_ids),
             len(cantidades),
             len(roles),
-            len(unidades)
+            len(unidades),
+            len(expresiones)
         )
 
         for j in range(max_filas):
@@ -1266,12 +1381,14 @@ def admin_recetas_nueva():
             cant = cantidades[j] if j < len(cantidades) else "<NO EXISTE>"
             rol = roles[j] if j < len(roles) else "<NO EXISTE>"
             um = unidades[j] if j < len(unidades) else "<NO EXISTE>"
+            expr = expresiones[j] if j < len(expresiones) else "<NO EXISTE>"
 
             print(
                 f"Fila {j}: "
                 f"Ingrediente=[{ing}]  "
                 f"Cantidad=[{cant}]  "
                 f"Rol=[{rol}]  "
+                f"Expresión=[{expr}]  "
                 f"Unidad=[{um}]"
             )
 
@@ -1299,7 +1416,7 @@ def admin_recetas_nueva():
             vistos.add(ing_id)
 
             try:
-                cant_f = float(cant_txt)
+                cant_f = convertir_numero_culinario(cant_txt)
             except:
                 flash("La cantidad debe ser numérica.", "error")
                 return render_template(
@@ -1319,7 +1436,7 @@ def admin_recetas_nueva():
                 rol_f = 0.0
             else:
                 try:
-                    rol_f = float(rol_txt)
+                    rol_f = convertir_numero_culinario(rol_txt)
                 except:
                     flash("La decoracion debe ser numérica.", "error")
                     return render_template(
@@ -1347,7 +1464,19 @@ def admin_recetas_nueva():
                     cant_f,
                     rol_f,
                     unidad_id,
-                    unidad_id
+                    unidad_id,
+                    (expresiones_c_id[i] if i < len(
+                        expresiones_c_id) else "").strip() or None,
+                    (expresiones_c_texto[i] if i < len(
+                        expresiones_c_texto) else "").strip() or None,
+                    (cantidades_captura[i] if i < len(
+                        cantidades_captura) else "").strip() or None,
+                    (expresiones_d_id[i] if i < len(
+                        expresiones_d_id) else "").strip() or None,
+                    (expresiones_d_texto[i] if i < len(
+                        expresiones_d_texto) else "").strip() or None,
+                    (deco_captura[i] if i < len(
+                        deco_captura) else "").strip() or None
                 )
             )
 
@@ -1387,7 +1516,19 @@ def admin_recetas_nueva():
             )
             receta_id = cur.lastrowid
 
-            for (ing_id, cant_f, rol_f, unidad_id, unidad_presentacion) in filas_validas:
+            for (
+                ing_id,
+                cant_f,
+                rol_f,
+                unidad_id,
+                unidad_presentacion,
+                expresion_c_id_val,
+                expresion_c_texto_val,
+                cantidad_captura_val,
+                expresion_d_id_val,
+                expresion_d_texto_val,
+                deco_captura_val
+            ) in filas_validas:
 
                 cantidad_canonica = normalizar(
                     ingrediente_id=ing_id,
@@ -1403,16 +1544,28 @@ def admin_recetas_nueva():
                         ingrediente_id,
                         cantidad,
                         unidad_codigo_presentacion,
-                        rol
+                        rol,
+                        expresion_c_id,
+                        expresion_c_texto,
+                        cantidad_captura,
+                        expresion_d_id,
+                        expresion_d_texto,
+                        deco_captura
                     )
-                    VALUES (?, ?, ?, ?, ?)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                     """,
                     (
                         receta_id,
                         ing_id,
                         cantidad_canonica,
                         unidad_presentacion,
-                        rol_f
+                        rol_f,
+                        expresion_c_id_val,
+                        expresion_c_texto_val,
+                        cantidad_captura_val,
+                        expresion_d_id_val,
+                        expresion_d_texto_val,
+                        deco_captura_val
                     )
                 )
 
@@ -1455,10 +1608,13 @@ def admin_recetas_editar(receta_id):
             )
         )
 
+    expresiones_culinarias = db_cargar_expresiones_culinarias_admin()
+
     contexto_receta = {
         "platos": platos,
         "ingredientes": ingredientes,
-        "unidades_por_ingrediente": unidades_por_ingrediente
+        "unidades_por_ingrediente": unidades_por_ingrediente,
+        "expresiones_culinarias": [dict(f) for f in expresiones_culinarias]
     }
 
     # ==================================================
@@ -1494,6 +1650,8 @@ def admin_recetas_editar(receta_id):
         roles = request.form.getlist("rol[]")
         unidades = request.form.getlist("unidad[]")
 
+        expresiones = request.form.getlist("expresion_id[]")
+
         vistos = set()
         filas_validas = []
 
@@ -1503,57 +1661,61 @@ def admin_recetas_editar(receta_id):
             rol_txt = (roles[i] or "").strip()
             unidad_id = (unidades[i] if i < len(unidades) else "").strip()
 
+            expresion_id_txt = (expresiones[i] if i < len(
+                expresiones) else "").strip()
+
+            expresion_id = int(expresion_id_txt) if expresion_id_txt else None
+
             if not ing_id:
                 continue
 
             if ing_id in vistos:
                 flash("No se permiten ingredientes duplicados en la receta.", "error")
                 return render_template(
-                    "admin_recetas_editar.html"
+                    "admin_recetas_editar.html",
                     ** contexto_receta
                 )
             vistos.add(ing_id)
 
             try:
-                cant_f = float(cant_txt)
+                cant_f = convertir_numero_culinario(cant_txt)
             except:
                 flash("La cantidad debe ser numérica.", "error")
                 return render_template(
-                    "admin_recetas_editar.html"
+                    "admin_recetas_editar.html",
                     ** contexto_receta
                 )
 
             if cant_f <= 0:
                 flash(
                     "La cantidad debe ser mayor que 0 en todos los ingredientes.", "error")
-                return render_template(
-                    "admin_recetas_editar.html"
-                    ** contexto_receta
+                return redirect(
+                    f"/admin/recetas/editar/{receta_id}"
                 )
 
             if rol_txt == "":
                 rol_f = 0.0
             else:
                 try:
-                    rol_f = float(rol_txt)
+                    rol_f = convertir_numero_culinario(rol_txt)
                 except:
                     flash("La decoracion debe ser numérica.", "error")
                     return render_template(
-                        "admin_recetas_editar.html"
+                        "admin_recetas_editar.html",
                         ** contexto_receta
                     )
 
                 if rol_f < 0:
                     flash("La decoracion no puede ser negativa.", "error")
                     return render_template(
-                        "admin_recetas_editar.html"
+                        "admin_recetas_editar.html",
                         ** contexto_receta
                     )
 
                 if rol_f > cant_f:
                     flash("La decoracion no puede ser mayor que la cantidad.", "error")
                     return render_template(
-                        "admin_recetas_editar.html"
+                        "admin_recetas_editar.html",
                         ** contexto_receta
                     )
 
@@ -1563,10 +1725,10 @@ def admin_recetas_editar(receta_id):
                     cant_f,
                     rol_f,
                     unidad_id,
-                    unidad_id
+                    unidad_id,
+                    expresion_id
                 )
             )
-
         if not filas_validas:
             flash("La receta no puede quedar sin ingredientes.", "error")
             return redirect(f"/admin/recetas/editar/{receta_id}")
@@ -1604,7 +1766,16 @@ def admin_recetas_editar(receta_id):
                 (receta_id,)
             )
 
-            for ing_id, cant_f, rol_f, unidad_id, unidad_presentacion in filas_validas:
+            for ing_id, cant_f, rol_f, unidad_id, unidad_presentacion, expresion_id in filas_validas:
+                print(
+                    "RTN-EDICION-FILA:",
+                    ing_id,
+                    cant_f,
+                    rol_f,
+                    unidad_id,
+                    unidad_presentacion,
+                    expresion_id
+                )
 
                 cantidad_canonica = normalizar(
                     ingrediente_id=ing_id,
@@ -1620,16 +1791,18 @@ def admin_recetas_editar(receta_id):
                         ingrediente_id,
                         cantidad,
                         unidad_codigo_presentacion,
-                        rol
+                        rol,
+                        expresion_id
                     )
-                    VALUES (?,?,?,?,?)
+                    VALUES (?,?,?,?,?,?)
                     """,
                     (
                         receta_id,
                         ing_id,
                         cantidad_canonica,
                         unidad_presentacion,
-                        rol_f
+                        rol_f,
+                        expresion_id
                     )
                 )
 
@@ -1703,13 +1876,16 @@ def admin_recetas_editar(receta_id):
             return redirect("/admin/recetas/listado")
 
         cur.execute("""
-            SELECT ingrediente_id, cantidad, rol
+            SELECT ingrediente_id, cantidad, rol,  unidad_codigo_presentacion, expresion_id
             FROM recetas_ingredientes
             WHERE receta_id = ?
             ORDER BY id
         """, (receta_id,))
 
         ingredientes_receta = cur.fetchall()
+
+        print("DEBUG EDICION ingredientes_receta:", [
+              dict(f) for f in ingredientes_receta])
 
         conn.close()
 
@@ -1722,7 +1898,308 @@ def admin_recetas_editar(receta_id):
     contexto_receta["ingredientes_receta"] = ingredientes_receta
 
     return render_template(
-        "admin_recetas_editar.html",
+        "admin_recetas_editar_nuevo.html",
+        **contexto_receta
+    )
+
+# ==================================================
+# EDITAR RECETA NUEVO
+# ==================================================
+
+
+@app.route("/admin/recetas/editar_nuevo/<int:receta_id>", methods=["GET", "POST"])
+def admin_recetas_editar_nuevo(receta_id):
+
+    if request.method == "POST":
+        plato_id = request.form.get("plato_id", "").strip()
+        raciones_base = request.form.get("raciones_base", "").strip()
+
+        preparacion = request.form.get("preparacion", "").strip()
+        elaboracion = request.form.get("elaboracion", "").strip()
+        presentacion = request.form.get("presentacion", "").strip()
+        nutricion = request.form.get("nutricion", "").strip()
+
+        if not plato_id:
+            flash("Debe seleccionar un plato.", "error")
+            return redirect(f"/admin/recetas/editar_nuevo/{receta_id}")
+
+        try:
+            raciones_base_int = int(raciones_base)
+            if raciones_base_int <= 0:
+                flash("RACIONES BASE debe ser mayor que 0.", "error")
+                return redirect(f"/admin/recetas/editar_nuevo/{receta_id}")
+        except:
+            flash("RACIONES BASE debe ser numérico.", "error")
+            return redirect(f"/admin/recetas/editar_nuevo/{receta_id}")
+
+        ingredientes_ids = request.form.getlist("ingrediente_id[]")
+        cantidades = request.form.getlist("cantidad[]")
+        roles = request.form.getlist("rol[]")
+        unidades = request.form.getlist("unidad[]")
+
+        expresiones_c_id = request.form.getlist("expresion_c_id[]")
+        expresiones_c_texto = request.form.getlist("expresion_c_texto[]")
+        cantidades_captura = request.form.getlist("cantidad_captura[]")
+        expresiones_d_id = request.form.getlist("expresion_d_id[]")
+        expresiones_d_texto = request.form.getlist("expresion_d_texto[]")
+        deco_captura = request.form.getlist("deco_captura[]")
+
+        vistos = set()
+        filas_validas = []
+
+        for i in range(len(ingredientes_ids)):
+            ing_id = (ingredientes_ids[i] or "").strip()
+            cant_txt = (cantidades[i] if i < len(cantidades) else "").strip()
+            rol_txt = (roles[i] if i < len(roles) else "").strip()
+            unidad_id = (unidades[i] if i < len(unidades) else "").strip()
+
+            if not ing_id:
+                continue
+
+            if ing_id in vistos:
+                flash("No se permiten ingredientes duplicados en la receta.", "error")
+                return redirect(f"/admin/recetas/editar_nuevo/{receta_id}")
+
+            vistos.add(ing_id)
+
+            try:
+                cant_f = convertir_numero_culinario(cant_txt)
+            except:
+                flash("La cantidad debe ser numérica.", "error")
+                return redirect(f"/admin/recetas/editar_nuevo/{receta_id}")
+
+            if cant_f <= 0:
+                flash(
+                    "La cantidad debe ser mayor que 0 en todos los ingredientes.",
+                    "error"
+                )
+                return redirect(f"/admin/recetas/editar_nuevo/{receta_id}")
+
+            if rol_txt == "":
+                rol_f = 0.0
+            else:
+                try:
+                    rol_f = convertir_numero_culinario(rol_txt)
+                except:
+                    flash("La decoracion debe ser numérica.", "error")
+                    return redirect(f"/admin/recetas/editar_nuevo/{receta_id}")
+
+                if rol_f < 0:
+                    flash("La decoracion no puede ser negativa.", "error")
+                    return redirect(f"/admin/recetas/editar_nuevo/{receta_id}")
+
+                if rol_f > cant_f:
+                    flash("La decoracion no puede ser mayor que la cantidad.", "error")
+                    return redirect(f"/admin/recetas/editar_nuevo/{receta_id}")
+
+            filas_validas.append(
+                (
+                    int(ing_id),
+                    cant_f,
+                    rol_f,
+                    unidad_id,
+                    unidad_id,
+                    (expresiones_c_id[i] if i < len(
+                        expresiones_c_id) else "").strip() or None,
+                    (expresiones_c_texto[i] if i < len(
+                        expresiones_c_texto) else "").strip() or None,
+                    (cantidades_captura[i] if i < len(
+                        cantidades_captura) else "").strip() or None,
+                    (expresiones_d_id[i] if i < len(
+                        expresiones_d_id) else "").strip() or None,
+                    (expresiones_d_texto[i] if i < len(
+                        expresiones_d_texto) else "").strip() or None,
+                    (deco_captura[i] if i < len(
+                        deco_captura) else "").strip() or None
+                )
+            )
+
+        if not filas_validas:
+            flash(
+                "La receta no puede quedar sin ingredientes.",
+                "error"
+            )
+            return redirect(f"/admin/recetas/editar_nuevo/{receta_id}")
+
+        try:
+            conn = get_connection()
+            cur = conn.cursor()
+
+            cur.execute(
+                """
+                UPDATE recetas_maestro
+                SET plato_id=?,
+                    raciones_base=?,
+                    preparacion=?,
+                    elaboracion=?,
+                    presentacion=?,
+                    nutricion=?
+                WHERE id=?
+                """,
+                (
+                    int(plato_id),
+                    raciones_base_int,
+                    preparacion,
+                    elaboracion,
+                    presentacion,
+                    nutricion,
+                    receta_id
+                )
+            )
+
+            cur.execute(
+                "DELETE FROM recetas_ingredientes WHERE receta_id=?",
+                (receta_id,)
+            )
+
+            for (
+                ing_id,
+                cant_f,
+                rol_f,
+                unidad_id,
+                unidad_presentacion,
+                expresion_c_id_val,
+                expresion_c_texto_val,
+                cantidad_captura_val,
+                expresion_d_id_val,
+                expresion_d_texto_val,
+                deco_captura_val
+            ) in filas_validas:
+
+                cantidad_canonica = normalizar(
+                    ingrediente_id=ing_id,
+                    cantidad=cant_f,
+                    unidad_origen=unidad_id
+                )
+
+                cur.execute(
+                    """
+                    INSERT INTO recetas_ingredientes
+                    (
+                        receta_id,
+                        ingrediente_id,
+                        cantidad,
+                        unidad_codigo_presentacion,
+                        rol,
+                        expresion_c_id,
+                        expresion_c_texto,
+                        cantidad_captura,
+                        expresion_d_id,
+                        expresion_d_texto,
+                        deco_captura
+                    )
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    """,
+                    (
+                        receta_id,
+                        ing_id,
+                        cantidad_canonica,
+                        unidad_presentacion,
+                        rol_f,
+                        expresion_c_id_val,
+                        expresion_c_texto_val,
+                        cantidad_captura_val,
+                        expresion_d_id_val,
+                        expresion_d_texto_val,
+                        deco_captura_val
+                    )
+                )
+
+            conn.commit()
+            conn.close()
+
+            flash("Receta actualizada correctamente.", "recetas")
+            return redirect("/admin/recetas/listado")
+
+        except Exception as e:
+            import traceback
+            print("=" * 70)
+            print("ERROR GUARDANDO EDICION NUEVA")
+            traceback.print_exc()
+            print("=" * 70)
+
+            flash("Error guardando receta.", "error")
+            return redirect(f"/admin/recetas/editar_nuevo/{receta_id}")
+
+    platos = db_cargar_platos()
+    ingredientes = cargar_ingredientes_con_unidad()
+
+    unidades_por_ingrediente = {}
+
+    for ingrediente in ingredientes:
+        unidades_por_ingrediente[ingrediente["id"]] = (
+            db_cargar_unidades_disponibles_por_ingrediente(
+                ingrediente["id"]
+            )
+        )
+
+    expresiones_culinarias = db_cargar_expresiones_culinarias_admin()
+
+    contexto_receta = {
+        "platos": platos,
+        "ingredientes": ingredientes,
+        "unidades_por_ingrediente": unidades_por_ingrediente,
+        "expresiones_culinarias": [dict(f) for f in expresiones_culinarias]
+    }
+
+    try:
+        conn = get_connection()
+        cur = conn.cursor()
+
+        cur.execute("""
+            SELECT
+                r.id,
+                r.plato_id,
+                r.raciones_base,
+                r.preparacion,
+                r.elaboracion,
+                r.presentacion,
+                r.nutricion,
+                p.nombre as plato_nombre
+            FROM recetas_maestro r
+            JOIN platos p ON p.id = r.plato_id
+            WHERE r.id = ?
+        """, (receta_id,))
+
+        receta = cur.fetchone()
+
+        if not receta:
+            flash("Receta no encontrada.", "error")
+            return redirect("/admin/recetas/listado")
+
+        cur.execute("""
+            SELECT ingrediente_id,
+                   cantidad,
+                   rol,
+                   unidad_codigo_presentacion,
+                   expresion_c_id,
+                   expresion_c_texto,
+                   cantidad_captura,
+                   expresion_d_id,
+                   expresion_d_texto,
+                   deco_captura
+            FROM recetas_ingredientes
+            WHERE receta_id = ?
+            ORDER BY id
+        """, (receta_id,))
+
+        ingredientes_receta = cur.fetchall()
+        print("=== DATOS RECUPERADOS POR EDICIÓN ===")
+        for fila in ingredientes_receta:
+            print(dict(fila))
+        print("=== FIN DATOS RECUPERADOS POR EDICIÓN ===")
+        conn.close()
+
+    except Exception as e:
+        print("ERROR cargando receta nueva:", e)
+        flash("Error cargando receta.", "error")
+        return redirect("/admin/recetas/listado")
+
+    contexto_receta["receta"] = receta
+    contexto_receta["ingredientes_receta"] = ingredientes_receta
+
+    return render_template(
+        "admin_recetas_editar_nuevo.html",
         **contexto_receta
     )
 
@@ -1744,8 +2221,8 @@ def borrar_receta(receta_id):
         cur.execute("""
             SELECT p.nombre
             FROM recetas_maestro r
-            JOIN platos p ON p.id = r.plato_id
-            WHERE r.id = ?
+            JOIN platos p ON p.id=r.plato_id
+            WHERE r.id=?
         """, (receta_id,))
 
         receta = cur.fetchone()
@@ -1807,12 +2284,11 @@ def toggle_publicacion_receta(receta_id):
 
         cur.execute("""
             UPDATE recetas_maestro
-            SET visible_web =
-                CASE
-                    WHEN visible_web = 1 THEN 0
+            SET visible_web=CASE
+                    WHEN visible_web=1 THEN 0
                     ELSE 1
                 END
-            WHERE id = ?
+            WHERE id=?
         """, (receta_id,))
 
         conn.commit()

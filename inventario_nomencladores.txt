@@ -1,0 +1,12 @@
+
+=== TIPOS_PLATO ===
+
+=== PLATOS ===
+
+=== UNIDADES ===
+
+=== INGREDIENTES ===
+
+=== EXPRESIONES_CULINARIAS ===
+
+=== INGREDIENTES_EQUIVALENCIAS ===

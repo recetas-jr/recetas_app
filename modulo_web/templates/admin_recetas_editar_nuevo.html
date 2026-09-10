@@ -1,0 +1,2645 @@
+"<!-- Archivo: modulo_web/templates/admin_recetas_editar_nuevo.html -->
+
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Editando Receta Master</title>
+
+    <style>
+        :root {
+
+            --color-boton-prim: #1f6feb;
+            --color-boton-sec: #777;
+            --color-focus: #5b21b6;
+            --color-focus-bg: #f3e8ff;
+            --color-focus-tabla: #efe4ff;
+            --color-fila-activa: #fff2cc;
+            --color-borrar: #cc0000;
+            --color-boton-guardar: #ff8c00;
+
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background: #f2f4f8;
+            margin: 0;
+            padding: 0;
+        }
+
+        .container {
+            max-width: 1250px;
+            margin: 20px auto;
+            background: #fff6d9;
+            padding: 16px;
+            border-radius: 6px;
+            border: 2px solid #d4a017;
+        }
+
+        h2 {
+            margin-top: 0;
+        }
+
+        .error {
+            color: #cc0000;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .fila {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            margin-bottom: 8px;
+            flex-wrap: wrap;
+        }
+
+        .campo {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        label {
+            font-weight: bold;
+        }
+
+        input,
+        select,
+        textarea {
+            padding: 6px;
+            font-size: 14px;
+            box-sizing: border-box;
+        }
+
+        textarea {
+            width: 100%;
+            min-height: 60px;
+            resize: vertical;
+        }
+
+        .hint {
+            color: #0b9b0b;
+            font-weight: bold;
+            font-size: 12px;
+            margin: 4px 0 10px 0;
+        }
+
+        .btn {
+            padding: 4px 8px;
+            border-radius: 4px;
+            border: none;
+            cursor: pointer;
+        }
+
+        .btn-prim {
+            background: var(--color-boton-prim);
+            color: #fff;
+        }
+
+        /* BOTÓN GUARDAR RESALTADO */
+
+        .btn-guardar-activo {
+            background: var(--color-boton-guardar) !important;
+            color: #ffffff;
+            box-shadow: 0 0 14px rgba(255, 140, 0, 1);
+            transform: scale(1.08);
+        }
+
+        .btn-sec {
+            background: var(--color-boton-sec);
+            color: #fff;
+        }
+
+        .tabla {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+            table-layout: fixed;
+        }
+
+        .tabla th,
+        .tabla td {
+            border: 1px solid #ddd;
+            padding: 6px;
+        }
+
+        .tabla th {
+            background: #f0f0f0;
+        }
+
+        .col-ing {
+            width: 220px;
+        }
+
+        .col-qty {
+            width: 75px;
+            text-align: right;
+        }
+
+        .col-rol {
+            width: 65px;
+            text-align: right;
+        }
+
+        .col-exp {
+            width: 110px;
+            text-align: center;
+            font-size: 12px;
+        }
+
+        .col-um {
+            width: 170px;
+            color: #333;
+        }
+
+        .ing-cocina {
+            width: 70px;
+            display: inline-block;
+            text-align: right;
+        }
+
+
+        .btn-borrar {
+            background: var(--color-borrar);
+            color: #fff;
+        }
+
+        input:focus,
+        select:focus,
+        textarea:focus {
+
+            outline: none;
+            background: var(--color-focus-bg);
+            border: 2px solid var(--color-focus);
+            box-shadow: 0 0 6px rgba(91, 33, 182, 0.7);
+
+        }
+
+        .tabla input:focus,
+        .tabla select:focus {
+
+            background: var(--color-focus-tabla);
+            border: 2px solid var(--color-focus);
+            box-shadow: 0 0 8px rgba(91, 33, 182, 0.9);
+
+        }
+
+        .expresion-atencion-cantidad {
+            background: #93c5fd !important;
+        }
+
+        .atencion-cantidad {
+            background: #93c5fd !important;
+        }
+
+        .expresion-atencion-deco {
+            background: #fed7aa !important;
+        }
+
+        .atencion-deco {
+            background: #fed7aa !important;
+        }
+
+        .encabezado-azul {
+            background: #93c5fd !important;
+        }
+
+        .encabezado-naranja {
+            background: #fed7aa !important;
+        }
+
+        .textos-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin-bottom: 8px;
+        }
+
+        /* RECUPERADO: barra de botones */
+        .acciones-top {
+            position: sticky;
+            top: 0;
+            z-index: 10;
+            background: #fff;
+            padding: 8px 0 12px 0;
+            display: flex;
+            justify-content: flex-end;
+            gap: 8px;
+            border-bottom: 1px solid #e6e6e6;
+            margin-bottom: 10px;
+        }
+
+        /* ===============================
+QUITAR FLECHITAS CAMPOS NUMÉRICOS
+=============================== */
+
+        input[type=number]::-webkit-outer-spin-button,
+        input[type=number]::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+
+        input[type=number] {
+            -moz-appearance: textfield;
+        }
+
+        /* === AJUSTE FINO TABLA INGREDIENTES === */
+
+        .col-qty input,
+        .col-rol input {
+            width: 60px;
+            text-align: right;
+        }
+
+        .ing-cocina {
+            width: 60px;
+            text-align: right;
+            display: inline-block;
+        }
+
+        .input-error {
+            border: 2px solid red !important;
+            background: #ffe5e5;
+        }
+
+        /* Ajuste del select para que no se desborde */
+        .ing-select {
+            width: 100%;
+        }
+
+        /* Evitar que el contenido rompa la celda */
+        .tabla td,
+        .tabla th {
+            overflow: hidden;
+        }
+
+        .ing-select {
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        /* Alineación vertical perfecta */
+        .tabla td,
+        .tabla th {
+            vertical-align: middle;
+        }
+
+        .ing-um,
+        .ing-um-rol,
+        .ing-um-cocina {
+            background: #fde68a;
+            /* amarillo suave */
+            color: #92400e;
+            /* texto oscuro */
+            padding: 1px 4px;
+            border-radius: 4px;
+            display: inline-block;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container">
+
+        <h2>EDITANDO RECETA MASTER</h2>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+        {% for category, message in messages %}
+        <div class="{{ category }}">{{ message|safe }}</div>
+        {% endfor %}
+        {% endif %}
+        {% endwith %}
+
+        <div class="acciones-top">
+
+            <button type="submit" form="form-master" class="btn btn-prim">
+                Guardar cambios
+            </button>
+
+            <button type="button" id="btn-cancelar" class="btn btn-sec">
+                Cancelar
+            </button>
+
+        </div>
+
+        <form id="form-master" method="post"
+            action="{{ '/admin/recetas/editar_nuevo/' ~ receta.id if receta else '/admin/recetas/nueva' }}"
+            autocomplete="off">
+
+            <div class="fila">
+                <div class="campo">
+                    <label>Plato:</label>
+
+                    <input type="hidden" id="plato_id" name="plato_id" value="{{ receta.plato_id if receta else '' }}">
+
+                    <input type="text" id="plato_nombre" value="{{ receta.plato_nombre if receta else '' }}" readonly
+                        style="width:420px;">
+                </div>
+            </div>
+
+            <div class="fila">
+                <div class="campo">
+                    <label>Raciones base:</label>
+
+                    <input type="number" id="raciones" name="raciones_base"
+                        value="{{ receta.raciones_base if receta else '' }}" style="width:80px;">
+                </div>
+            </div>
+
+            <div id="msg-js" style="display:none; color:#cc0000; font-weight:bold; margin:6px 0 6px 0;">
+            </div>
+
+            <div class="textos-grid">
+
+                <div>
+                    <label>PREPARACIÓN</label>
+                    <textarea id="preparacion"
+                        name="preparacion">{{ receta["preparacion"] if receta else '' }}</textarea>
+                    <div class="hint">Enter = nueva línea | Shift+Enter = siguiente campo</div>
+                </div>
+
+                <div>
+                    <label>ELABORACIÓN</label>
+                    <textarea id="elaboracion"
+                        name="elaboracion">{{ receta["elaboracion"] if receta else '' }}</textarea>
+                    <div class="hint">Enter = nueva línea | Shift+Enter = siguiente campo</div>
+                </div>
+
+                <div>
+                    <label>PRESENTACIÓN</label>
+                    <textarea id="presentacion"
+                        name="presentacion">{{ receta["presentacion"] if receta else '' }}</textarea>
+                    <div class="hint">Enter = nueva línea | Shift+Enter = siguiente campo</div>
+                </div>
+
+                <div>
+                    <label>NUTRICIÓN</label>
+                    <textarea id="nutricion" name="nutricion">{{ receta["nutricion"] if receta else '' }}</textarea>
+                    <div class="hint">Shift+Enter → ingredientes</div>
+                </div>
+
+            </div>
+
+            <button type="button" id="btn-agregar-ingrediente" class="btn btn-prim">
+                + Añadir ingrediente
+            </button>
+
+            <table class="tabla">
+
+                <thead>
+                    <tr>
+                        <th class="col-ing">Ingrediente</th>
+                        <th class="col-um">UM</th>
+                        <th class="col-exp" id="encabezado-expresion">EXPRESION-C</th>
+                        <th class="col-qty" id="encabezado-cantidad">Cantidad</th>
+                        <th class="col-rol" id="encabezado-deco">Deco</th>
+                        <th class="col-um">UM</th>
+                        <th class="col-qty">Cocina</th>
+                        <th class="col-um">UM</th>
+                        <th class="row-actions">Acciones</th>
+                    </tr>
+                </thead>
+
+                <tbody id="tbody-ingredientes">
+
+                    {% if ingredientes_receta %}
+                    {% for item in ingredientes_receta %}
+
+                    <tr data-cantidad-canonica="{{ item.cantidad }}"
+                        data-unidad-canonica="{{ item.unidad_codigo_presentacion }}"
+                        data-unidad-captura-actual="{{ item.unidad_codigo_presentacion }}"
+                        data-deco-canonica="{{ item.rol }}"
+                        data-expresion-id="{{ item.expresion_id if item.expresion_id else '' }}">
+
+                        <td class="col-ing">
+
+                            <select class="ing-select" name="ingrediente_id[]">
+
+                                <option value="">— Seleccione —</option>
+
+                                {% for ing in ingredientes %}
+
+                                <option value="{{ ing.id }}" data-um="{{ ing.unidad_nombre }}"
+                                    data-um-codigo="{{ ing.unidad_codigo }}"
+                                    data-um-presentacion="{{ item.unidad_codigo_presentacion }}" {% if
+                                    ing.id==item.ingrediente_id %}selected{% endif %}>
+
+                                    {{ ing.nombre }}
+
+                                </option>
+
+                                {% endfor %}
+
+                            </select>
+
+                        </td>
+
+                        <td class="col-um">
+                            <select class="ing-um-select" name="unidad[]">
+                            </select>
+                        </td>
+
+                        <td class="col-exp">
+                            <select class="ing-expresion" name="expresion_id[]">
+                                <option value="">— Ninguna —</option>
+                            </select>
+
+                            <input type="hidden" class="ing-expresion-c-id" name="expresion_c_id[]"
+                                value="{{ item.expresion_c_id if item.expresion_c_id else '' }}">
+
+                            <input type="hidden" class="ing-expresion-c-texto" name="expresion_c_texto[]"
+                                value="{{ item.expresion_c_texto if item.expresion_c_texto else '' }}">
+
+                            <input type="hidden" class="ing-cantidad-captura" name="cantidad_captura[]"
+                                value="{{ item.cantidad_captura if item.cantidad_captura else '' }}">
+
+                            <input type="hidden" class="ing-expresion-d-id" name="expresion_d_id[]"
+                                value="{{ item.expresion_d_id if item.expresion_d_id else '' }}">
+
+                            <input type="hidden" class="ing-expresion-d-texto" name="expresion_d_texto[]"
+                                value="{{ item.expresion_d_texto if item.expresion_d_texto else '' }}">
+
+                            <input type="hidden" class="ing-deco-captura" name="deco_captura[]"
+                                value="{{ item.deco_captura if item.deco_captura else '' }}">
+
+                        </td>
+
+                        <td class="col-qty">
+
+                            <input type="text" step="0.01" class="ing-cantidad" name="cantidad[]"
+                                value="{{ item.cantidad_captura if item.cantidad_captura is not none else '' }}">
+
+                        </td>
+
+
+
+                        <td class="col-rol">
+
+                            <input type="text" class="ing-rol" name="rol[]"
+                                value="{{ item.deco_captura if item.deco_captura else (item.rol|int if item.rol == item.rol|int else item.rol) }}">
+
+                        </td>
+
+                        <td class="col-um">
+                            <span class="ing-um-rol">—</span>
+                        </td>
+
+                        <td class="col-qty">
+                            <span class="ing-cocina"
+                                style="display:inline-block; width:70px; text-align:right;">0</span>
+                        </td>
+
+                        <td class="col-um">
+                            <span class="ing-um-cocina">—</span>
+
+                        </td>
+
+                        <td class="row-actions">
+
+                            <button type="button" class="btn btn-borrar">
+                                Borrar
+                            </button>
+
+                        </td>
+
+                    </tr>
+
+                    {% endfor %}
+                    {% endif %}
+
+                    <tr id="fila-plantilla" style="display:none;">
+
+                        <td>
+                            <select class="ing-select" name="ingrediente_id[]">
+                                <option value="">— Seleccione —</option>
+
+                                {% for ing in ingredientes %}
+
+                                <option value="{{ ing.id }}" data-um="{{ ing.unidad_nombre }}"
+                                    data-um-codigo="{{ ing.unidad_codigo }}">
+
+                                    {{ ing.nombre }}
+
+                                </option>
+
+                                {% endfor %}
+
+                            </select>
+                        </td>
+
+                        <td class="col-um">
+                            <select class="ing-um-select" name="unidad[]">
+                                <option value="">—</option>
+                            </select>
+                        </td>
+
+                        <td class="col-exp">
+                            <select class="ing-expresion" name="expresion_id[]">
+                                <option value="">— Ninguna —</option>
+                            </select>
+
+                            <input type="hidden" class="ing-expresion-c-id" name="expresion_c_id[]" value="">
+                            <input type="hidden" class="ing-expresion-c-texto" name="expresion_c_texto[]" value="">
+
+                            <input type="hidden" class="ing-expresion-d-id" name="expresion_d_id[]" value="">
+                            <input type="hidden" class="ing-expresion-d-texto" name="expresion_d_texto[]" value="">
+                            <input type="hidden" class="ing-deco-captura" name="deco_captura[]" value="">
+                        </td>
+
+                        <td class="col-qty">
+                            <input type="text" step="0.01" class="ing-cantidad" name="cantidad[]" value="0">
+                            <input type="hidden" class="ing-cantidad-captura" name="cantidad_captura[]" value="">
+                        </td>
+
+                        <td class="col-rol">
+                            <input type="text" class="ing-rol" name="rol[]" value="0">
+                        </td>
+
+                        <td class="col-um">
+                            <span class="ing-um-rol">—</span>
+                        </td>
+
+                        <td class="col-qty">
+                            <span class="ing-cocina" style="display:inline-block; width:70px; text-align:right;">
+                                0.00
+                            </span>
+                        </td>
+
+                        <td class="col-um">
+                            <span class="ing-um-cocina">—</span>
+                        </td>
+
+                        <td class="row-actions">
+                            <button type="button" class="btn btn-borrar">
+                                Borrar
+                            </button>
+                        </td>
+
+                    </tr>
+
+                </tbody>
+
+            </table>
+
+        </form>
+
+    </div>
+
+    <script>
+
+        /*
+         * ============================================================
+         * NUEVO MOTOR DEL EDITOR DE RECETAS
+         * ============================================================
+         *
+         * Regla:
+         * La interfaz NO se modifica.
+         *
+         * Este bloque sustituirá progresivamente al motor anterior.
+         *
+         * Flujo:
+         *
+         * INGREDIENTE
+         *      ↓
+         * UM
+         *      ↓
+         * EXPRESIÓN-C
+         *      ↓
+         * CANTIDAD
+         *      ↓
+         * EXPRESIÓN-D
+         *      ↓
+         * DECO
+         *      ↓
+         * COCINA
+         *
+         * ============================================================
+         */
+
+        const unidadesPorIngrediente =
+            {{ unidades_por_ingrediente | tojson }};
+
+        document.addEventListener("DOMContentLoaded", function () {
+
+            const btnCancelar =
+                document.getElementById("btn-cancelar");
+
+            if (btnCancelar) {
+
+                btnCancelar.addEventListener("click", function () {
+
+                    window.location.href = "/admin/recetas/listado";
+
+                });
+
+            }
+
+            const tbody = document.getElementById("tbody-ingredientes");
+
+            if (!tbody) {
+                console.error("EDITOR NUEVO — no existe #tbody-ingredientes");
+                return;
+            }
+
+            function showMsg(mensaje) {
+
+                const msg = document.getElementById("msg-js");
+
+                if (!msg) {
+                    return;
+                }
+
+                msg.textContent = mensaje;
+                msg.style.display = "block";
+
+            }
+
+            function clearMsg() {
+
+                const msg = document.getElementById("msg-js");
+
+                if (!msg) {
+                    return;
+                }
+
+                msg.textContent = "";
+                msg.style.display = "none";
+
+            }
+
+            const formMaster =
+                document.getElementById("form-master");
+
+            if (formMaster) {
+
+                formMaster.addEventListener("submit", function (e) {
+
+                    const filasValidacion =
+                        obtenerFilasReales();
+
+                    for (const fila of filasValidacion) {
+
+                        const ingrediente =
+                            fila.querySelector(
+                                'select[name="ingrediente_id[]"]'
+                            );
+
+                        if (!ingrediente || !ingrediente.value) {
+                            continue;
+                        }
+
+                        const cantidad =
+                            fila.querySelector(".ing-cantidad");
+
+                        if (!cantidad) {
+                            continue;
+                        }
+
+                        const valor =
+                            parseFloat(
+                                (cantidad.value || "").replace(",", ".")
+                            );
+
+                        if (!Number.isFinite(valor) || valor <= 0) {
+
+                            e.preventDefault();
+
+                            showMsg(
+                                "La cantidad debe ser mayor que 0 en todos los ingredientes."
+                            );
+
+                            cantidad.focus();
+                            cantidad.select();
+
+                            return;
+                        }
+                    }
+
+                    clearMsg();
+
+                });
+
+            }
+
+            const raciones =
+                document.getElementById("raciones");
+
+            const preparacion =
+                document.getElementById("preparacion");
+
+            raciones.addEventListener("keydown", function (e) {
+
+                if (e.key !== "Enter") {
+                    return;
+                }
+
+                e.preventDefault();
+                e.stopPropagation();
+
+                const val =
+                    (raciones.value || "").trim();
+
+                if (val === "") {
+
+                    showMsg(
+                        "RACIONES BASE es obligatorio."
+                    );
+
+                    raciones.focus();
+                    raciones.select();
+
+                    return;
+                }
+
+                if (!/^\d+$/.test(val)) {
+
+                    showMsg(
+                        "RACIONES BASE debe ser un número entero."
+                    );
+
+                    raciones.focus();
+                    raciones.select();
+
+                    return;
+                }
+
+                const num =
+                    parseInt(val, 10);
+
+                if (num <= 0) {
+
+                    showMsg(
+                        "RACIONES BASE debe ser mayor que 0."
+                    );
+
+                    raciones.focus();
+                    raciones.select();
+
+                    return;
+                }
+
+                clearMsg();
+
+                if (preparacion) {
+                    preparacion.focus();
+                }
+
+            });
+
+            function obtenerFilasReales() {
+
+                return Array.from(
+                    tbody.querySelectorAll("tr")
+                ).filter(function (fila) {
+
+                    return fila.id !== "fila-plantilla";
+
+                });
+
+            }
+
+            function crearFilaYEnfocarIngrediente() {
+
+                const filaPlantilla =
+                    document.getElementById("fila-plantilla");
+
+                if (!filaPlantilla) {
+                    return;
+                }
+
+                const filas = obtenerFilasReales();
+                const anterior = filas[filas.length - 1];
+
+                if (anterior) {
+                    const expresionAnterior =
+                        anterior.querySelector(".ing-expresion");
+
+                    const cantidadAnterior =
+                        anterior.querySelector(".ing-cantidad");
+
+                    const rolAnterior =
+                        anterior.querySelector(".ing-rol");
+
+                    if (expresionAnterior) {
+                        expresionAnterior.classList.remove(
+                            "expresion-atencion-cantidad",
+                            "expresion-atencion-deco"
+                        );
+
+                        expresionAnterior.dataset.etapa =
+                            "cantidad";
+                    }
+
+                    if (cantidadAnterior) {
+                        cantidadAnterior.classList.remove(
+                            "atencion-cantidad"
+                        );
+                    }
+
+                    if (rolAnterior) {
+                        rolAnterior.classList.remove(
+                            "atencion-deco"
+                        );
+                    }
+                }
+
+                const encabezadoExpresion =
+                    document.getElementById("encabezado-expresion");
+
+                const encabezadoCantidad =
+                    document.getElementById("encabezado-cantidad");
+
+                const encabezadoDeco =
+                    document.getElementById("encabezado-deco");
+
+                if (encabezadoExpresion) {
+                    encabezadoExpresion.textContent =
+                        "EXPRESION-C";
+
+                    encabezadoExpresion.classList.remove(
+                        "encabezado-azul",
+                        "encabezado-naranja"
+                    );
+                }
+
+                if (encabezadoDeco) {
+                    encabezadoDeco.classList.remove(
+                        "encabezado-naranja"
+                    );
+                }
+
+                if (encabezadoCantidad) {
+                    encabezadoCantidad.classList.remove(
+                        "encabezado-azul"
+                    );
+                }
+
+                const fila =
+                    filaPlantilla.cloneNode(true);
+
+                fila.removeAttribute("id");
+                fila.style.display = "";
+
+                fila.querySelector(".ing-select").disabled = false;
+                fila.querySelector(".ing-cantidad").disabled = false;
+                fila.querySelector(".ing-expresion").disabled = false;
+                fila.querySelector(".ing-um-select").disabled = false;
+                fila.querySelector(".ing-rol").disabled = false;
+
+                fila.querySelector(".ing-expresion").classList.remove(
+                    "expresion-atencion-cantidad",
+                    "expresion-atencion-deco"
+                );
+
+                fila.querySelector(".ing-cantidad").classList.remove(
+                    "atencion-cantidad"
+                );
+
+                fila.querySelector(".ing-rol").classList.remove(
+                    "atencion-deco"
+                );
+
+                fila.querySelector(".ing-expresion").selectedIndex = 0;
+
+                tbody.appendChild(fila);
+
+                prepararFila(fila);
+
+                fila.querySelector(".ing-select").focus();
+            }
+
+            document.getElementById("nutricion").addEventListener(
+                "keydown",
+                function (e) {
+
+                    if (e.key === "Enter" && e.shiftKey) {
+
+                        e.preventDefault();
+                        e.stopPropagation();
+
+                        crearFilaYEnfocarIngrediente();
+                    }
+
+                }
+            );
+
+            const btnAgregarIngrediente =
+                document.getElementById("btn-agregar-ingrediente");
+
+            if (btnAgregarIngrediente) {
+                btnAgregarIngrediente.addEventListener("click", function () {
+                    crearFilaYEnfocarIngrediente();
+                });
+            }
+
+            console.log(
+                "EDITOR NUEVO — filas reales:",
+                obtenerFilasReales().length
+            );
+
+            function obtenerControlesFila(fila) {
+
+                return {
+                    ingrediente: fila.querySelector(
+                        'select[name="ingrediente_id[]"]'
+                    ),
+
+                    unidad: fila.querySelector(
+                        'select[name="unidad[]"]'
+                    ),
+
+                    cantidad: fila.querySelector(
+                        'input[name="cantidad[]"]'
+                    ),
+
+                    rol: fila.querySelector(
+                        'input[name="rol[]"]'
+                    ),
+
+                    deco: fila.querySelector(
+                        '[name="deco[]"]'
+                    ),
+
+                    cocina: fila.querySelector(
+                        '.ing-cocina'
+                    )
+                };
+
+            }
+
+            function identificarFila(fila) {
+
+                const controles = obtenerControlesFila(fila);
+
+                if (!controles.ingrediente) {
+                    return null;
+                }
+
+                return {
+                    fila: fila,
+                    ingrediente: controles.ingrediente,
+                    unidad: controles.unidad,
+                    cantidad: controles.cantidad,
+                    rol: controles.rol,
+                    deco: controles.deco,
+                    cocina: controles.cocina
+                };
+            }
+
+            const filasIdentificadas = obtenerFilasReales()
+                .map(identificarFila)
+                .filter(Boolean);
+
+            console.log(
+                "EDITOR NUEVO — filas identificadas:",
+                filasIdentificadas.length
+            );
+
+            function activarFilaIngrediente(fila) {
+
+                document.querySelectorAll("#tbody-ingredientes tr").forEach(f => {
+                    f.classList.remove("fila-activa");
+                });
+
+                fila.classList.add("fila-activa");
+
+            }
+
+            function obtenerSelectorUM(fila) {
+
+                return fila.querySelector(".ing-um-select");
+
+            }
+
+            function obtenerMagnitudesCulinarias(fila) {
+
+                return {
+                    qty: fila.querySelector(".ing-cantidad"),
+                    rol: fila.querySelector(".ing-rol"),
+                    cocinaSpan: fila.querySelector(".ing-cocina")
+                };
+
+            }
+
+            function obtenerRepresentacionVisual(fila) {
+
+                return {
+                    cantidad: fila.querySelector(".ing-cantidad"),
+                    deco: fila.querySelector(".ing-deco"),
+                    cocina: fila.querySelector(".ing-cocina")
+                };
+
+            }
+
+            function construirSelectorUM(selectorUM, unidades, umActual) {
+
+                selectorUM.innerHTML = "";
+
+                unidades.forEach(u => {
+
+                    const option = document.createElement("option");
+
+                    option.value = u.codigo;
+                    option.textContent = u.nombre;
+                    option.dataset.codigo = u.codigo;
+
+                    if (u.codigo === umActual) {
+                        option.selected = true;
+                    }
+
+                    selectorUM.appendChild(option);
+
+                });
+
+            }
+
+            async function inicializarExpresionesCulinarias(
+                selectorExpresion,
+                unidadCodigo
+            ) {
+
+                const resultado =
+                    await obtenerExpresionesCulinariasPorUM(
+                        unidadCodigo
+                    );
+
+                if (!resultado.ok) {
+                    return;
+                }
+
+                selectorExpresion.innerHTML = "";
+
+                const opcionVacia = document.createElement("option");
+                opcionVacia.value = "";
+                opcionVacia.textContent = "— Ninguna —";
+                selectorExpresion.appendChild(opcionVacia);
+
+                for (const expresion of resultado.expresiones) {
+
+                    const option =
+                        document.createElement("option");
+
+                    option.value = expresion.id;
+                    option.textContent = expresion.expresion;
+                    option.dataset.factor = expresion.factor;
+
+                    selectorExpresion.appendChild(option);
+                }
+
+            }
+
+            async function obtenerExpresionesCulinariasPorUM(unidadCodigo) {
+
+                const respuesta = await fetch(
+                    "/api/expresiones_culinarias/" +
+                    encodeURIComponent(unidadCodigo)
+                );
+
+                if (!respuesta.ok) {
+
+                    return {
+                        ok: false,
+                        expresiones: []
+                    };
+
+                }
+
+                const datos = await respuesta.json();
+
+                return datos;
+            }
+
+            function actualizarEncabezadoExpresion(selectorExpresion) {
+
+                const encabezado =
+                    document.getElementById("encabezado-expresion");
+
+                if (!encabezado) {
+                    return;
+                }
+
+                const etapa =
+                    selectorExpresion.dataset.etapa || "cantidad";
+
+                encabezado.classList.remove(
+                    "encabezado-azul",
+                    "encabezado-naranja"
+                );
+
+                if (etapa === "deco") {
+
+                    encabezado.textContent = "EXPRESION-D";
+
+                    encabezado.classList.add(
+                        "encabezado-naranja"
+                    );
+
+                    const encabezadoDeco =
+                        document.getElementById("encabezado-deco");
+
+                    if (encabezadoDeco) {
+                        encabezadoDeco.classList.add(
+                            "encabezado-naranja"
+                        );
+                    }
+
+                } else {
+
+                    encabezado.textContent = "EXPRESION-C";
+
+                    encabezado.classList.add(
+                        "encabezado-azul"
+                    );
+
+                }
+            }
+
+
+
+            function inicializarUnidadCanonica(fila, opt) {
+
+                const codigoCanonico =
+                    opt.getAttribute("data-um-codigo") || "";
+
+                fila.dataset.unidadCanonica = codigoCanonico;
+
+            }
+
+            /*
+             * ============================================================
+             * AEFi — ALGORITMO DE ESTADO FUNCIONAL DE LA FILA
+             * Núcleo de decisión — primera implementación
+             * ============================================================
+             *
+             * AEFi determina:
+             *   - tipo de UM
+             *   - etapa funcional
+             *   - siguiente campo
+             *   - estado visual
+             *   - si requiere reinicio
+             *
+             * AEFi NO modifica la fila.
+             * AEFi NO pinta la interfaz.
+             */
+
+            function AEFi(datos) {
+
+                const umCanonica =
+                    datos.umCanonica || "";
+
+                const umActual =
+                    datos.umActual || "";
+
+                const umAnterior =
+                    datos.umAnterior || "";
+
+                const etapaActual =
+                    datos.etapaActual || "um";
+
+                const evento =
+                    datos.evento || "";
+
+                const resultado = {
+                    estado: "",
+                    tipoUM: "",
+                    etapa: etapaActual,
+                    siguienteCampo: "",
+                    estadoVisual: "NORMAL",
+                    reinicioRequerido: false
+                };
+
+                /*
+                 * --------------------------------------------------------
+                 * 1. CLASIFICAR UM
+                 * --------------------------------------------------------
+                 */
+
+                if (
+                    umActual &&
+                    umCanonica &&
+                    umActual === umCanonica
+                ) {
+                    resultado.tipoUM = "CANONICA";
+                } else if (
+                    umActual &&
+                    umCanonica &&
+                    umActual !== umCanonica
+                ) {
+                    resultado.tipoUM = "EQUIVALENTE";
+                } else {
+                    resultado.tipoUM = "INDETERMINADA";
+                }
+
+                if (datos.filaActiva === false) {
+                    resultado.estadoVisual = "NEUTRAL";
+                    return resultado;
+                }
+
+                /*
+                 * --------------------------------------------------------
+                 * 2. DETERMINAR SI EXISTE CAMBIO REAL DE UM
+                 * --------------------------------------------------------
+                 */
+
+                const cambioRealDeUM =
+                    umAnterior !== "" &&
+                    umActual !== "" &&
+                    umAnterior !== umActual;
+
+                if (cambioRealDeUM) {
+                    resultado.reinicioRequerido = true;
+                }
+
+                /*
+                 * --------------------------------------------------------
+                 * 3. DETERMINAR ETAPA Y SIGUIENTE CAMPO
+                 * --------------------------------------------------------
+                 */
+
+                if (resultado.tipoUM === "CANONICA") {
+
+                    resultado.estado = "CANONICA";
+                    resultado.estadoVisual = "NORMAL";
+
+                    if (
+                        evento === "ENTER_UM" ||
+                        etapaActual === "um"
+                    ) {
+                        resultado.etapa = "cantidad";
+                        resultado.siguienteCampo = "cantidad";
+
+                    } else if (etapaActual === "cantidad") {
+
+                        resultado.siguienteCampo = "deco";
+
+                    } else if (etapaActual === "deco") {
+
+                        resultado.siguienteCampo = "cocina";
+                    }
+
+                } else if (resultado.tipoUM === "EQUIVALENTE") {
+
+                    resultado.estado = "EQUIVALENTE";
+
+                    if (
+                        evento === "ENTER_UM" ||
+                        etapaActual === "um"
+                    ) {
+                        resultado.etapa = "expresion-c";
+                        resultado.siguienteCampo = "expresion-c";
+                        resultado.estadoVisual = "AZUL";
+
+                    } else if (etapaActual === "expresion-c") {
+
+                        resultado.etapa = "cantidad";
+                        resultado.siguienteCampo = "cantidad";
+                        resultado.estadoVisual = "AZUL";
+
+                    } else if (etapaActual === "cantidad") {
+
+                        resultado.etapa = "expresion-d";
+                        resultado.siguienteCampo = "expresion-d";
+                        resultado.estadoVisual = "NARANJA";
+
+                    } else if (etapaActual === "expresion-d") {
+
+                        resultado.etapa = "deco";
+                        resultado.siguienteCampo = "deco";
+                        resultado.estadoVisual = "NARANJA";
+
+                    } else if (etapaActual === "deco") {
+
+                        resultado.siguienteCampo = "cocina";
+                        resultado.estadoVisual = "NARANJA";
+                    }
+                }
+
+                return resultado;
+            }
+
+            window.AEFi = AEFi;
+
+            function obtenerExpresionPorFactor(selectorExpresion, valor) {
+
+                if (valor === 0) {
+                    return "0";
+                }
+
+                const opciones = Array.from(
+                    selectorExpresion.options
+                );
+
+                for (const opcion of opciones) {
+
+                    const factor = parseFloat(
+                        opcion.dataset.factor
+                    );
+
+                    if (
+                        Number.isFinite(factor) &&
+                        Math.abs(factor - valor) < 1e-9
+                    ) {
+                        return opcion.textContent;
+                    }
+                }
+
+                return "";
+
+            }
+
+            function representarCantidadCulinaria(valor) {
+
+                if (valor === 0) {
+                    return "0";
+                }
+
+                const entero = Math.floor(valor);
+                const fraccion = valor - entero;
+
+                const fracciones = [
+                    [1 / 4, "1/4"],
+                    [1 / 2, "1/2"],
+                    [3 / 4, "3/4"]
+                ];
+
+                for (const [valorFraccion, textoFraccion] of fracciones) {
+
+                    if (Math.abs(fraccion - valorFraccion) < 0.000001) {
+
+                        if (entero === 0) {
+                            return textoFraccion;
+                        }
+
+                        return entero + " " + textoFraccion;
+                    }
+                }
+
+                if (Math.abs(valor - Math.round(valor)) < 0.000001) {
+                    return String(Math.round(valor));
+                }
+
+                return String(valor);
+            }
+
+            function calcularMagnitudesCulinarias(qty, rol) {
+
+                const cantidad =
+                    parseFloat(
+                        qty.dataset.valorNumerico ||
+                        (qty.value || "0").replace(",", ".")
+                    ) || 0;
+
+                const deco =
+                    parseFloat(
+                        rol.dataset.valorNumerico ||
+                        (rol.value || "0").replace(",", ".")
+                    ) || 0;
+
+                const cocina =
+                    Math.max(0, cantidad - deco);
+
+                return {
+                    cantidad,
+                    deco,
+                    cocina
+                };
+
+            }
+
+            function obtenerEstadoCulinarioLocal(qty, rol) {
+
+                return calcularMagnitudesCulinarias(
+                    qty,
+                    rol
+                );
+
+            }
+
+            function prepararFila(fila) {
+
+                const controles = obtenerControlesFila(fila);
+
+                if (!controles.ingrediente) {
+                    return;
+                }
+
+                const selectorUM = obtenerSelectorUM(fila);
+
+                const selectorExpresion =
+                    fila.querySelector(".ing-expresion");
+
+                const umRolSpan =
+                    fila.querySelector(".ing-um-rol");
+
+                const umCocinaSpan =
+                    fila.querySelector(".ing-um-cocina");
+
+                console.log("PRUEBA EXPRESION — selector:", selectorExpresion);
+
+                if (!selectorUM) {
+                    return;
+                }
+
+                const btnBorrar =
+                    fila.querySelector(".btn-borrar");
+
+                if (btnBorrar) {
+
+                    btnBorrar.addEventListener("click", function () {
+
+                        fila.remove();
+                        clearMsg();
+
+                    });
+
+                }
+
+                controles.ingrediente.addEventListener("focus", function () {
+                    activarFilaIngrediente(fila);
+                });
+
+                controles.cantidad.addEventListener("focus", function () {
+                    activarFilaIngrediente(fila);
+
+                    if (
+                        selectorExpresion.dataset.etapa === "deco" &&
+                        selectorUM.value !== fila.dataset.unidadCanonica
+                    ) {
+                        const expresionCId =
+                            fila.querySelector(".ing-expresion-c-id");
+
+                        const expresionCTexto =
+                            fila.querySelector(".ing-expresion-c-texto");
+
+                        if (expresionCId && expresionCId.value) {
+                            selectorExpresion.value =
+                                expresionCId.value;
+                        } else if (
+                            expresionCTexto &&
+                            expresionCTexto.value.trim()
+                        ) {
+                            const opcionC =
+                                Array.from(
+                                    selectorExpresion.options
+                                ).find(function (option) {
+                                    return (
+                                        option.textContent.trim() ===
+                                        expresionCTexto.value.trim()
+                                    );
+                                });
+
+                            if (opcionC) {
+                                selectorExpresion.value =
+                                    opcionC.value;
+                            }
+                        }
+
+                        selectorExpresion.dataset.etapa =
+                            "cantidad";
+
+                        selectorExpresion.classList.remove(
+                            "expresion-atencion-deco"
+                        );
+
+                        controles.rol.classList.remove(
+                            "atencion-deco"
+                        );
+
+                        selectorExpresion.classList.add(
+                            "expresion-atencion-cantidad"
+                        );
+
+                        controles.cantidad.classList.add(
+                            "atencion-cantidad"
+                        );
+
+                        document
+                            .getElementById("encabezado-cantidad")
+                            .classList.add(
+                                "encabezado-azul"
+                            );
+
+                        document
+                            .getElementById("encabezado-deco")
+                            .classList.remove(
+                                "encabezado-naranja"
+                            );
+
+                        actualizarEncabezadoExpresion(
+                            selectorExpresion
+                        );
+
+                        selectorExpresion.focus();
+                        selectorExpresion.click();
+                    }
+
+                });
+
+                controles.rol.addEventListener("focus", function () {
+                    activarFilaIngrediente(fila);
+                });
+
+                controles.cantidad.addEventListener("input", function () {
+
+                    if (controles.cantidad.readOnly) {
+                        return;
+                    }
+
+                    const valor =
+                        parseFloat(
+                            (controles.cantidad.value || "").replace(",", ".")
+                        );
+
+                    controles.cantidad.dataset.valorNumerico =
+                        Number.isFinite(valor)
+                            ? String(valor)
+                            : "";
+
+                });
+
+                controles.ingrediente.addEventListener("keydown", function (e) {
+
+                    if (e.key === "Enter") {
+
+                        e.preventDefault();
+                        e.stopPropagation();
+
+                        if (!controles.ingrediente.value) {
+                            showMsg("Debe seleccionar un ingrediente.");
+                            controles.ingrediente.focus();
+                            return;
+                        }
+
+                        const ingredienteSeleccionado =
+                            controles.ingrediente.value;
+
+                        const duplicado =
+                            obtenerFilasReales().some(function (otraFila) {
+
+                                if (otraFila === fila) {
+                                    return false;
+                                }
+
+                                const otroIngrediente =
+                                    otraFila.querySelector(
+                                        'select[name="ingrediente_id[]"]'
+                                    );
+
+                                return (
+                                    otroIngrediente &&
+                                    otroIngrediente.value === ingredienteSeleccionado
+                                );
+
+                            });
+
+                        if (duplicado) {
+
+                            showMsg(
+                                "El ingrediente \"" +
+                                controles.ingrediente.selectedOptions[0].textContent.trim() +
+                                "\" ya existe en la receta."
+                            );
+
+                            controles.ingrediente.focus();
+                            return;
+
+                        }
+
+                        clearMsg();
+
+                        setTimeout(function () {
+                            selectorUM.focus();
+                        }, 0);
+
+                    }
+
+                });
+
+                controles.ingrediente.addEventListener("change", function () {
+
+                    activarFilaIngrediente(fila);
+
+                    const opcion = controles.ingrediente.options[
+                        controles.ingrediente.selectedIndex
+                    ];
+
+                    if (!opcion) {
+                        return;
+                    }
+
+                    const unidadCanonica =
+                        opcion.getAttribute("data-um-codigo") || "";
+
+                    fila.dataset.unidadCanonica =
+                        unidadCanonica;
+
+                    const ingredienteId = opcion.value;
+
+                    console.log(
+                        "EDITOR NUEVO — ingrediente seleccionado:",
+                        opcion.textContent,
+                        "id:",
+                        ingredienteId
+                    );
+
+                    const unidades =
+                        unidadesPorIngrediente[ingredienteId] || [];
+
+                    console.log(
+                        "EDITOR NUEVO — unidades del ingrediente:",
+                        unidades
+                    );
+
+                    construirSelectorUM(
+                        selectorUM,
+                        unidades,
+                        ""
+                    );
+
+                    fila.dataset.unidadCapturaActual = "";
+
+                    if (umRolSpan) {
+                        umRolSpan.textContent = "—";
+                    }
+
+                    if (umCocinaSpan) {
+                        umCocinaSpan.textContent = "—";
+                    }
+
+                });
+
+                controles.ingrediente.addEventListener("change", function () {
+
+                    activarFilaIngrediente(fila);
+
+                    const opcion = controles.ingrediente.options[
+                        controles.ingrediente.selectedIndex
+                    ];
+
+                    if (!opcion) {
+                        return;
+                    }
+
+                    inicializarUnidadCanonica(fila, opcion);
+
+                    const unidadCanonicaNombre =
+                        opcion.getAttribute("data-um") || "—";
+
+                    if (umRolSpan) {
+                        umRolSpan.textContent =
+                            unidadCanonicaNombre;
+                    }
+
+                    if (umCocinaSpan) {
+                        umCocinaSpan.textContent =
+                            unidadCanonicaNombre;
+                    }
+
+                    console.log(
+                        "EDITOR NUEVO — ingrediente seleccionado:",
+                        opcion.textContent,
+                        "id:",
+                        opcion.value
+                    );
+
+                });
+
+                const ingredienteId = controles.ingrediente.value;
+
+                const unidades =
+                    unidadesPorIngrediente[ingredienteId] || [];
+
+                const opcionIngrediente =
+                    controles.ingrediente.options[
+                    controles.ingrediente.selectedIndex
+                    ];
+
+                if (opcionIngrediente) {
+                    fila.dataset.unidadCanonica =
+                        opcionIngrediente.getAttribute(
+                            "data-um-codigo"
+                        ) || "";
+                }
+
+                console.log(
+                    "PRUEBA UM — ingrediente:",
+                    ingredienteId,
+                    "unidades encontradas:",
+                    unidades
+                );
+
+                construirSelectorUM(
+                    selectorUM,
+                    unidades,
+                    fila.dataset.unidadCapturaActual || ""
+                );
+
+                if (selectorExpresion && selectorUM.value) {
+                    inicializarExpresionesCulinarias(
+                        selectorExpresion,
+                        selectorUM.value
+                    ).then(function () {
+                        const expresionCId =
+                            fila.querySelector(".ing-expresion-c-id");
+
+                        const expresionCTexto =
+                            fila.querySelector(".ing-expresion-c-texto");
+
+                        const idCapturado =
+                            expresionCId
+                                ? expresionCId.value
+                                : "";
+
+                        const textoCapturado =
+                            expresionCTexto
+                                ? expresionCTexto.value.trim()
+                                : "";
+
+                        if (idCapturado) {
+                            selectorExpresion.value = idCapturado;
+                        } else if (textoCapturado) {
+                            const opcion =
+                                Array.from(
+                                    selectorExpresion.options
+                                ).find(function (option) {
+                                    return (
+                                        option.textContent.trim() ===
+                                        textoCapturado
+                                    );
+                                });
+
+                            if (opcion) {
+                                selectorExpresion.value =
+                                    opcion.value;
+                            }
+                        }
+
+                        const expresionDId =
+                            fila.querySelector(".ing-expresion-d-id");
+
+                        const expresionDTexto =
+                            fila.querySelector(".ing-expresion-d-texto");
+
+                        const idExpresionD =
+                            expresionDId
+                                ? expresionDId.value
+                                : "";
+
+                        const textoExpresionD =
+                            expresionDTexto
+                                ? expresionDTexto.value.trim()
+                                : "";
+
+                        if (idExpresionD) {
+                            selectorExpresion.value = idExpresionD;
+                            selectorExpresion.dataset.etapa = "deco";
+                            actualizarEncabezadoExpresion(
+                                selectorExpresion
+                            );
+
+                            selectorExpresion.classList.add(
+                                "expresion-atencion-deco"
+                            );
+
+                            const rol =
+                                fila.querySelector(".ing-rol");
+
+                            if (rol) {
+                                rol.classList.add(
+                                    "atencion-deco"
+                                );
+                            }
+
+                        } else if (textoExpresionD) {
+                            const opcionD =
+                                Array.from(
+                                    selectorExpresion.options
+                                ).find(function (option) {
+                                    return (
+                                        option.textContent.trim() ===
+                                        textoExpresionD
+                                    );
+                                });
+
+                            if (opcionD) {
+                                selectorExpresion.value =
+                                    opcionD.value;
+                                selectorExpresion.dataset.etapa = "deco";
+                                actualizarEncabezadoExpresion(
+                                    selectorExpresion
+                                );
+                            }
+                        }
+
+                    });
+                }
+
+                console.log(
+                    "FORENSE UM INICIAL — ingrediente:",
+                    ingredienteId,
+                    "BD/captura:",
+                    fila.dataset.unidadCapturaActual,
+                    "dataset canonica:",
+                    fila.dataset.unidadCanonica,
+                    "UM selector:",
+                    selectorUM.value
+                );
+
+                const opcionUMActual =
+                    selectorUM.options[
+                    selectorUM.selectedIndex
+                    ];
+
+                const nombreUMActual =
+                    opcionUMActual
+                        ? opcionUMActual.textContent
+                        : "—";
+
+                if (umRolSpan) {
+                    umRolSpan.textContent = nombreUMActual;
+                }
+
+                if (umCocinaSpan) {
+                    umCocinaSpan.textContent = nombreUMActual;
+                }
+
+                selectorUM.addEventListener("keydown", async function (e) {
+
+                    console.log("PRUEBA ENTER UM — tecla:", e.key);
+
+                    if (e.key === "Enter") {
+
+                        e.preventDefault();
+                        e.stopPropagation();
+
+                        const unidadSeleccionada =
+                            selectorUM.value;
+
+                        if (!unidadSeleccionada) {
+                            return;
+                        }
+
+                        const unidadCanonica =
+                            fila.dataset.unidadCanonica;
+
+                        const unidadAnterior =
+                            fila.dataset.unidadCapturaActual || "";
+
+
+
+                        const resultadoAEFi = AEFi({
+                            filaActiva:
+                                fila.classList.contains("fila-activa"),
+                            umCanonica: unidadCanonica,
+                            umActual: unidadSeleccionada,
+                            umAnterior: unidadAnterior,
+                            etapaActual:
+                                selectorExpresion.dataset.etapa || "cantidad",
+                            evento: "ENTER_UM"
+                        });
+
+                        console.log(
+                            "AEFi — decisión real:",
+                            resultadoAEFi
+                        );
+
+                        console.log(
+                            "FORENSE UM INICIAL — ingrediente:",
+                            ingredienteId,
+                            "BD/captura:",
+                            fila.dataset.unidadCapturaActual,
+                            "dataset canonica:",
+                            fila.dataset.unidadCanonica,
+                            "UM selector:",
+                            selectorUM.value
+                        );
+
+                        if (!resultadoAEFi.reinicioRequerido) {
+
+                            if (resultadoAEFi.tipoUM === "EQUIVALENTE") {
+
+                                await inicializarExpresionesCulinarias(
+                                    selectorExpresion,
+                                    unidadSeleccionada
+                                );
+
+                                if (resultadoAEFi.estadoVisual === "AZUL") {
+
+                                    document
+                                        .getElementById("encabezado-cantidad")
+                                        .classList.add(
+                                            "encabezado-azul"
+                                        );
+
+                                    selectorExpresion.classList.add(
+                                        "expresion-atencion-cantidad"
+                                    );
+
+                                    const qty =
+                                        fila.querySelector(".ing-cantidad");
+
+                                    if (qty) {
+                                        qty.classList.add(
+                                            "atencion-cantidad"
+                                        );
+                                    }
+                                }
+
+                                actualizarEncabezadoExpresion(
+                                    selectorExpresion
+                                );
+
+                                selectorExpresion.focus();
+                                selectorExpresion.click();
+
+                            } else if (resultadoAEFi.tipoUM === "CANONICA") {
+
+                                const qty =
+                                    fila.querySelector(".ing-cantidad");
+
+                                document
+                                    .getElementById("encabezado-expresion")
+                                    .classList.remove(
+                                        "encabezado-azul",
+                                        "encabezado-naranja"
+                                    );
+
+                                if (qty) {
+                                    qty.focus();
+                                    qty.select();
+                                }
+                            }
+
+                            fila.dataset.unidadCapturaActual =
+                                unidadSeleccionada;
+
+                            return;
+                        }
+
+                        fila.dataset.unidadCapturaActual =
+                            unidadSeleccionada;
+
+                        /*
+                         * CAMBIO REAL DE UM
+                         *
+                         * La nueva UM inicia una nueva definición
+                         * culinaria de la fila.
+                         *
+                         * No se conserva la interpretación anterior.
+                         * Todos los valores culinarios se reinician.
+                         */
+
+                        const qty =
+                            fila.querySelector(".ing-cantidad");
+
+                        const rol =
+                            fila.querySelector(".ing-rol");
+
+                        const cocina =
+                            fila.querySelector(".ing-cocina");
+
+                        if (qty) {
+                            qty.value = "0";
+                            qty.readOnly = false;
+                            qty.dataset.valorNumerico = "0";
+                        }
+
+                        if (rol) {
+                            rol.value = "0";
+                            rol.readOnly = false;
+                            rol.dataset.valorNumerico = "0";
+                        }
+
+                        if (cocina) {
+                            cocina.textContent = "0";
+                        }
+
+                        fila.dataset.cantidadCanonica = "";
+                        fila.dataset.decoCanonica = "";
+                        fila.dataset.cocinaCanonica = "";
+
+                        selectorExpresion.selectedIndex = 0;
+                        selectorExpresion.dataset.etapa = "cantidad";
+
+                        selectorExpresion.classList.remove(
+                            "expresion-atencion-deco"
+                        );
+
+                        rol.classList.remove(
+                            "atencion-deco"
+                        );
+
+                        actualizarEncabezadoExpresion(
+                            selectorExpresion
+                        );
+
+                        const opcionUMSeleccionada =
+                            selectorUM.options[
+                            selectorUM.selectedIndex
+                            ];
+
+                        const nombreUMSeleccionada =
+                            opcionUMSeleccionada
+                                ? opcionUMSeleccionada.textContent
+                                : "—";
+
+                        if (umRolSpan) {
+                            umRolSpan.textContent =
+                                nombreUMSeleccionada;
+                        }
+
+                        if (umCocinaSpan) {
+                            umCocinaSpan.textContent =
+                                nombreUMSeleccionada;
+                        }
+
+                        if (resultadoAEFi.estadoVisual === "AZUL") {
+
+                            await inicializarExpresionesCulinarias(
+                                selectorExpresion,
+                                unidadSeleccionada
+                            );
+
+                            document
+                                .getElementById("encabezado-cantidad")
+                                .classList.add(
+                                    "encabezado-azul"
+                                );
+
+                            selectorExpresion.classList.add(
+                                "expresion-atencion-cantidad"
+                            );
+
+                            qty.classList.add(
+                                "atencion-cantidad"
+                            );
+
+                            actualizarEncabezadoExpresion(
+                                selectorExpresion
+                            );
+
+                            const hayExpresiones =
+                                Array.from(
+                                    selectorExpresion.options
+                                ).some(
+                                    option => option.value
+                                );
+
+                            if (hayExpresiones) {
+
+                                selectorExpresion.focus();
+                                selectorExpresion.click();
+
+                            } else {
+
+                                const qty =
+                                    fila.querySelector(".ing-cantidad");
+
+                                if (qty) {
+                                    qty.focus();
+                                    qty.select();
+                                }
+
+                            }
+
+                        } else {
+
+                            const qty =
+                                fila.querySelector(".ing-cantidad");
+
+                            document
+                                .getElementById("encabezado-expresion")
+                                .classList.remove(
+                                    "encabezado-azul",
+                                    "encabezado-naranja"
+                                );
+
+                            if (qty) {
+                                qty.focus();
+                                qty.select();
+                            }
+                        }
+                    }
+
+                });
+
+                controles.cantidad.addEventListener("keydown", function (e) {
+
+                    if (e.key === "Enter") {
+
+                        e.preventDefault();
+                        e.stopPropagation();
+
+                        const qty = controles.cantidad;
+                        const rol = controles.rol;
+
+                        const num =
+                            parseFloat(
+                                qty.dataset.valorNumerico ||
+                                (qty.value || "").replace(",", ".")
+                            );
+
+                        if (isNaN(num) || num <= 0) {
+
+                            showMsg("La cantidad debe ser mayor que 0.");
+
+                            selectorUM.focus();
+                            selectorUM.click();
+
+                            return;
+                        }
+
+                        clearMsg();
+
+                        const capturaCantidad = fila.querySelector(".ing-cantidad-captura");
+                        if (capturaCantidad) {
+                            capturaCantidad.value = qty.value;
+                        }
+
+                        if (
+                            selectorUM.value !==
+                            fila.dataset.unidadCanonica
+                        ) {
+
+                            rol.readOnly = false;
+
+                            selectorExpresion.selectedIndex = 0;
+                            selectorExpresion.dataset.etapa = "deco";
+
+                            selectorExpresion.classList.remove(
+                                "expresion-atencion-cantidad"
+                            );
+
+                            qty.classList.remove(
+                                "atencion-cantidad"
+                            );
+
+                            document
+                                .getElementById("encabezado-cantidad")
+                                .classList.remove(
+                                    "encabezado-azul"
+                                );
+
+                            document
+                                .getElementById("encabezado-deco")
+                                .classList.add(
+                                    "encabezado-naranja"
+                                );
+
+                            const hayExpresiones =
+                                Array.from(
+                                    selectorExpresion.options
+                                ).some(
+                                    option => option.value
+                                );
+
+                            if (hayExpresiones) {
+
+                                selectorExpresion.classList.add(
+                                    "expresion-atencion-deco"
+                                );
+
+                                rol.classList.add(
+                                    "atencion-deco"
+                                );
+
+                                actualizarEncabezadoExpresion(
+                                    selectorExpresion
+                                );
+
+                                selectorExpresion.focus();
+                                selectorExpresion.click();
+
+                            } else {
+
+                                selectorExpresion.classList.add(
+                                    "expresion-atencion-deco"
+                                );
+
+                                rol.classList.add(
+                                    "atencion-deco"
+                                );
+
+                                actualizarEncabezadoExpresion(
+                                    selectorExpresion
+                                );
+
+                                rol.focus();
+                                rol.select();
+
+                            }
+
+                            return;
+                        }
+
+                        rol.focus();
+                        rol.select();
+
+                    }
+
+                });
+
+                controles.rol.addEventListener("beforeinput", function (e) {
+                    if (
+                        selectorUM.value !== fila.dataset.unidadCanonica &&
+                        selectorExpresion.dataset.etapa !== "deco"
+                    ) {
+                        e.preventDefault();
+                    }
+                });
+
+                controles.rol.addEventListener("input", function (e) {
+                    if (e.isTrusted) {
+                        const valor = parseFloat(
+                            (controles.rol.value || "").replace(",", ".")
+                        );
+
+                        if (!isNaN(valor)) {
+                            controles.rol.dataset.valorNumerico =
+                                String(valor);
+                        }
+                    }
+
+                    const decoCaptura =
+                        fila.querySelector(".ing-deco-captura");
+
+                    if (decoCaptura) {
+                        decoCaptura.value =
+                            controles.rol.value;
+                    }
+                });
+
+                controles.rol.addEventListener("keydown", function (e) {
+
+                    if (e.key === "Enter") {
+
+                        e.preventDefault();
+                        e.stopPropagation();
+
+                        const qty = controles.cantidad;
+                        const rol = controles.rol;
+                        const cocina = controles.cocina;
+
+                        const cantidad =
+                            parseFloat(
+                                qty.dataset.valorNumerico ||
+                                (qty.value || "").replace(",", ".")
+                            );
+
+                        const deco =
+                            parseFloat(
+                                rol.dataset.valorNumerico ||
+                                (rol.value || "").replace(",", ".")
+                            );
+
+                        if (isNaN(cantidad) || cantidad <= 0) {
+
+                            showMsg("La cantidad debe ser mayor que 0.");
+
+                            qty.focus();
+                            qty.select();
+
+                            return;
+                        }
+
+                        if (isNaN(deco) || deco < 0) {
+
+                            showMsg("DECO debe ser igual o mayor que 0.");
+
+                            rol.focus();
+                            rol.select();
+
+                            return;
+                        }
+
+                        if (deco > cantidad) {
+
+                            showMsg(
+                                "DECO no puede ser mayor que CANTIDAD."
+                            );
+
+                            rol.focus();
+                            rol.select();
+
+                            return;
+                        }
+
+                        clearMsg();
+
+                        rol.dataset.valorNumerico =
+                            String(deco);
+
+                        if (cocina) {
+                            cocina.textContent =
+                                representarCantidadCulinaria(
+                                    Math.max(0, cantidad - deco)
+                                );
+                        }
+
+                        const filas = obtenerFilasReales();
+                        const indiceActual = filas.indexOf(fila);
+                        const siguiente = filas[indiceActual + 1];
+
+                        if (siguiente) {
+
+                            const siguienteIngrediente =
+                                siguiente.querySelector(
+                                    'select[name="ingrediente_id[]"]'
+                                );
+
+                            if (siguienteIngrediente) {
+                                siguienteIngrediente.focus();
+                                siguienteIngrediente.click();
+                            }
+
+                        } else {
+
+                            crearFilaYEnfocarIngrediente();
+
+                        }
+
+                    }
+
+                });
+
+                selectorExpresion.addEventListener("keydown", function (e) {
+
+                    if (e.key === "Enter") {
+                        e.preventDefault();
+                        e.stopPropagation();
+
+                        const qty =
+                            controles.cantidad;
+
+                        const rol =
+                            controles.rol;
+
+                        const etapa =
+                            selectorExpresion.dataset.etapa ||
+                            "cantidad";
+
+                        const hayExpresiones =
+                            Array.from(
+                                selectorExpresion.options
+                            ).some(
+                                option => option.value
+                            );
+
+                        if (
+                            etapa === "cantidad" &&
+                            !hayExpresiones
+                        ) {
+                            qty.focus();
+                            qty.select();
+                            return;
+                        }
+
+                        if (
+                            etapa === "cantidad"
+                        ) {
+                            if (!selectorExpresion.value) {
+                                return;
+                            }
+
+                            const opcionSeleccionada =
+                                selectorExpresion.selectedOptions[0];
+
+                            const expresionCId =
+                                fila.querySelector(".ing-expresion-c-id");
+
+                            const expresionCTexto =
+                                fila.querySelector(".ing-expresion-c-texto");
+
+                            if (expresionCId) {
+                                expresionCId.value =
+                                    opcionSeleccionada.value;
+                            }
+
+                            if (expresionCTexto) {
+                                expresionCTexto.value =
+                                    opcionSeleccionada.textContent.trim();
+                            }
+
+                            const factor =
+                                parseFloat(
+                                    opcionSeleccionada.dataset.factor
+                                );
+
+                            if (
+                                isNaN(factor) ||
+                                factor <= 0
+                            ) {
+                                return;
+                            }
+
+                            qty.dataset.valorNumerico =
+                                String(factor);
+
+                            qty.value =
+                                opcionSeleccionada.textContent.trim();
+
+                            qty.readOnly = true;
+
+                            qty.dispatchEvent(
+                                new Event(
+                                    "input",
+                                    { bubbles: true }
+                                )
+                            );
+
+                            qty.focus();
+                            qty.select();
+
+                            return;
+                        }
+
+                        if (
+                            etapa === "deco"
+                        ) {
+                            if (!selectorExpresion.value) {
+                                rol.focus();
+                                rol.select();
+                                return;
+                            }
+
+                            const opcionSeleccionada =
+                                selectorExpresion.selectedOptions[0];
+
+                            const expresionDId =
+                                fila.querySelector(".ing-expresion-d-id");
+
+                            const expresionDTexto =
+                                fila.querySelector(".ing-expresion-d-texto");
+
+                            if (expresionDId) {
+                                expresionDId.value =
+                                    opcionSeleccionada.value;
+                            }
+
+                            if (expresionDTexto) {
+                                expresionDTexto.value =
+                                    opcionSeleccionada.textContent.trim();
+                            }
+
+                            const factor =
+                                parseFloat(
+                                    opcionSeleccionada.dataset.factor
+                                );
+
+                            if (
+                                isNaN(factor) ||
+                                factor <= 0
+                            ) {
+                                return;
+                            }
+
+                            rol.value =
+                                opcionSeleccionada.textContent.trim();
+
+                            rol.dataset.valorNumerico =
+                                String(factor);
+
+                            rol.readOnly = true;
+
+                            rol.dataset.valorCaptura =
+                                String(factor);
+
+                            rol.dispatchEvent(
+                                new Event(
+                                    "input",
+                                    { bubbles: true }
+                                )
+                            );
+
+                            rol.focus();
+                            rol.select();
+                        }
+                    }
+
+                });
+
+
+
+
+                activarFilaIngrediente(fila);
+
+            }
+
+            obtenerFilasReales().forEach(function (fila) {
+
+                prepararFila(fila);
+
+                const magnitudes = obtenerMagnitudesCulinarias(fila);
+
+                if (
+                    magnitudes.qty &&
+                    magnitudes.rol &&
+                    magnitudes.cocinaSpan
+                ) {
+                    const cantidadCaptura =
+                        magnitudes.qty.value || "0";
+
+                    const decoCaptura =
+                        magnitudes.rol.value || "0";
+
+                    const convertirCapturaANumero = function (texto) {
+                        texto = String(texto).trim().replace(",", ".");
+
+                        if (!texto) {
+                            return 0;
+                        }
+
+                        if (
+                            texto.includes("/") &&
+                            !texto.includes(" ")
+                        ) {
+                            const partes = texto.split("/");
+
+                            if (partes.length === 2) {
+                                const numerador =
+                                    parseFloat(partes[0].trim());
+                                const denominador =
+                                    parseFloat(partes[1].trim());
+
+                                if (
+                                    Number.isFinite(numerador) &&
+                                    Number.isFinite(denominador) &&
+                                    denominador !== 0
+                                ) {
+                                    return numerador / denominador;
+                                }
+                            }
+                        }
+
+                        const partesMixtas = texto.split(/\s+/);
+
+                        if (partesMixtas.length === 2) {
+                            const entero =
+                                parseFloat(partesMixtas[0]);
+                            const fraccion =
+                                partesMixtas[1].split("/");
+
+                            if (
+                                Number.isFinite(entero) &&
+                                fraccion.length === 2
+                            ) {
+                                const numerador =
+                                    parseFloat(fraccion[0]);
+                                const denominador =
+                                    parseFloat(fraccion[1]);
+
+                                if (
+                                    Number.isFinite(numerador) &&
+                                    Number.isFinite(denominador) &&
+                                    denominador !== 0
+                                ) {
+                                    return entero +
+                                        (numerador / denominador);
+                                }
+                            }
+                        }
+
+                        const numero = parseFloat(texto);
+
+                        return Number.isFinite(numero)
+                            ? numero
+                            : 0;
+                    };
+
+                    const cantidad =
+                        convertirCapturaANumero(cantidadCaptura);
+
+                    const deco =
+                        convertirCapturaANumero(decoCaptura);
+
+                    const cocina =
+                        Math.max(0, cantidad - deco);
+
+                    magnitudes.qty.dataset.valorNumerico =
+                        String(cantidad);
+
+                    magnitudes.rol.dataset.valorNumerico =
+                        String(deco);
+
+                    magnitudes.cocinaSpan.textContent =
+                        representarCantidadCulinaria(cocina);
+
+                    fila.dataset.cocinaCanonica =
+                        String(cocina);
+                }
+
+            });
+
+        });
+
+    </script>
+
+
+
+</body>
+
+</html>

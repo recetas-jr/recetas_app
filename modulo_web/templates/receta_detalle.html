@@ -359,13 +359,58 @@ CANTIDAD TOTAL → total del ingrediente
 
 <td>{{ ing.nombre }}</td>
 
-<td>{{ ing.unidad_nombre }}</td>
+<td>
 
-<td class="total num">{{ ing.cocina_escalada|round(2) }}</td>
+{% if ing.conversion.permite %}
 
-<td class="deco num">{{ ing.deco_escalado|round(2) }}</td>
+<select
+    id="unidad_{{ ing.ingrediente_id }}"
+    data-ingrediente-id="{{ ing.ingrediente_id }}"
+    data-cocina-canonica="{{ ing.cocina_escalada }}"
+    data-deco-canonica="{{ ing.deco_escalado }}"
+    data-cantidad-canonica="{{ ing.cantidad_escalada }}"
+    data-unidad-canonica="{{ ing.unidad_codigo }}">
 
-<td class="num">{{ ing.cantidad_escalada|round(2) }}</td>
+{% for unidad in ing.conversion.unidades %}
+
+<option
+    value="{{ unidad.codigo }}"
+    {% if unidad.codigo == ing.conversion.unidad_actual %}selected{% endif %}>
+
+{{ unidad.codigo }}
+
+</option>
+
+{% endfor %}
+
+</select>
+
+{% else %}
+
+{{ ing.unidad_nombre }}
+
+{% endif %}
+
+</td>
+
+<td
+    id="cocina_{{ ing.ingrediente_id }}"
+    class="num">
+    {{ ing.cocina_escalada|round(2) }}
+</td>
+
+<td
+    id="deco_{{ ing.ingrediente_id }}"
+    class="deco num">
+    {{ ing.deco_escalado|round(2) }}
+</td>
+
+<td
+    id="cantidad_{{ ing.ingrediente_id }}"
+    class="total num">
+    {{ ing.cantidad_escalada|round(2) }}
+</td>
+
 </tr>
 
 {% endfor %}
@@ -374,7 +419,71 @@ CANTIDAD TOTAL → total del ingrediente
 
 </table>
 
-</div>
+<script>
+
+document.querySelectorAll("select[id^='unidad_']").forEach(function(select){
+
+    select.addEventListener("change", function(){
+
+        fetch("/api/convertir", {
+
+            method: "POST",
+
+            headers: {
+                "Content-Type": "application/json"
+            },
+
+            body: JSON.stringify({
+
+                ingrediente_id: Number(this.dataset.ingredienteId),
+
+                cocina_canonica: Number(this.dataset.cocinaCanonica),
+
+                deco_canonica: Number(this.dataset.decoCanonica),
+
+                cantidad_canonica: Number(this.dataset.cantidadCanonica),
+
+                unidad_canonica: this.dataset.unidadCanonica,
+
+                unidad_destino: this.value
+
+            })
+
+        })
+        .then(r => r.json())
+        .then(datos => {
+
+            console.log(datos);
+
+            if(datos.ok){
+
+                document.getElementById(
+                    "cocina_" + this.dataset.ingredienteId
+                ).textContent = Number(
+                    datos.cocina_convertida
+                ).toFixed(2);
+
+                document.getElementById(
+                    "deco_" + this.dataset.ingredienteId
+                ).textContent = Number(
+                    datos.deco_convertida
+                ).toFixed(2);
+
+                document.getElementById(
+                    "cantidad_" + this.dataset.ingredienteId
+                ).textContent = Number(
+                    datos.total_convertido
+                ).toFixed(2);
+
+            }
+
+        });
+
+    });
+
+});
+
+</script>
 
 </body>
 </html>

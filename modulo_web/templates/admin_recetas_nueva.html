@@ -90,9 +90,21 @@
             color: #fff;
         }
 
+        #btn-cancelar {
+            background: #777 !important;
+            color: #fff !important;
+            opacity: 1 !important;
+        }
+
         .btn-sec {
             background: #777;
             color: #fff;
+        }
+
+        #btn-ir-listado {
+            background: #777 !important;
+            color: #fff !important;
+            opacity: 1 !important;
         }
 
         .btn-ter {
@@ -433,7 +445,7 @@
                         <th class="col-um">UM</th>
                         <th class="col-exp" id="encabezado-expresion">EXPRESION-C</th>
                         <th class="col-qty" id="encabezado-cantidad">Cantidad</th>
-                        <th class="col-rol">Deco</th>
+                        <th class="col-rol" id="encabezado-deco">Deco</th>
                         <th class="col-um">UM</th>
                         <th class="col-qty">Cocina</th>
                         <th class="col-um">UM</th>
@@ -484,8 +496,9 @@
                         </td>
 
                         <td class="col-rol">
-                            <input type="text" class="ing-rol" name="rol[]" value="{{ item.rol }}" maxlength="6"
-                                style="width:70px; text-align:right;">
+                            <input type="text" class="ing-rol" name="rol[]"
+                                value="{{ item.deco_captura if item.deco_captura is not none else item.rol }}"
+                                maxlength="6" style="width:70px; text-align:right;">
                         </td>
 
                         <td class="col-um">
@@ -549,6 +562,13 @@
                                 <option value="">— Ninguna —</option>
 
                             </select>
+
+                            <input type="hidden" class="ing-expresion-c-id" name="expresion_c_id[]" disabled>
+                            <input type="hidden" class="ing-expresion-c-texto" name="expresion_c_texto[]" disabled>
+                            <input type="hidden" class="ing-cantidad-captura" name="cantidad_captura[]" disabled>
+                            <input type="hidden" class="ing-expresion-d-id" name="expresion_d_id[]" disabled>
+                            <input type="hidden" class="ing-expresion-d-texto" name="expresion_d_texto[]" disabled>
+                            <input type="hidden" class="ing-deco-captura" name="deco_captura[]" disabled>
 
                         </td>
 
@@ -656,10 +676,28 @@
         }
 
         btnIrListado.addEventListener("click", function () {
-            window.location.href = "/admin/recetas/listado";
+            const formMaster = document.getElementById("form-master");
+
+            if (formMaster.dataset.recetaCreada !== "1") {
+                showMsg("DEBE ABORTAR POR CANCELAR");
+                return;
+            }
+
+            if (confirm("¿Está seguro de que desea abandonar la receta?")) {
+                window.location.href = "/admin/recetas/listado";
+            }
         });
         btnCancelar.addEventListener("click", function () {
-            window.location.href = "/admin/recetas/nueva";
+            const formMaster = document.getElementById("form-master");
+
+            if (formMaster.dataset.recetaCreada !== "1") {
+                window.location.href = "/admin/recetas/nueva";
+                return;
+            }
+
+            if (confirm("¿Está seguro de que desea abandonar la receta?")) {
+                window.location.href = "/admin/recetas/nueva";
+            }
         });
 
         btnBuscar.addEventListener("click", function () {
@@ -766,7 +804,12 @@
             fila.querySelector(".ing-expresion").disabled = false;
             fila.querySelector(".ing-um-select").disabled = false;
             fila.querySelector(".ing-rol").disabled = false;
-
+            fila.querySelector(".ing-expresion-c-id").disabled = false;
+            fila.querySelector(".ing-expresion-c-texto").disabled = false;
+            fila.querySelector(".ing-cantidad-captura").disabled = false;
+            fila.querySelector(".ing-expresion-d-id").disabled = false;
+            fila.querySelector(".ing-expresion-d-texto").disabled = false;
+            fila.querySelector(".ing-deco-captura").disabled = false;
             fila.id = "";
             fila.classList.remove("oculta");
 
@@ -786,6 +829,25 @@
             tbody.appendChild(fila);
             prepararFila(fila);
             fila.querySelector(".ing-expresion").selectedIndex = 0;
+
+            document
+                .getElementById("encabezado-expresion")
+                .classList.remove(
+                    "encabezado-azul",
+                    "encabezado-naranja"
+                );
+
+            document
+                .getElementById("encabezado-cantidad")
+                .classList.remove(
+                    "encabezado-azul"
+                );
+
+            document
+                .getElementById("encabezado-deco")
+                .classList.remove(
+                    "encabezado-naranja"
+                );
             fila.querySelector(".ing-select").focus();
         }
 
@@ -909,6 +971,9 @@
             const encabezado =
                 document.getElementById("encabezado-expresion");
 
+            const encabezadoDeco =
+                document.getElementById("encabezado-deco");
+
             if (!encabezado) {
                 return;
             }
@@ -921,6 +986,12 @@
                 "encabezado-naranja"
             );
 
+            if (encabezadoDeco) {
+                encabezadoDeco.classList.remove(
+                    "encabezado-naranja"
+                );
+            }
+
             if (etapa === "deco") {
 
                 encabezado.textContent = "EXPRESION-D";
@@ -928,6 +999,12 @@
                 encabezado.classList.add(
                     "encabezado-naranja"
                 );
+
+                if (encabezadoDeco) {
+                    encabezadoDeco.classList.add(
+                        "encabezado-naranja"
+                    );
+                }
 
             } else {
 
@@ -1770,14 +1847,13 @@
     ----------------------------------------------------------*/
 
             rol.addEventListener("beforeinput", function (e) {
-
                 if (
                     selectorUM.value !==
-                    fila.dataset.unidadCanonica
+                    fila.dataset.unidadCanonica &&
+                    selectorExpresion.dataset.etapa !== "deco"
                 ) {
                     e.preventDefault();
                 }
-
             });
 
             rol.addEventListener("input", function (e) {
@@ -1937,12 +2013,35 @@
                         qty.value = opcionSeleccionada.textContent.trim();
                         qty.readOnly = true;
 
+                        const capturaExpresionC = fila.querySelector(".ing-expresion-c-id");
+                        const textoExpresionC = fila.querySelector(".ing-expresion-c-texto");
+
+                        if (capturaExpresionC) {
+                            capturaExpresionC.value = selectorExpresion.value;
+                        }
+
+                        if (textoExpresionC) {
+                            textoExpresionC.value =
+                                opcionSeleccionada.textContent.trim();
+                        }
+
                         qty.dispatchEvent(
                             new Event("input", { bubbles: true })
                         );
 
                         qty.focus();
                         qty.select();
+
+                        return;
+                        qty.select();
+
+                        return;
+                    }
+
+                    if (etapa === "deco" && !hayExpresiones) {
+
+                        rol.focus();
+                        rol.select();
 
                         return;
                     }
@@ -1971,6 +2070,20 @@
 
                         rol.dataset.valorNumerico = String(factor);
                         rol.value = opcionSeleccionada.textContent.trim();
+
+                        const capturaExpresionD =
+                            fila.querySelector(".ing-expresion-d-id");
+                        const textoExpresionD =
+                            fila.querySelector(".ing-expresion-d-texto");
+
+                        if (capturaExpresionD) {
+                            capturaExpresionD.value = selectorExpresion.value;
+                        }
+
+                        if (textoExpresionD) {
+                            textoExpresionD.value =
+                                opcionSeleccionada.textContent.trim();
+                        }
                     }
 
                     rol.dispatchEvent(
@@ -2009,6 +2122,13 @@
 
                     clearMsg();
 
+                    const capturaCantidad =
+                        fila.querySelector(".ing-cantidad-captura");
+
+                    if (capturaCantidad) {
+                        capturaCantidad.value = qty.value;
+                    }
+
                     document
                         .getElementById("encabezado-cantidad")
                         .classList.remove("encabezado-azul");
@@ -2030,7 +2150,7 @@
 
                         rol.value = "0";
                         rol.dataset.valorNumerico = "0";
-                        rol.readOnly = true;
+                        rol.readOnly = false;
 
                         selectorExpresion.selectedIndex = 0;
                         selectorExpresion.dataset.etapa = "deco";
@@ -2106,6 +2226,19 @@
                         return;
                     }
 
+                    const capturaCantidad =
+                        fila.querySelector(".ing-cantidad-captura");
+                    const capturaDeco =
+                        fila.querySelector(".ing-deco-captura");
+
+                    if (capturaCantidad) {
+                        capturaCantidad.value = qty.value;
+                    }
+
+                    if (capturaDeco) {
+                        capturaDeco.value = rol.value;
+                    }
+
                     if (ingredienteYaUsado(ingId)) {
                         const nombre = sel.options[sel.selectedIndex].textContent;
                         // Mensaje con colores: nombre en rojo, resto en verde intenso
@@ -2138,6 +2271,9 @@
                             "encabezado-naranja"
                         );
 
+
+                    const formMaster = document.getElementById("form-master");
+                    formMaster.dataset.recetaCreada = "1";
                     crearFilaYEnfocarIngrediente();
                 }
             });

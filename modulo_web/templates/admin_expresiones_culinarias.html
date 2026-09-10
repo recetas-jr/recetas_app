@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Expresiones Culinarias</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f2f4f8;
+            margin: 0;
+            padding: 0;
+        }
+
+        .container {
+            max-width: 700px;
+            margin: 20px auto;
+            background: white;
+            padding: 15px;
+            border-radius: 6px;
+        }
+
+        h2 {
+            margin-top: 0;
+        }
+
+        form {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            margin-bottom: 10px;
+            flex-wrap: wrap;
+        }
+
+        input {
+            padding: 6px;
+            font-size: 14px;
+        }
+
+        /* FOCO VIOLETA ESTÁNDAR */
+        input:focus,
+        select:focus,
+        textarea:focus {
+            outline: none;
+            background-color: #f3e8ff;
+            border: 2px solid #5b21b6;
+        }
+
+        /* Campo código UM */
+        #codigo {
+            width: 80px;
+            max-width: 80px;
+            text-transform: uppercase;
+        }
+
+        /* Descripción siempre en minúsculas */
+        #nombre {
+            width: 260px;
+            max-width: 260px;
+            text-transform: lowercase;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+
+        th,
+        td {
+            border: 1px solid #ddd;
+            padding: 6px;
+            text-align: left;
+        }
+
+        th {
+            background: #f0f0f0;
+        }
+
+        td.col-nombre {
+            text-transform: lowercase;
+        }
+
+        .flash-msg {
+            color: #0b9b0b;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .flash-msg .item {
+            color: #cc0000;
+            font-weight: bold;
+        }
+
+        .errores {
+            color: #cc0000;
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+
+        .btn-borrar {
+            background: #cc0000;
+            color: #fff;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .btn-borrar:hover {
+            background: #a80000;
+        }
+
+        .ayuda {
+            font-size: 12px;
+            color: #555;
+            margin-left: 6px;
+        }
+
+        .flash-msg {
+            color: #0b9b0b;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .errores {
+            color: #cc0000;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+    </style>
+
+    <script>
+        function confirmarBorrado(nombre) {
+            return confirm("¿Seguro que desea borrar '" + nombre + "'?");
+        }
+
+        document.addEventListener("DOMContentLoaded", function () {
+
+            const codigo = document.getElementById("codigo");
+            const nombre = document.getElementById("nombre");
+            const form = document.getElementById("form-um");
+
+            /* FORZAR FOCO SIEMPRE AL CARGAR */
+            if (codigo) {
+                codigo.focus();
+            }
+
+            /* SOLO LETRAS EN CÓDIGO */
+            codigo.addEventListener("input", function () {
+                this.value = this.value
+                    .toUpperCase()
+                    .replace(/[^A-Z]/g, '')
+                    .slice(0, 5);
+            });
+
+            /* Enter en código -> pasa a nombre */
+            codigo.addEventListener("keydown", function (e) {
+                if (e.key === "Enter") {
+                    e.preventDefault();
+                    nombre.focus();
+                }
+            });
+
+            /* Enter en nombre -> guarda */
+            nombre.addEventListener("keydown", function (e) {
+                if (e.key === "Enter") {
+                    e.preventDefault();
+                    form.submit();
+                }
+            });
+
+            /* ESC -> limpia y vuelve al código */
+            document.addEventListener("keydown", function (e) {
+                if (e.key === "Escape") {
+                    codigo.value = "";
+                    nombre.value = "";
+                    codigo.focus();
+                }
+            });
+
+            // ===== LIMPIAR MENSAJES FLASH =====
+
+            function limpiarMensajesFlash() {
+
+                const flashes = document.querySelectorAll(".flash-msg");
+                flashes.forEach(f => f.remove());
+
+                const errores = document.querySelectorAll(".errores");
+                errores.forEach(e => e.remove());
+
+            }
+
+            // limpiar al escribir código
+            const inputCodigo = document.getElementById("codigo");
+            if (inputCodigo) {
+                inputCodigo.addEventListener("input", limpiarMensajesFlash);
+            }
+
+            // limpiar al escribir nombre
+            const inputNombre = document.getElementById("nombre");
+            if (inputNombre) {
+                inputNombre.addEventListener("input", limpiarMensajesFlash);
+            }
+
+        });
+    </script>
+</head>
+
+<body>
+
+    <!-- Botón al Menú principal -->
+
+    {% include "componentes/menu_superior.html" %}
+
+    <div class="container">
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+        {% for category, message in messages %}
+        <div class="flash-msg">{{ message|safe }}</div>
+        {% endfor %}
+        {% endif %}
+        {% endwith %}
+
+        {% if errores %}
+        <div class="errores">
+            <ul>
+                {% for e in errores %}
+                <li>{{ e|safe }}</li>
+                {% endfor %}
+            </ul>
+        </div>
+        {% endif %}
+
+        <form id="form-um" method="post" action="/admin/expresiones_culinarias" autocomplete="off">
+            <label>Código:</label>
+            <input type="text" id="codigo" name="codigo" maxlength="5" placeholder="EXP" autofocus>
+
+            <label>Expresión:</label>
+            <input type="text" id="nombre" name="nombre" placeholder="nombre de la expresión culinaria">
+
+            <span class="ayuda">&lt;enter para guardar&gt; | ESC aborta</span>
+        </form>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>UM</th>
+                    <th>Expresión culinaria</th>
+                    <th>Factor</th>
+                    <th>Acción</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for e in expresiones %}
+                <tr>
+                    <td>{{ e.unidad_codigo }}</td>
+                    <td class="col-nombre">{{ e.expresion }}</td>
+                    <td>{{ e.factor }}</td>
+                    <td>
+                        <form method="post" action="/admin/expresiones_culinarias/borrar/{{ e.id }}"
+                            style="display:inline;"
+                            onsubmit="return confirmarBorrado('{{ e.unidad_codigo }} - {{ e.expresion }}');">
+                            <button type="submit" class="btn-borrar">Borrar</button>
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+    </div>
+</body>
+
+</html>

@@ -1,6 +1,7 @@
 <!-- ARCHIVO: modulo_web/templates/admin_platos.html -->
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <title>Nomenclador de Platos</title>
@@ -20,15 +21,20 @@
             border-radius: 6px;
         }
 
-        h2 { margin-top: 0; color: #111; }
+        h2 {
+            margin-top: 0;
+            color: #111;
+        }
 
         .fila {
             display: flex;
             gap: 12px;
-            align-items: flex-start;   /* CAMBIO CLAVE */
+            align-items: flex-start;
+            /* CAMBIO CLAVE */
             margin-bottom: 10px;
             flex-wrap: nowrap;
         }
+
         .campo {
             display: flex;
             align-items: center;
@@ -45,7 +51,8 @@
             text-align: right;
         }
 
-        input, select {
+        input,
+        select {
             padding: 6px;
             font-size: 14px;
             box-sizing: border-box;
@@ -59,9 +66,17 @@
             border: 2px solid #5b21b6;
         }
 
-        #nombre { width: 320px; max-width: 320px; }
-        #tipo_plato { width: 170px; max-width: 170px; }
-        #peso_racion {
+        #nombre {
+            width: 320px;
+            max-width: 320px;
+        }
+
+        #tipo_plato {
+            width: 170px;
+            max-width: 170px;
+        }
+
+        #cantidad_racion {
             width: 60px;
             max-width: 60px;
             text-align: right;
@@ -87,7 +102,8 @@
             margin-top: 10px;
         }
 
-        th, td {
+        th,
+        td {
             border: 1px solid #ddd;
             padding: 6px;
             text-align: left;
@@ -113,9 +129,20 @@
             text-overflow: ellipsis;
         }
 
-        th.peso-col { text-align: center; }
-        th.peso-col .top { font-weight: bold; line-height: 1.1; }
-        th.peso-col .sub { font-size: 12px; color: #333; line-height: 1.1; }
+        .cantidad-col {
+            text-align: center;
+        }
+
+        .cantidad-col .top {
+            font-weight: bold;
+            line-height: 1.1;
+        }
+
+        .cantidad-col .sub {
+            font-size: 12px;
+            color: #333;
+            line-height: 1.1;
+        }
 
         .flash-msg {
             color: #0b9b0b;
@@ -143,9 +170,11 @@
             cursor: pointer;
         }
 
-        .btn-borrar:hover { background: #a80000; }
+        .btn-borrar:hover {
+            background: #a80000;
+        }
 
-        /* VALIDACIÓN INLINE PESO */
+        /* VALIDACIÓN INLINE CANTIDAD */
         .input-error {
             border: 2px solid #cc0000 !important;
             background-color: #ffecec;
@@ -161,239 +190,292 @@
 
     <script>
 
-    function confirmarBorrado(nombre) {
-        return confirm("¿Seguro que desea borrar '" + nombre + "'?");
-    }           
+        function confirmarBorrado(nombre) {
+            return confirm("¿Seguro que desea borrar '" + nombre + "'?");
+        }
 
-    document.addEventListener("DOMContentLoaded", function () {
+        document.addEventListener("DOMContentLoaded", function () {
 
-       
 
-        const nombre = document.getElementById("nombre");
-        const tipo = document.getElementById("tipo_plato");
-        const peso = document.getElementById("peso_racion");
-        const form = document.getElementById("form-platos");
-        const pesoError = document.getElementById("peso_error");
-        const tipoError = document.getElementById("tipo_error");
 
-        tipo.addEventListener("change", function () {
-            if (tipo.value !== "") {
-                tipo.classList.remove("input-error");
-                tipoError.textContent = "";
+            const nombre = document.getElementById("nombre");
+            const tipo = document.getElementById("tipo_plato");
+
+            const unidad = document.getElementById("unidad_racion");
+            const cantidad = document.getElementById("cantidad_racion");
+
+            const form = document.getElementById("form-platos");
+            const cantidadError = document.getElementById("cantidad_error");
+            const tipoError = document.getElementById("tipo_error");
+
+            tipo.addEventListener("change", function () {
+                if (tipo.value !== "") {
+                    tipo.classList.remove("input-error");
+                    tipoError.textContent = "";
+                }
+            });
+
+            function validarCantidad() {
+                const valor = cantidad.value.trim();
+
+                if (unidad.value === "") {
+                    unidad.classList.add("input-error");
+                    cantidadError.textContent = "Debe seleccionar una unidad de medida.";
+                    return false;
+                }
+
+                if (valor === "") {
+                    cantidad.classList.add("input-error");
+                    cantidadError.textContent = "La cantidad es obligatoria.";
+                    return false;
+                }
+
+                const numero = parseFloat(valor);
+
+                if (isNaN(numero)) {
+                    cantidad.classList.add("input-error");
+                    cantidadError.textContent = "Debe ser numérica.";
+                    return false;
+                }
+
+                if (numero <= 0) {
+                    cantidad.classList.add("input-error");
+                    cantidadError.textContent = "Debe ser mayor que 0.";
+                    return false;
+                }
+
+                cantidad.classList.remove("input-error");
+                unidad.classList.remove("input-error");
+                cantidadError.textContent = "";
+                return true;
             }
+
+            // Validación en tiempo real
+
+            cantidad.addEventListener("input", validarCantidad);
+
+            form.addEventListener("submit", function (e) {
+                if (!validarCantidad()) {
+                    e.preventDefault();
+
+                    if (unidad.value === "") {
+                        unidad.focus();
+                    } else {
+                        cantidad.focus();
+                    }
+                }
+            });
+
+            // Enter en nombre → tipo
+            nombre.addEventListener("keydown", function (e) {
+                if (e.key === "Enter") {
+                    e.preventDefault();
+                    tipo.focus();
+                }
+            });
+
+            // Enter en tipo → unidad
+            tipo.addEventListener("keydown", function (e) {
+                if (e.key === "Enter") {
+                    e.preventDefault();
+
+                    if (tipo.value === "") {
+                        tipo.classList.add("input-error");
+                        tipoError.textContent = "Debe seleccionar un tipo de plato.";
+                        tipo.focus();
+                        return;
+                    }
+
+                    tipo.classList.remove("input-error");
+                    tipoError.textContent = "";
+                    unidad.focus();
+                }
+            });
+
+
+
+            // Enter en unidad → cantidad
+            unidad.addEventListener("keydown", function (e) {
+                if (e.key === "Enter") {
+                    e.preventDefault();
+
+                    cantidad.focus();
+                }
+            });
+
+            // Enter en cantidad → guardar
+            cantidad.addEventListener("keydown", function (e) {
+                if (e.key === "Enter") {
+                    e.preventDefault();
+
+                    if (validarCantidad()) {
+                        form.submit();
+                    }
+                }
+            });
+
+            // ESC limpia todo
+            document.addEventListener("keydown", function (e) {
+                if (e.key === "Escape") {
+                    nombre.value = "";
+                    tipo.value = "";
+
+                    unidad.value = "";
+                    cantidad.value = "";
+
+                    nombre.classList.remove("input-error");
+                    tipo.classList.remove("input-error");
+
+                    unidad.classList.remove("input-error");
+                    cantidad.classList.remove("input-error");
+
+                    tipoError.textContent = "";
+                    cantidadError.textContent = "";
+
+                    nombre.focus();
+                }
+            });
+
+            // ===== LIMPIAR MENSAJES FLASH =====
+
+            function limpiarMensajesFlash() {
+                const mensajes = document.querySelectorAll(".flash-msg, .errores");
+                mensajes.forEach(m => m.remove());
+            }
+
+            // limpiar al escribir nombre
+            nombre.addEventListener("input", limpiarMensajesFlash);
+            nombre.addEventListener("keydown", limpiarMensajesFlash);
+
+            // limpiar al cambiar tipo
+            tipo.addEventListener("change", limpiarMensajesFlash);
+
+            // limpiar al escribir cantidad
+            cantidad.addEventListener("input", limpiarMensajesFlash);
+
         });
-
-        function validarPeso() {
-            const valor = peso.value.trim();
-
-            if (valor === "") {
-               peso.classList.add("input-error");
-               pesoError.textContent = "El peso es obligatorio.";
-               return false;
-            }
-
-        const numero = parseFloat(valor);
-
-        if (isNaN(numero)) {
-            peso.classList.add("input-error");
-            pesoError.textContent = "Debe ser numérico.";
-            return false;
-        }
-
-        if (numero <= 0) {
-            peso.classList.add("input-error");
-            pesoError.textContent = "Debe ser mayor que 0.";
-            return false;
-        }
-
-        // válido
-        peso.classList.remove("input-error");
-        pesoError.textContent = "";
-        return true;
-    }
-
-    // Validación en tiempo real
-    peso.addEventListener("input", validarPeso);
-
-    // BLOQUEAR SUBMIT SI ES INVÁLIDO
-    form.addEventListener("submit", function (e) {
-        if (!validarPeso()) {
-            e.preventDefault();
-            peso.focus();
-        }
-    });
-
-    // Enter en nombre → tipo
-    nombre.addEventListener("keydown", function (e) {
-        if (e.key === "Enter") {
-            e.preventDefault();
-            tipo.focus();
-        }
-    });
-
-    // Enter en tipo → peso
-    tipo.addEventListener("keydown", function (e) {
-    if (e.key === "Enter") {
-        e.preventDefault();
-
-        if (tipo.value === "") {
-            tipo.classList.add("input-error");
-            tipoError.textContent = "Debe seleccionar un tipo de plato.";
-            tipo.focus();
-            return;
-        }
-
-        tipo.classList.remove("input-error");
-        tipoError.textContent = "";
-        peso.focus();
-    }
-
-    
-});
-
-    // Enter en peso
-    peso.addEventListener("keydown", function (e) {
-        if (e.key === "Enter") {
-            e.preventDefault();
-            if (validarPeso()) {
-                form.submit();
-            }
-        }
-    });
-
-    // ESC limpia todo
-    document.addEventListener("keydown", function (e) {
-        if (e.key === "Escape") {
-            nombre.value = "";
-            peso.value = "";
-            peso.classList.remove("input-error");
-            pesoError.textContent = "";
-            nombre.focus();
-        }
-    });
-
-    // ===== LIMPIAR MENSAJES FLASH =====
-
-    function limpiarMensajesFlash() {
-        const mensajes = document.querySelectorAll(".flash-msg, .errores");
-        mensajes.forEach(m => m.remove());
-    }
-
-    // limpiar al escribir nombre
-    nombre.addEventListener("input", limpiarMensajesFlash);
-    nombre.addEventListener("keydown", limpiarMensajesFlash);
-
-    // limpiar al cambiar tipo
-    tipo.addEventListener("change", limpiarMensajesFlash);
-
-    // limpiar al escribir peso
-    peso.addEventListener("input", limpiarMensajesFlash);
-
-});
-</script>
+    </script>
 </head>
+
 <body>
 
-<!-- Botón al Menú principal -->    
+    <!-- Botón al Menú principal -->
 
-{% include "componentes/menu_superior.html" %}
+    {% include "componentes/menu_superior.html" %}
 
-<div class="container">
+    <div class="container">
 
-    <h2>Nomenclador de Platos</h2>
+        <h2>Nomenclador de Platos</h2>
 
-    {% with messages = get_flashed_messages(with_categories=true) %}
-      {% if messages %}
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
         {% for category, message in messages %}
-          <div class="flash-msg">{{ message|safe }}</div>
+        <div class="flash-msg">{{ message|safe }}</div>
         {% endfor %}
-      {% endif %}
-    {% endwith %}
+        {% endif %}
+        {% endwith %}
 
-    {% if errores %}
+        {% if errores %}
         <div class="errores">
             <ul>
-            {% for e in errores %}
+                {% for e in errores %}
                 <li>{{ e|safe }}</li>
-            {% endfor %}
+                {% endfor %}
             </ul>
         </div>
-    {% endif %}
+        {% endif %}
 
-    <form id="form-platos" method="post" action="/admin/platos" autocomplete="off">
-        <div class="fila">
-            <div class="campo">
-                <div class="label-2l">Nombre del<br>plato</div>
-                <input type="text" id="nombre" name="nombre" placeholder="nombre del plato" maxlength="60" autofocus>
-            </div>
+        <form id="form-platos" method="post" action="/admin/platos" autocomplete="off">
+            <div class="fila">
+                <div class="campo">
+                    <div class="label-2l">Nombre del<br>plato</div>
+                    <input type="text" id="nombre" name="nombre" placeholder="nombre del plato" maxlength="60"
+                        autofocus>
+                </div>
 
-            <div class="campo">
-                <div class="label-2l">Tipo del<br>plato</div>
+                <div class="campo">
+                    <div class="label-2l">Tipo del<br>plato</div>
 
-                <div style="display:flex; flex-direction:column; min-height:48px;">
-                    <select id="tipo_plato" name="tipo_plato_id">
-                        <option value="">-- seleccione tipo --</option>
-                        {% for t in tipos_plato %}
-                            <option value="{{ t.id }}"
-                                {% if tipo_seleccionado == t.id|string %}selected{% endif %}>
+                    <div style="display:flex; flex-direction:column; min-height:48px;">
+                        <select id="tipo_plato" name="tipo_plato_id">
+                            <option value="">-- seleccione tipo --</option>
+                            {% for t in tipos_plato %}
+                            <option value="{{ t.id }}" {% if tipo_seleccionado==t.id|string %}selected{% endif %}>
                                 {{ t.nombre }}
                             </option>
-                        {% endfor %}
-                    </select>
+                            {% endfor %}
+                        </select>
 
-                    <!-- Espacio reservado SIEMPRE -->
-                    <div id="tipo_error" class="msg-inline" style="height:16px;"></div>
-                </div>
-            </div>
-
-            <div class="campo">
-                <div class="label-2l">Peso<br>ración</div>
-
-                <div style="display:flex; flex-direction:column;">
-                    <div style="display:flex; align-items:center;">
-                        <input type="text" id="peso_racion" name="peso_racion" placeholder="0.00" maxlength="6">
-                        <span class="um-racion">gramos</span>
+                        <!-- Espacio reservado SIEMPRE -->
+                        <div id="tipo_error" class="msg-inline" style="height:16px;"></div>
                     </div>
-                    <div id="peso_error" class="msg-inline" style="height:16px;"></div>
                 </div>
+
+                <div class="campo">
+                    <div class="label-2l">UM<br>ración</div>
+
+                    <div style="display:flex; flex-direction:column;">
+                        <div style="display:flex; align-items:center;">
+                            <select id="unidad_racion" name="unidad_racion_id">
+                                <option value="">-- UM --</option>
+                                {% for u in unidades %}
+                                <option value="{{ u.id }}">{{ u.codigo }} — {{ u.nombre }}</option>
+                                {% endfor %}
+                            </select>
+
+                            <input type="text" id="cantidad_racion" name="cantidad_racion" placeholder="0.00"
+                                maxlength="6" style="margin-left:4px;">
+                        </div>
+
+                        <div id="cantidad_error" class="msg-inline" style="height:16px;"></div>
+                    </div>
+                </div>
+
+
+                <span class="ayuda">&lt;enter para guardar&gt; | ESC aborta</span>
             </div>
-            
+        </form>
 
-            <span class="ayuda">&lt;enter para guardar&gt; | ESC aborta</span>
-        </div>
-    </form>
+        <table>
+            <thead>
+                <tr>
+                    <th>Plato</th>
+                    <th>Tipo</th>
+                    <th class="cantidad-col">
+                        <div class="top">CANTIDAD</div>
+                        <div class="sub">ración</div>
+                    </th>
+                    <th>Acción</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for p in platos %}
+                <tr>
+                <tr>
+                    <td class="col-plato" title="{{ p.nombre }}">{{ p.nombre }}</td>
+                    <td class="col-tipo" title="{{ p.tipo_nombre }}">{{ p.tipo_nombre }}</td>
+                    <td style="white-space: nowrap;">
+                        {% if p.cantidad_racion is not none and p.unidad_racion_codigo %}
+                        {{ "%.2f"|format(p.cantidad_racion) }} {{ p.unidad_racion_codigo }} — {{ p.unidad_racion_nombre
+                        }}
+                        {% else %}
+                        —
+                        {% endif %}
+                    </td>
+                    <td>
+                        <form method="post" action="/admin/platos/borrar/{{ p.id }}" style="display:inline;"
+                            onsubmit="return confirmarBorrado('{{ p.nombre }}');">
+                            <button type="submit" class="btn-borrar">Borrar</button>
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
 
-    <table>
-        <thead>
-            <tr>
-                <th>Plato</th>
-                <th>Tipo</th>
-                <th class="peso-col">
-                    <div class="top">PESO</div>
-                    <div class="sub">ración</div>
-                </th>
-                <th>Acción</th>
-            </tr>
-        </thead>
-        <tbody>
-        {% for p in platos %}
-            <tr>
-                <td class="col-plato" title="{{ p.nombre }}">{{ p.nombre }}</td>
-                <td class="col-tipo" title="{{ p.tipo_nombre }}">{{ p.tipo_nombre }}</td>
-                <td style="white-space: nowrap;">{{ "%.2f"|format(p.peso_racion) }} gramos</td>
-                <td>
-                    <form method="post" action="/admin/platos/borrar/{{ p.id }}" style="display:inline;"
-                          onsubmit="return confirmarBorrado('{{ p.nombre }}');">
-                        <button type="submit" class="btn-borrar">Borrar</button>
-                    </form>
-                </td>
-            </tr>
-        {% endfor %}
-        </tbody>
-    </table>
-
-</div>
+    </div>
 </body>
+
 </html>
 
 <!-- FIN ARCHIVO: modulo_web/templates/admin_platos.html -->

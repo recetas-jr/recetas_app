@@ -783,6 +783,8 @@ def borrar_ingrediente(ingrediente_id):
         )
 
     except Exception as e:
+        conn.rollback()
+        conn.close()
         print("ERROR borrando ingrediente:", e)
         flash("No se pudo borrar el ingrediente.", "error")
 
@@ -825,7 +827,8 @@ def admin_platos():
     if request.method == "POST":
         nombre = (request.form.get("nombre") or "").strip()
         tipo_plato_id = (request.form.get("tipo_plato_id") or "").strip()
-        peso_racion = (request.form.get("peso_racion") or "").strip()
+        cantidad_racion = (request.form.get("cantidad_racion") or "").strip()
+        unidad_racion_id = (request.form.get("unidad_racion_id") or "").strip()
 
         tipo_seleccionado = tipo_plato_id  # mantener selección
 
@@ -837,17 +840,20 @@ def admin_platos():
         if not tipo_plato_id:
             errores.append("Debe seleccionar un tipo de plato.")
 
-        # Validación peso
-        if not peso_racion:
-            errores.append("El peso de la ración es obligatorio.")
+        # Validación cantidad y unidad de ración
+        if not cantidad_racion:
+            errores.append("La cantidad de la ración es obligatoria.")
         else:
             try:
-                peso_float = float(peso_racion)
-                if peso_float <= 0:
+                cantidad_float = float(cantidad_racion)
+                if cantidad_float <= 0:
                     errores.append(
-                        "El peso de la ración debe ser mayor que 0.")
+                        "La cantidad de la ración debe ser mayor que 0.")
             except:
-                errores.append("El peso de la ración debe ser numérico.")
+                errores.append("La cantidad de la ración debe ser numérica.")
+
+        if not unidad_racion_id:
+            errores.append("Debe seleccionar una unidad para la ración.")
 
         if not errores:
             try:
@@ -871,8 +877,9 @@ def admin_platos():
                     )
                 else:
                     cur.execute(
-                        "INSERT INTO platos (nombre, tipo_plato_id, peso_racion) VALUES (?, ?, ?)",
-                        (nombre, int(tipo_plato_id), peso_float)
+                        "INSERT INTO platos (nombre, tipo_plato_id, cantidad_racion, unidad_racion_id) VALUES (?, ?, ?, ?)",
+                        (nombre, int(tipo_plato_id),
+                         cantidad_float, int(unidad_racion_id))
                     )
                     conn.commit()
                     conn.close()
@@ -889,11 +896,12 @@ def admin_platos():
 
     platos = db_cargar_platos()
     tipos_plato = db_cargar_tipos_plato()
-
+    unidades = db_cargar_unidades()
     return render_template(
         "admin_platos.html",
         platos=platos,
         tipos_plato=tipos_plato,
+        unidades=unidades,
         errores=errores,
         tipo_seleccionado=tipo_seleccionado
     )

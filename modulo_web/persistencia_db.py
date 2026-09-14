@@ -45,9 +45,11 @@ def init_db():
         nombre TEXT NOT NULL UNIQUE,
         tipo_plato_id INTEGER,
         activo INTEGER NOT NULL DEFAULT 1,
-        peso_racion REAL,
         foto TEXT,
-        FOREIGN KEY (tipo_plato_id) REFERENCES tipos_plato(id)
+        cantidad_racion REAL,
+        unidad_racion_id INTEGER,
+        FOREIGN KEY (tipo_plato_id) REFERENCES tipos_plato(id),
+        FOREIGN KEY (unidad_racion_id) REFERENCES unidades(id)
     );
     """)
 
@@ -58,6 +60,23 @@ def init_db():
         nombre TEXT NOT NULL
     );
     """)
+
+    try:
+        cur.execute("""
+            ALTER TABLE platos
+            ADD COLUMN cantidad_racion REAL;
+        """)
+    except sqlite3.OperationalError as e:
+        if "duplicate column name" not in str(e).lower():
+            raise
+
+    try:
+        cur.execute("""
+            ALTER TABLE platos
+            ADD COLUMN unidad_racion_id INTEGER REFERENCES unidades(id);
+        """)
+    except sqlite3.OperationalError:
+        pass
 
     cur.execute("""
     CREATE TABLE IF NOT EXISTS ingredientes (
@@ -335,14 +354,20 @@ def db_cargar_platos():
             p.id,
             p.nombre,
             p.activo,
-            p.peso_racion,
+            p.cantidad_racion,
+            p.unidad_racion_id,
+            u.codigo AS unidad_racion_codigo,
+            u.nombre AS unidad_racion_nombre,
             p.foto,
             t.nombre AS tipo_plato
         FROM platos p
-        LEFT JOIN tipos_plato t ON p.tipo_plato_id = t.id
+        LEFT JOIN tipos_plato t
+            ON p.tipo_plato_id = t.id
+        LEFT JOIN unidades u
+            ON p.unidad_racion_id = u.id
         WHERE p.activo = 1
         ORDER BY p.nombre
-    """)
+        """)
 
     filas = cur.fetchall()
 
@@ -358,7 +383,10 @@ def db_cargar_platos():
             "nombre": f["nombre"],
             "tipo_nombre": f["tipo_plato"] or "",
             "activo": f["activo"],
-            "peso_racion": f["peso_racion"] if f["peso_racion"] is not None else 0.0,
+            "cantidad_racion": f["cantidad_racion"],
+            "unidad_racion_id": f["unidad_racion_id"],
+            "unidad_racion_codigo": f["unidad_racion_codigo"] or "",
+            "unidad_racion_nombre": f["unidad_racion_nombre"] or "",
             "foto": f["foto"]
 
         })

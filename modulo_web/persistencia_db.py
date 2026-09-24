@@ -746,6 +746,8 @@ def db_cargar_receta_detalle(receta_id):
 
             ri.cantidad,
 
+            ri.unidad_codigo_presentacion,
+
             ri.rol,
 
             u.codigo AS unidad_codigo,
@@ -777,6 +779,8 @@ def db_cargar_receta_detalle(receta_id):
             "nombre": f["ingrediente_nombre"],
 
             "cantidad": f["cantidad"],
+
+            "unidad_codigo_presentacion": f["unidad_codigo_presentacion"],
 
             "rol": f["rol"],
 

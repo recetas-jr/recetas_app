@@ -8,484 +8,548 @@ RUTA: recetas_app/modulo_web/templates/
 
 <head>
 
-<title>Receta</title>
+    <title>Receta</title>
 
-<style>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f2f4f8;
+            margin: 0;
+            padding: 0;
+        }
 
-body{
-font-family: Arial, sans-serif;
-background:#f2f4f8;
-margin:0;
-padding:0;
-}
+        .container {
+            max-width: 900px;
+            margin: 40px auto;
+            background: #ffffff;
+            padding: 20px 25px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.08);
+        }
 
-.container{
-max-width:900px;
-margin:40px auto;
-background:#ffffff;
-padding:20px 25px;
-border-radius:10px;
-box-shadow:0 0 10px rgba(0,0,0,0.08);
-}
+        h2 {
+            margin-top: 0;
+        }
 
-h2{
-margin-top:0;
-}
+        .titulo-receta {
+            font-size: 22px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
 
-.titulo-receta{
-font-size:22px;
-font-weight:bold;
-margin-bottom:10px;
-}
+        .raciones {
+            margin-bottom: 20px;
+        }
 
-.raciones{
-margin-bottom:20px;
-}
+        .bloque-preparacion {
+            margin-top: 20px;
+        }
 
-.bloque-preparacion{
-margin-top:20px;
-}
-
-/* =========================
+        /* =========================
 BOTONES DE ACCION
 ========================= */
 
-.boton-accion{
+        .boton-accion {
 
-display:block;
+            display: block;
 
-width:fit-content;
+            width: fit-content;
 
-margin:16px 0;
+            margin: 16px 0;
 
-padding:12px 28px;
+            padding: 12px 28px;
 
-font-size:16px;
-font-weight:bold;
+            font-size: 16px;
+            font-weight: bold;
 
-color:white;
+            color: white;
 
-background:linear-gradient(90deg,#28a745,#34c759);
+            background: linear-gradient(90deg, #28a745, #34c759);
 
-border-radius:40px;
+            border-radius: 40px;
 
-text-decoration:none;
+            text-decoration: none;
 
-letter-spacing:0.3px;
+            letter-spacing: 0.3px;
 
-box-shadow:0 4px 10px rgba(0,0,0,0.18);
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.18);
 
-transition:all 0.2s ease;
+            transition: all 0.2s ease;
 
-}
+        }
 
-.boton-accion:hover{
+        .boton-accion:hover {
 
-transform:scale(1.04);
+            transform: scale(1.04);
 
-box-shadow:0 6px 14px rgba(0,0,0,0.25);
+            box-shadow: 0 6px 14px rgba(0, 0, 0, 0.25);
 
-}
+        }
 
-/* =========================
+        /* =========================
 QUITAR FLECHAS INPUT NUMBER
 ========================= */
 
-input::-webkit-outer-spin-button,
-input::-webkit-inner-spin-button{
--webkit-appearance:none;
-margin:0;
-}
+        input::-webkit-outer-spin-button,
+        input::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
 
-input[type=number]{
--moz-appearance:textfield;
-}
+        input[type=number] {
+            -moz-appearance: textfield;
+        }
 
-/* =========================
+        /* =========================
 RESALTADO MORADO INPUT
 ========================= */
 
-input:focus{
+        input:focus {
 
-outline:none;
+            outline: none;
 
-background:#f3e8ff;
+            background: #f3e8ff;
 
-border:2px solid #5b21b6;
+            border: 2px solid #5b21b6;
 
-box-shadow:0 0 6px rgba(91,33,182,0.7);
+            box-shadow: 0 0 6px rgba(91, 33, 182, 0.7);
 
-}
+        }
 
-/* =========================
+        /* =========================
 TABLA
 ========================= */
 
-.tabla{
-width:100%;
-border-collapse:collapse;
-}
+        .tabla {
+            width: 100%;
+            border-collapse: collapse;
+        }
 
-.tabla th{
-background:#d8cfbf;
-padding:8px 10px;
-text-align:left;
-border-bottom:2px solid #b6ab97;
-vertical-align:middle;
-}
+        .tabla th {
+            background: #d8cfbf;
+            padding: 8px 10px;
+            text-align: left;
+            border-bottom: 2px solid #b6ab97;
+            vertical-align: middle;
+        }
 
-.tabla td{
-padding:6px 10px;
-border-bottom:1px solid #eee;
-vertical-align:middle;
-}
+        .tabla td {
+            padding: 6px 10px;
+            border-bottom: 1px solid #eee;
+            vertical-align: middle;
+        }
 
-.tabla tr:nth-child(even){
-background:#f7f6f2;
-}
+        .tabla tr:nth-child(even) {
+            background: #f7f6f2;
+        }
 
-.total{
-background:#d9dfd5;
-font-weight:bold;
-}
+        .total {
+            background: #d9dfd5;
+            font-weight: bold;
+        }
 
-/* =========================
+        /* =========================
 ALINEACION NUMERICA
 ========================= */
 
-.num{
-text-align:right;
-font-weight:bold;
-font-variant-numeric:tabular-nums;
-white-space:nowrap;
-}
+        .num {
+            text-align: right;
+            font-weight: bold;
+            font-variant-numeric: tabular-nums;
+            white-space: nowrap;
+        }
 
-.tabla th.num,
-.tabla td.num{
-width:110px;
-}
+        .tabla th.num,
+        .tabla td.num {
+            width: 110px;
+        }
 
-.tabla th:nth-child(1),
-.tabla td:nth-child(1){
-width:38%;
-}
+        .tabla th:nth-child(1),
+        .tabla td:nth-child(1) {
+            width: 38%;
+        }
 
-.tabla th:nth-child(2),
-.tabla td:nth-child(2){
-width:12%;
-}
+        .tabla th:nth-child(2),
+        .tabla td:nth-child(2) {
+            width: 12%;
+        }
 
-.tabla th:nth-child(3),
-.tabla td:nth-child(3),
-.tabla th:nth-child(4),
-.tabla td:nth-child(4),
-.tabla th:nth-child(5),
-.tabla td:nth-child(5){
-width:15%;
-}
+        .tabla th:nth-child(3),
+        .tabla td:nth-child(3),
+        .tabla th:nth-child(4),
+        .tabla td:nth-child(4),
+        .tabla th:nth-child(5),
+        .tabla td:nth-child(5) {
+            width: 15%;
+        }
 
-.num-head{
-text-align:center !important;
-}
+        .num-head {
+            text-align: center !important;
+        }
 
-/* =========================
+        /* =========================
 LEYENDA DESTACADA
 ========================= */
 
-.leyenda-mini{
+        .leyenda-mini {
 
-margin:16px 0 22px 0;
+            margin: 16px 0 22px 0;
 
-background:#fff6c8;
+            background: #fff6c8;
 
-border:2px solid #d6c46b;
+            border: 2px solid #d6c46b;
 
-border-radius:6px;
+            border-radius: 6px;
 
-padding:14px 16px;
+            padding: 14px 16px;
 
-font-size:15px;
+            font-size: 15px;
 
-color:#222;
+            color: #222;
 
-line-height:1.6;
+            line-height: 1.6;
 
-}
+        }
 
-.leyenda-mini strong{
+        .leyenda-mini strong {
 
-display:block;
+            display: block;
 
-margin-bottom:8px;
+            margin-bottom: 8px;
 
-color:#7a6a00;
+            color: #7a6a00;
 
-font-size:16px;
+            font-size: 16px;
 
-}
+        }
 
-/* =========================
+        /* =========================
 COLORES DEL SISTEMA
 ========================= */
 
-.base{
-color:#00a651;
-font-weight:bold;
-}
+        .base {
+            color: #00a651;
+            font-weight: bold;
+        }
 
-.deco{
-color:#007bff;
-font-weight:bold;
-}
-button{
-padding:8px 14px;
-border:none;
-border-radius:6px;
-background:#2d6cdf;
-color:white;
-font-weight:bold;
-cursor:pointer;
-}
+        .deco {
+            color: #007bff;
+            font-weight: bold;
+        }
 
-button:hover{
-background:#1f57b8;
-}
+        button {
+            padding: 8px 14px;
+            border: none;
+            border-radius: 6px;
+            background: #2d6cdf;
+            color: white;
+            font-weight: bold;
+            cursor: pointer;
+        }
 
-</style>
+        button:hover {
+            background: #1f57b8;
+        }
+    </style>
 
 </head>
 
 <body>
 
-<div class="container">
+    <div class="container">
 
-<a href="/recetas{% if desde_admin %}?admin=1{% endif %}" class="boton-accion">
-👉 VER MÁS RECETAS
-</a>
-
-{% if desde_admin %}
-
-<p>
-<a href="/admin/recetas/listado" class="boton-accion">
-← VOLVER AL LISTADO
-</a>
-</p>
-
-{% endif %}
-
-<h2 class="titulo-receta">
-RECETA DE LA ABUELA:
-<span style="color:#2b7a2b;">{{ receta.plato_nombre }}</span>
-</h2>
-
-<div class="bloque-preparacion">
-
-    <span>
-        <a href="/receta/{{ receta.id }}/preparacion?raciones={{ raciones_nuevas }}{% if desde_admin %}&admin=1{% endif %}">
-            CLIC → GUÍA PARA LA PREPARACIÓN
+        <a href="/recetas{% if desde_admin %}?admin=1{% endif %}" class="boton-accion">
+            👉 VER MÁS RECETAS
         </a>
-    </span>
 
-</div>
+        {% if desde_admin %}
+
+        <p>
+            <a href="/admin/recetas/listado" class="boton-accion">
+                ← VOLVER AL LISTADO
+            </a>
+        </p>
+
+        {% endif %}
+
+        <h2 class="titulo-receta">
+            RECETA DE LA ABUELA:
+            <span style="color:#2b7a2b;">{{ receta.plato_nombre }}</span>
+        </h2>
+
+        <div id="estado-receta" style="margin: 12px 0; font-weight: bold;">
+            Vista Original
+        </div>
+
+        <button type="button" id="btn-receta-original" style="display: none;">
+            Volver a la Vista Original
+        </button>
+
+        <div class="bloque-preparacion">
+
+            <span>
+                <a
+                    href="/receta/{{ receta.id }}/preparacion?raciones={{ raciones_nuevas }}{% if desde_admin %}&admin=1{% endif %}">
+                    CLIC → GUÍA PARA LA PREPARACIÓN
+                </a>
+            </span>
+
+        </div>
 
 
-<div class="raciones">
+        <div class="raciones">
 
-<b>Raciones</b><br><br>
+            <b>Raciones</b><br><br>
 
-Raciones base de la receta: <b>{{ receta.raciones_base }}</b><br><br>
+            Raciones base de la receta: <b>{{ receta.raciones_base }}</b><br><br>
 
-Raciones solicitadas: <b>{{ raciones_nuevas }}</b>
+            Raciones solicitadas: <b>{{ raciones_nuevas }}</b>
 
-</div>
+        </div>
 
 
-<!-- =========================
+        <!-- =========================
 LEYENDA COCINA / DECO
 ========================= -->
 
-<div class="leyenda-mini">
+        <div class="leyenda-mini">
 
-<strong>⚠ LEYENDA</strong>
+            <strong>⚠ LEYENDA</strong>
 
- COCINA → parte utilizada en la elaboración del plato<br>
+            COCINA → parte utilizada en la elaboración del plato<br>
 
-<span class="deco">DECO</span> → parte destinada a la decoración (si el plato tiene)<br>
+            <span class="deco">DECO</span> → parte destinada a la decoración (si el plato tiene)<br>
 
-CANTIDAD TOTAL → total del ingrediente
-</div>
+            CANTIDAD TOTAL → total del ingrediente
+        </div>
 
-<form method="get">
+        <form method="get">
 
-    {% if desde_admin %}
-    <input type="hidden" name="admin" value="1">
-    {% endif %}
+            {% if desde_admin %}
+            <input type="hidden" name="admin" value="1">
+            {% endif %}
 
-    <label>Raciones:</label>
+            <label>Raciones:</label>
 
-    <input type="number"
-           name="raciones"
-           value="{{ raciones_nuevas }}"
-           min="1"
-           step="0.1">
+            <input type="number" name="raciones" value="{{ raciones_nuevas }}" min="1" step="0.1">
 
-    <button type="submit">Recalcular</button>
-</form>
+            <button type="submit">Recalcular</button>
 
+            <table class="tabla">
 
-<table class="tabla">
+                <thead>
 
-<thead>
+                    <tr>
 
-<tr>
+                        <th>INGREDIENTE</th>
 
-<th>INGREDIENTE</th>
+                        <th>UM</th>
 
-<th>UM</th>
+                        <th class="num num-head">COCINA</th>
+                        <th class="deco num num-head">DECO</th>
+                        <th class="num num-head">CANTIDAD TOTAL</th>
 
-<th class="num num-head">COCINA</th>
-<th class="deco num num-head">DECO</th>
-<th class="num num-head">CANTIDAD TOTAL</th>
+                    </tr>
 
-</tr>
+                </thead>
 
-</thead>
+                <tbody>
 
-<tbody>
+                    {% for ing in ingredientes %}
 
-{% for ing in ingredientes %}
+                    <tr>
 
-<tr>
+                        <td>{{ ing.nombre }}</td>
 
-<td>{{ ing.nombre }}</td>
+                        <td>
 
-<td>
+                            {% if ing.conversion.permite %}
 
-{% if ing.conversion.permite %}
+                            <select id="unidad_{{ ing.ingrediente_id }}" name="unidad_{{ ing.ingrediente_id }}"
+                                data-ingrediente-id="{{ ing.ingrediente_id }}"
+                                data-cocina-canonica="{{ ing.cocina_escalada }}"
+                                data-deco-canonica="{{ ing.deco_escalado }}"
+                                data-cantidad-canonica="{{ ing.cantidad_escalada }}"
+                                data-unidad-canonica="{{ ing.unidad_codigo }}"
+                                data-unidad-original="{{ ing.unidad_codigo_presentacion }}">
+                                {% for unidad in ing.conversion.unidades %}
 
-<select
-    id="unidad_{{ ing.ingrediente_id }}"
-    data-ingrediente-id="{{ ing.ingrediente_id }}"
-    data-cocina-canonica="{{ ing.cocina_escalada }}"
-    data-deco-canonica="{{ ing.deco_escalado }}"
-    data-cantidad-canonica="{{ ing.cantidad_escalada }}"
-    data-unidad-canonica="{{ ing.unidad_codigo }}">
+                                <option value="{{ unidad.codigo }}" {% if unidad.codigo==ing.conversion.unidad_actual
+                                    %}selected{% endif %}>
 
-{% for unidad in ing.conversion.unidades %}
+                                    {{ unidad.codigo }}
 
-<option
-    value="{{ unidad.codigo }}"
-    {% if unidad.codigo == ing.conversion.unidad_actual %}selected{% endif %}>
+                                </option>
 
-{{ unidad.codigo }}
+                                {% endfor %}
 
-</option>
+                            </select>
 
-{% endfor %}
+                            {% else %}
 
-</select>
+                            {{ ing.unidad_nombre }}
 
-{% else %}
+                            {% endif %}
 
-{{ ing.unidad_nombre }}
+                        </td>
 
-{% endif %}
+                        <td id="cocina_{{ ing.ingrediente_id }}" class="num">
+                            {{ ing.cocina_escalada|round(2) }}
+                        </td>
 
-</td>
+                        <td id="deco_{{ ing.ingrediente_id }}" class="deco num">
+                            {{ ing.deco_escalado|round(2) }}
+                        </td>
 
-<td
-    id="cocina_{{ ing.ingrediente_id }}"
-    class="num">
-    {{ ing.cocina_escalada|round(2) }}
-</td>
+                        <td id="cantidad_{{ ing.ingrediente_id }}" class="total num">
+                            {{ ing.cantidad_escalada|round(2) }}
+                        </td>
 
-<td
-    id="deco_{{ ing.ingrediente_id }}"
-    class="deco num">
-    {{ ing.deco_escalado|round(2) }}
-</td>
+                    </tr>
 
-<td
-    id="cantidad_{{ ing.ingrediente_id }}"
-    class="total num">
-    {{ ing.cantidad_escalada|round(2) }}
-</td>
+                    {% endfor %}
 
-</tr>
+                </tbody>
 
-{% endfor %}
+            </table>
 
-</tbody>
+        </form>
 
-</table>
+        <script>
 
-<script>
+            document.querySelectorAll("select[id^='unidad_']").forEach(function (select) {
 
-document.querySelectorAll("select[id^='unidad_']").forEach(function(select){
+                select.addEventListener("change", function () {
 
-    select.addEventListener("change", function(){
+                    fetch("/api/convertir", {
 
-        fetch("/api/convertir", {
+                        method: "POST",
 
-            method: "POST",
+                        headers: {
+                            "Content-Type": "application/json"
+                        },
 
-            headers: {
-                "Content-Type": "application/json"
-            },
+                        body: JSON.stringify({
 
-            body: JSON.stringify({
+                            ingrediente_id: Number(this.dataset.ingredienteId),
 
-                ingrediente_id: Number(this.dataset.ingredienteId),
+                            cocina_canonica: Number(this.dataset.cocinaCanonica),
 
-                cocina_canonica: Number(this.dataset.cocinaCanonica),
+                            deco_canonica: Number(this.dataset.decoCanonica),
 
-                deco_canonica: Number(this.dataset.decoCanonica),
+                            cantidad_canonica: Number(this.dataset.cantidadCanonica),
 
-                cantidad_canonica: Number(this.dataset.cantidadCanonica),
+                            unidad_canonica: this.dataset.unidadCanonica,
 
-                unidad_canonica: this.dataset.unidadCanonica,
+                            unidad_destino: this.value
 
-                unidad_destino: this.value
+                        })
 
-            })
+                    })
+                        .then(r => r.json())
+                        .then(datos => {
 
-        })
-        .then(r => r.json())
-        .then(datos => {
+                            console.log(datos);
 
-            console.log(datos);
+                            if (datos.ok) {
 
-            if(datos.ok){
+                                function formatearCulinario(valor) {
+                                    valor = Number(valor);
 
-                document.getElementById(
-                    "cocina_" + this.dataset.ingredienteId
-                ).textContent = Number(
-                    datos.cocina_convertida
-                ).toFixed(2);
+                                    if (!Number.isFinite(valor)) {
+                                        return "";
+                                    }
 
-                document.getElementById(
-                    "deco_" + this.dataset.ingredienteId
-                ).textContent = Number(
-                    datos.deco_convertida
-                ).toFixed(2);
+                                    if (Math.abs(valor) < 0.0001) {
+                                        return "0";
+                                    }
 
-                document.getElementById(
-                    "cantidad_" + this.dataset.ingredienteId
-                ).textContent = Number(
-                    datos.total_convertido
-                ).toFixed(2);
+                                    const octavos = Math.round(valor * 8);
+                                    const entero = Math.floor(octavos / 8);
+                                    const numerador = octavos % 8;
 
+                                    if (numerador === 0) {
+                                        return String(entero);
+                                    }
+
+                                    const fracciones = {
+                                        1: "1/8",
+                                        2: "1/4",
+                                        3: "3/8",
+                                        4: "1/2",
+                                        5: "5/8",
+                                        6: "3/4",
+                                        7: "7/8"
+                                    };
+
+                                    return entero === 0
+                                        ? fracciones[numerador]
+                                        : entero + " " + fracciones[numerador];
+                                }
+
+                                document.getElementById(
+                                    "cocina_" + this.dataset.ingredienteId
+                                ).textContent =
+                                    this.value === "CUP"
+                                        ? formatearCulinario(datos.cocina_convertida)
+                                        : Number(datos.cocina_convertida).toFixed(2);
+
+                                document.getElementById(
+                                    "deco_" + this.dataset.ingredienteId
+                                ).textContent =
+                                    this.value === "CUP"
+                                        ? formatearCulinario(datos.deco_convertida)
+                                        : Number(datos.deco_convertida).toFixed(2);
+
+                                document.getElementById(
+                                    "cantidad_" + this.dataset.ingredienteId
+                                ).textContent =
+                                    this.value === "CUP"
+                                        ? formatearCulinario(datos.total_convertido)
+                                        : Number(datos.total_convertido).toFixed(2);
+                            }
+
+                        });
+
+                    actualizarEstadoReceta();
+
+                });
+
+                if (select.value !== select.dataset.unidadCanonica) {
+                    select.dispatchEvent(new Event("change"));
+                }
+
+            });
+
+            function actualizarEstadoReceta() {
+                let modificada = false;
+
+                document.querySelectorAll("select[id^='unidad_']").forEach(function (select) {
+                    if (select.value !== select.dataset.unidadOriginal) {
+                        modificada = true;
+                    }
+                });
+
+                document.getElementById("estado-receta").textContent =
+                    modificada ? "Vista Modificada" : "Vista Original";
+
+                document.getElementById("btn-receta-original").style.display =
+                    modificada ? "inline-block" : "none";
             }
 
-        });
+            document.getElementById("btn-receta-original").addEventListener("click", function () {
+                document.querySelectorAll("select[id^='unidad_']").forEach(function (select) {
+                    select.value = select.dataset.unidadOriginal;
+                    select.dispatchEvent(new Event("change"));
+                });
 
-    });
+                actualizarEstadoReceta();
+            });
 
-});
-
-</script>
+        </script>
 
 </body>
+
 </html>
 
 <!--

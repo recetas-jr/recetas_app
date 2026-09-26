@@ -544,6 +544,15 @@ LEYENDA COCINA / DECO
                 });
 
                 actualizarEstadoReceta();
+
+                const url = new URL(window.location.href);
+
+                [...url.searchParams.keys()]
+                    .filter(param => param.startsWith("unidad_"))
+                    .forEach(param => url.searchParams.delete(param));
+
+                window.history.replaceState({}, "", url);
+
             });
 
         </script>

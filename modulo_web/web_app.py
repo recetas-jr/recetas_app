@@ -1014,7 +1014,9 @@ def receta_detalle(receta_id):
 
         ingrediente["conversion"] = {
             "permite": len(unidades) > 1,
-            "unidad_actual": ingrediente["unidad_codigo"],
+            "unidad_actual": request.args.get(
+                f"unidad_{ingrediente['ingrediente_id']}"
+            ) or ingrediente["unidad_codigo_presentacion"],
             "unidades": unidades,
         }
 

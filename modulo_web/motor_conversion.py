@@ -284,7 +284,7 @@ def normalizar(
         and
         ingrediente["unidad_codigo"].upper() == unidad_origen.upper()
     ):
-        return cantidad
+        return float(cantidad)
 
     equivalencias = obtener_equivalencias(ingrediente_id)
 
@@ -297,8 +297,8 @@ def normalizar(
         raise UnidadOrigenNoEncontrada
 
     cantidad_canonica = (
-        cantidad *
-        equivalencia_origen["factor"]
+        float(cantidad) *
+        float(equivalencia_origen["factor"])
     )
 
     return cantidad_canonica

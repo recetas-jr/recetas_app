@@ -238,7 +238,7 @@ def representar(
 
     cantidad_convertida = (
         cantidad_canonica /
-        equivalencia_destino["factor"]
+        float(equivalencia_destino["factor"])
     )
 
     return cantidad_convertida

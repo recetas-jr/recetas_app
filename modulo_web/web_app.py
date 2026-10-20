@@ -7,6 +7,8 @@ from modulo_web.persistencia_db import (
     db_cargar_recetas_maestro_listado,
     db_cargar_tipos_plato,
     db_cargar_receta_detalle,
+    db_cargar_version_publica,
+    db_guardar_version_publica,
     get_connection,
     db_cargar_recetas_publicadas,
     init_db,
@@ -16,6 +18,7 @@ from modulo_web.persistencia_db import (
     db_cargar_contacto,
     db_marcar_contacto_atendido,
     db_cargar_unidades_disponibles_por_ingrediente,
+    db_cargar_unidades_disponibles_por_ingredientes,
     db_cargar_ingredientes,
     db_cargar_ingrediente_por_id,
     db_cargar_expresiones_culinarias,
@@ -43,9 +46,8 @@ from markupsafe import Markup
 from datetime import timedelta
 from datetime import datetime
 
-import sqlite3
-
 from fractions import Fraction
+import psycopg
 
 
 def convertir_numero_culinario(texto):
@@ -175,7 +177,7 @@ def admin_tipos_plato():
                 cur = conn.cursor()
 
                 cur.execute(
-                    "SELECT id FROM tipos_plato WHERE LOWER(nombre) = LOWER(?)", (nombre,))
+                    "SELECT id FROM tipos_plato WHERE LOWER(nombre) = LOWER(%s)", (nombre,))
                 existe = cur.fetchone()
                 if existe:
                     conn.close()
@@ -187,7 +189,7 @@ def admin_tipos_plato():
                     )
                 else:
                     cur.execute(
-                        "INSERT INTO tipos_plato (nombre) VALUES (?)", (nombre,))
+                        "INSERT INTO tipos_plato (nombre) VALUES (%s)", (nombre,))
                     conn.commit()
                     conn.close()
                     flash(
@@ -209,11 +211,11 @@ def borrar_tipo_plato(tipo_id):
         cur = conn.cursor()
 
         cur.execute(
-            "SELECT COUNT(*) as c FROM platos WHERE tipo_plato_id = ?", (tipo_id,))
+            "SELECT COUNT(*) as c FROM platos WHERE tipo_plato_id = %s", (tipo_id,))
         fila = cur.fetchone()
         if fila and fila["c"] > 0:
             cur.execute(
-                "SELECT nombre FROM tipos_plato WHERE id = ?", (tipo_id,))
+                "SELECT nombre FROM tipos_plato WHERE id = %s", (tipo_id,))
             fila_nombre = cur.fetchone()
             nombre = fila_nombre["nombre"] if fila_nombre else ""
             conn.close()
@@ -227,11 +229,11 @@ def borrar_tipo_plato(tipo_id):
             )
             return redirect("/admin/tipos_plato")
 
-        cur.execute("SELECT nombre FROM tipos_plato WHERE id = ?", (tipo_id,))
+        cur.execute("SELECT nombre FROM tipos_plato WHERE id = %s", (tipo_id,))
         fila_nombre = cur.fetchone()
         nombre = fila_nombre["nombre"] if fila_nombre else ""
 
-        cur.execute("DELETE FROM tipos_plato WHERE id = ?", (tipo_id,))
+        cur.execute("DELETE FROM tipos_plato WHERE id = %s", (tipo_id,))
         conn.commit()
         conn.close()
 
@@ -272,7 +274,7 @@ def admin_unidades():
 
                 # DUPLICADO POR CÓDIGO
                 cur.execute(
-                    "SELECT codigo FROM unidades WHERE LOWER(codigo) = LOWER(?)",
+                    "SELECT codigo FROM unidades WHERE LOWER(codigo) = LOWER(%s)",
                     (codigo,)
                 )
                 existe_codigo = cur.fetchone()
@@ -288,7 +290,7 @@ def admin_unidades():
                 else:
                     # DUPLICADO POR DESCRIPCIÓN
                     cur.execute(
-                        "SELECT nombre FROM unidades WHERE LOWER(nombre) = LOWER(?)",
+                        "SELECT nombre FROM unidades WHERE LOWER(nombre) = LOWER(%s)",
                         (nombre,)
                     )
                     existe_nombre = cur.fetchone()
@@ -303,7 +305,7 @@ def admin_unidades():
                         )
                     else:
                         cur.execute(
-                            "INSERT INTO unidades (codigo, nombre) VALUES (?, ?)",
+                            "INSERT INTO unidades (codigo, nombre) VALUES (%s, %s)",
                             (codigo, nombre)
                         )
                         conn.commit()
@@ -328,14 +330,14 @@ def borrar_unidad(unidad_id):
 
         # Obtener primero datos de la unidad
         cur.execute(
-            "SELECT codigo, nombre FROM unidades WHERE id = ?", (unidad_id,))
+            "SELECT codigo, nombre FROM unidades WHERE id = %s", (unidad_id,))
         fila_nombre = cur.fetchone()
         codigo = fila_nombre["codigo"] if fila_nombre else ""
         nombre = fila_nombre["nombre"] if fila_nombre else ""
 
         # Verificar si está en uso
         cur.execute(
-            "SELECT COUNT(*) as c FROM ingredientes WHERE unidad_id = ?", (unidad_id,))
+            "SELECT COUNT(*) as c FROM ingredientes WHERE unidad_id = %s", (unidad_id,))
         fila = cur.fetchone()
 
         if fila and fila["c"] > 0:
@@ -349,7 +351,7 @@ def borrar_unidad(unidad_id):
             )
             return redirect("/admin/unidades")
 
-        cur.execute("DELETE FROM unidades WHERE id = ?", (unidad_id,))
+        cur.execute("DELETE FROM unidades WHERE id = %s", (unidad_id,))
         conn.commit()
         conn.close()
 
@@ -397,8 +399,8 @@ def admin_expresiones_culinarias():
                     """
                     SELECT id
                     FROM expresiones_culinarias
-                    WHERE LOWER(unidad_codigo) = LOWER(?)
-                      AND LOWER(expresion) = LOWER(?)
+                    WHERE LOWER(unidad_codigo) = LOWER(%s)
+                      AND LOWER(expresion) = LOWER(%s)
                     """,
                     (unidad_codigo, expresion)
                 )
@@ -426,14 +428,14 @@ def admin_expresiones_culinarias():
 
                     cur.execute(
                         """
-                        SELECT COALESCE(MAX(orden), 0) + 1
+                        SELECT COALESCE(MAX(orden), 0) + 1 AS siguiente_orden
                         FROM expresiones_culinarias
-                        WHERE unidad_codigo = ?
+                        WHERE unidad_codigo = %s
                         """,
                         (unidad_codigo,)
                     )
 
-                    orden = cur.fetchone()[0]
+                    orden = cur.fetchone()["siguiente_orden"]
 
                     cur.execute(
                         """
@@ -445,7 +447,7 @@ def admin_expresiones_culinarias():
                             orden,
                             activo
                         )
-                        VALUES (?, ?, ?, ?, 1)
+                        VALUES (%s, %s, %s, %s, TRUE)
                         """,
                         (
                             unidad_codigo,
@@ -499,7 +501,7 @@ def borrar_expresion_culinaria(expresion_id):
             """
         SELECT unidad_codigo, expresion
         FROM expresiones_culinarias
-        WHERE id = ?
+        WHERE id = %s
         """,
             (expresion_id,)
         )
@@ -511,7 +513,7 @@ def borrar_expresion_culinaria(expresion_id):
         expresion = fila["expresion"] if fila else ""
 
         cur.execute(
-            "DELETE FROM expresiones_culinarias WHERE id = ?",
+            "DELETE FROM expresiones_culinarias WHERE id = %s",
             (expresion_id,)
         )
 
@@ -562,7 +564,7 @@ def admin_ingredientes():
 
                 # Verificar duplicado
                 cur.execute(
-                    "SELECT id FROM ingredientes WHERE LOWER(nombre) = LOWER(?)",
+                    "SELECT id FROM ingredientes WHERE LOWER(nombre) = LOWER(%s)",
                     (nombre,)
                 )
                 existe = cur.fetchone()
@@ -577,7 +579,7 @@ def admin_ingredientes():
                     )
                 else:
                     cur.execute(
-                        "INSERT INTO ingredientes (nombre, unidad_id) VALUES (?, ?)",
+                        "INSERT INTO ingredientes (nombre, unidad_id) VALUES (%s, %s)",
                         (nombre, int(unidad_id))
                     )
                     conn.commit()
@@ -644,7 +646,7 @@ def admin_equivalencias(ingrediente_id):
                 f"/admin/ingredientes/{ingrediente_id}/equivalencias"
             )
 
-        except sqlite3.IntegrityError:
+        except psycopg.IntegrityError:
 
             unidad_txt = ""
 
@@ -716,7 +718,7 @@ def borrar_equivalencia(ingrediente_id, equivalencia_id):
             FROM ingredientes_equivalencias e
             JOIN unidades u
                 ON u.id = e.unidad_id
-            WHERE e.id = ?
+            WHERE e.id = %s
             """,
             (equivalencia_id,)
         )
@@ -750,14 +752,14 @@ def borrar_ingrediente(ingrediente_id):
         cur = conn.cursor()
 
         # Obtener nombre antes de cualquier validación
-        cur.execute("SELECT nombre FROM ingredientes WHERE id = ?",
+        cur.execute("SELECT nombre FROM ingredientes WHERE id = %s",
                     (ingrediente_id,))
         fila_nombre = cur.fetchone()
         nombre = fila_nombre["nombre"] if fila_nombre else ""
 
         # Verificar si está en uso
         cur.execute(
-            "SELECT COUNT(*) as c FROM recetas_ingredientes WHERE ingrediente_id = ?",
+            "SELECT COUNT(*) as c FROM recetas_ingredientes WHERE ingrediente_id = %s",
             (ingrediente_id,)
         )
         fila = cur.fetchone()
@@ -773,7 +775,8 @@ def borrar_ingrediente(ingrediente_id):
             )
             return redirect("/admin/ingredientes")
 
-        cur.execute("DELETE FROM ingredientes WHERE id = ?", (ingrediente_id,))
+        cur.execute("DELETE FROM ingredientes WHERE id = %s",
+                    (ingrediente_id,))
         conn.commit()
         conn.close()
 
@@ -862,7 +865,7 @@ def admin_platos():
 
                 # Duplicado específico
                 cur.execute(
-                    "SELECT nombre FROM platos WHERE LOWER(nombre) = LOWER(?)",
+                    "SELECT nombre FROM platos WHERE LOWER(nombre) = LOWER(%s)",
                     (nombre,)
                 )
                 existe = cur.fetchone()
@@ -877,7 +880,7 @@ def admin_platos():
                     )
                 else:
                     cur.execute(
-                        "INSERT INTO platos (nombre, tipo_plato_id, cantidad_racion, unidad_racion_id) VALUES (?, ?, ?, ?)",
+                        "INSERT INTO platos (nombre, tipo_plato_id, cantidad_racion, unidad_racion_id) VALUES (%s, %s, %s, %s)",
                         (nombre, int(tipo_plato_id),
                          cantidad_float, int(unidad_racion_id))
                     )
@@ -914,13 +917,13 @@ def borrar_plato(plato_id):
         cur = conn.cursor()
 
         # Obtener nombre del plato
-        cur.execute("SELECT nombre FROM platos WHERE id = ?", (plato_id,))
+        cur.execute("SELECT nombre FROM platos WHERE id = %s", (plato_id,))
         fila_nombre = cur.fetchone()
         nombre = fila_nombre["nombre"] if fila_nombre else ""
 
         # Verificar uso en RECETAS
         cur.execute(
-            "SELECT COUNT(*) as c FROM recetas_maestro WHERE plato_id = ?",
+            "SELECT COUNT(*) as c FROM recetas_maestro WHERE plato_id = %s",
             (plato_id,)
         )
         fila = cur.fetchone()
@@ -936,7 +939,7 @@ def borrar_plato(plato_id):
             )
             return redirect("/admin/platos")
 
-        cur.execute("DELETE FROM platos WHERE id = ?", (plato_id,))
+        cur.execute("DELETE FROM platos WHERE id = %s", (plato_id,))
         conn.commit()
         conn.close()
 
@@ -978,6 +981,30 @@ def catalogo_publico():
     )
 
 
+def receta_visible_web(receta_id):
+    conn = None
+
+    try:
+        conn = get_connection()
+
+        with conn.cursor() as cur:
+            cur.execute(
+                """
+                SELECT visible_web
+                FROM recetas_maestro
+                WHERE id = %s
+                """,
+                (receta_id,)
+            )
+            fila = cur.fetchone()
+
+        return fila is not None and fila["visible_web"] is True
+
+    finally:
+        if conn is not None:
+            conn.close()
+
+
 @app.route("/receta/<int:receta_id>")
 def receta_detalle(receta_id):
 
@@ -985,7 +1012,17 @@ def receta_detalle(receta_id):
 
     raciones_nuevas = request.args.get("raciones", type=float)
 
-    receta = db_cargar_receta_detalle(receta_id)
+    if desde_admin:
+        receta = db_cargar_receta_detalle(receta_id)
+    else:
+        if not receta_visible_web(receta_id):
+            abort(404)
+
+        receta = db_cargar_version_publica(receta_id)
+
+        if receta is None:
+            abort(404)
+
     ingredientes = receta["ingredientes"]
 
     raciones_base = receta["raciones_base"]
@@ -1033,14 +1070,23 @@ def receta_detalle(receta_id):
 @app.route("/receta/<int:receta_id>/preparacion")
 def receta_preparacion(receta_id):
 
-    receta = db_cargar_receta_detalle(receta_id)
+    desde_admin = request.args.get("admin") == "1"
+
+    if desde_admin:
+        receta = db_cargar_receta_detalle(receta_id)
+    else:
+        if not receta_visible_web(receta_id):
+            abort(404)
+
+        receta = db_cargar_version_publica(receta_id)
+
+        if receta is None:
+            abort(404)
 
     raciones_nuevas = request.args.get("raciones", type=float)
 
     if not raciones_nuevas or raciones_nuevas <= 0:
         raciones_nuevas = receta.get("raciones", 1)
-
-    desde_admin = request.args.get("admin") == "1"
 
     return render_template(
         "receta_preparacion.html",
@@ -1280,7 +1326,7 @@ def admin_recetas_nueva():
                 SELECT p.nombre
                 FROM recetas_maestro r
                 JOIN platos p ON p.id = r.plato_id
-                WHERE r.plato_id = ?
+                WHERE r.plato_id = %s
             """, (int(plato_id),))
             fila = cur.fetchone()
             if fila:
@@ -1474,7 +1520,11 @@ def admin_recetas_nueva():
                     cant_f,
                     rol_f,
                     unidad_id,
-                    unidad_id,
+                    next(
+                        u["codigo"]
+                        for u in unidades_por_ingrediente[int(ing_id)]
+                        if str(u["codigo"]) == str(unidad_id)
+                    ),
                     (expresiones_c_id[i] if i < len(
                         expresiones_c_id) else "").strip() or None,
                     (expresiones_c_texto[i] if i < len(
@@ -1513,7 +1563,8 @@ def admin_recetas_nueva():
                     presentacion,
                     nutricion
                 )
-                VALUES (?, ?, ?, ?, ?, ?)
+                VALUES (%s, %s, %s, %s, %s, %s)
+                RETURNING id
                 """,
                 (
                     int(plato_id),
@@ -1524,7 +1575,7 @@ def admin_recetas_nueva():
                     nutricion
                 )
             )
-            receta_id = cur.lastrowid
+            receta_id = cur.fetchone()["id"]
 
             for (
                 ing_id,
@@ -1543,7 +1594,7 @@ def admin_recetas_nueva():
                 cantidad_canonica = normalizar(
                     ingrediente_id=ing_id,
                     cantidad=cant_f,
-                    unidad_origen=unidad_id
+                    unidad_origen=unidad_presentacion
                 )
 
                 cur.execute(
@@ -1562,7 +1613,7 @@ def admin_recetas_nueva():
                         expresion_d_texto,
                         deco_captura
                     )
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
                     """,
                     (
                         receta_id,
@@ -1595,320 +1646,6 @@ def admin_recetas_nueva():
 
     return render_template(
         "admin_recetas_nueva.html",
-        **contexto_receta
-    )
-
-
-# ==================================================
-# EDITAR RECETA (MASTER)
-# ==================================================
-
-@app.route("/admin/recetas/editar/<int:receta_id>", methods=["GET", "POST"])
-def admin_recetas_editar(receta_id):
-
-    platos = db_cargar_platos()
-    ingredientes = cargar_ingredientes_con_unidad()
-
-    unidades_por_ingrediente = {}
-
-    for ingrediente in ingredientes:
-        unidades_por_ingrediente[ingrediente["id"]] = (
-            db_cargar_unidades_disponibles_por_ingrediente(
-                ingrediente["id"]
-            )
-        )
-
-    expresiones_culinarias = db_cargar_expresiones_culinarias_admin()
-
-    contexto_receta = {
-        "platos": platos,
-        "ingredientes": ingredientes,
-        "unidades_por_ingrediente": unidades_por_ingrediente,
-        "expresiones_culinarias": [dict(f) for f in expresiones_culinarias]
-    }
-
-    # ==================================================
-    # GUARDAR CAMBIOS DE RECETA
-    # ==================================================
-
-    if request.method == "POST":
-
-        plato_id = request.form.get("plato_id", "").strip()
-        raciones_base = request.form.get("raciones_base", "").strip()
-
-        # NUEVO: textos de la receta
-        preparacion = request.form.get("preparacion", "").strip()
-        elaboracion = request.form.get("elaboracion", "").strip()
-        presentacion = request.form.get("presentacion", "").strip()
-        nutricion = request.form.get("nutricion", "").strip()
-
-        if not plato_id:
-            flash("Debe seleccionar un plato.", "error")
-            return redirect(f"/admin/recetas/editar/{receta_id}")
-
-        try:
-            raciones_base_int = int(raciones_base)
-            if raciones_base_int <= 0:
-                flash("RACIONES BASE debe ser mayor que 0.", "error")
-                return redirect(f"/admin/recetas/editar/{receta_id}")
-        except:
-            flash("RACIONES BASE debe ser numérico.", "error")
-            return redirect(f"/admin/recetas/editar/{receta_id}")
-
-        ingredientes_ids = request.form.getlist("ingrediente_id[]")
-        cantidades = request.form.getlist("cantidad[]")
-        roles = request.form.getlist("rol[]")
-        unidades = request.form.getlist("unidad[]")
-
-        expresiones = request.form.getlist("expresion_id[]")
-
-        vistos = set()
-        filas_validas = []
-
-        for i in range(len(ingredientes_ids)):
-            ing_id = (ingredientes_ids[i] or "").strip()
-            cant_txt = (cantidades[i] or "").strip()
-            rol_txt = (roles[i] or "").strip()
-            unidad_id = (unidades[i] if i < len(unidades) else "").strip()
-
-            expresion_id_txt = (expresiones[i] if i < len(
-                expresiones) else "").strip()
-
-            expresion_id = int(expresion_id_txt) if expresion_id_txt else None
-
-            if not ing_id:
-                continue
-
-            if ing_id in vistos:
-                flash("No se permiten ingredientes duplicados en la receta.", "error")
-                return render_template(
-                    "admin_recetas_editar.html",
-                    ** contexto_receta
-                )
-            vistos.add(ing_id)
-
-            try:
-                cant_f = convertir_numero_culinario(cant_txt)
-            except:
-                flash("La cantidad debe ser numérica.", "error")
-                return render_template(
-                    "admin_recetas_editar.html",
-                    ** contexto_receta
-                )
-
-            if cant_f <= 0:
-                flash(
-                    "La cantidad debe ser mayor que 0 en todos los ingredientes.", "error")
-                return redirect(
-                    f"/admin/recetas/editar/{receta_id}"
-                )
-
-            if rol_txt == "":
-                rol_f = 0.0
-            else:
-                try:
-                    rol_f = convertir_numero_culinario(rol_txt)
-                except:
-                    flash("La decoracion debe ser numérica.", "error")
-                    return render_template(
-                        "admin_recetas_editar.html",
-                        ** contexto_receta
-                    )
-
-                if rol_f < 0:
-                    flash("La decoracion no puede ser negativa.", "error")
-                    return render_template(
-                        "admin_recetas_editar.html",
-                        ** contexto_receta
-                    )
-
-                if rol_f > cant_f:
-                    flash("La decoracion no puede ser mayor que la cantidad.", "error")
-                    return render_template(
-                        "admin_recetas_editar.html",
-                        ** contexto_receta
-                    )
-
-            filas_validas.append(
-                (
-                    int(ing_id),
-                    cant_f,
-                    rol_f,
-                    unidad_id,
-                    unidad_id,
-                    expresion_id
-                )
-            )
-        if not filas_validas:
-            flash("La receta no puede quedar sin ingredientes.", "error")
-            return redirect(f"/admin/recetas/editar/{receta_id}")
-
-        try:
-
-            conn = get_connection()
-
-            cur = conn.cursor()
-
-            cur.execute(
-                """
-                UPDATE recetas_maestro
-                SET plato_id=?,
-                    raciones_base=?,
-                    preparacion=?,
-                    elaboracion=?,
-                    presentacion=?,
-                    nutricion=?
-                WHERE id=?
-                """,
-                (
-                    int(plato_id),
-                    raciones_base_int,
-                    preparacion,
-                    elaboracion,
-                    presentacion,
-                    nutricion,
-                    receta_id
-                )
-            )
-
-            cur.execute(
-                "DELETE FROM recetas_ingredientes WHERE receta_id=?",
-                (receta_id,)
-            )
-
-            for ing_id, cant_f, rol_f, unidad_id, unidad_presentacion, expresion_id in filas_validas:
-                print(
-                    "RTN-EDICION-FILA:",
-                    ing_id,
-                    cant_f,
-                    rol_f,
-                    unidad_id,
-                    unidad_presentacion,
-                    expresion_id
-                )
-
-                cantidad_canonica = normalizar(
-                    ingrediente_id=ing_id,
-                    cantidad=cant_f,
-                    unidad_origen=unidad_id
-                )
-
-                cur.execute(
-                    """
-                    INSERT INTO recetas_ingredientes
-                    (
-                        receta_id,
-                        ingrediente_id,
-                        cantidad,
-                        unidad_codigo_presentacion,
-                        rol,
-                        expresion_id
-                    )
-                    VALUES (?,?,?,?,?,?)
-                    """,
-                    (
-                        receta_id,
-                        ing_id,
-                        cantidad_canonica,
-                        unidad_presentacion,
-                        rol_f,
-                        expresion_id
-                    )
-                )
-
-            conn.commit()
-
-            flash(
-                "Receta actualizada correctamente.",
-                "recetas"
-            )
-
-            return redirect("/admin/recetas/listado")
-
-        except Exception as e:
-
-            print("ERROR REAL AL GUARDAR:", repr(e))
-
-            try:
-
-                conn.rollback()
-
-            except Exception as e2:
-
-                print("ERROR EN ROLLBACK:", e2)
-
-            flash(
-                "Error al actualizar la receta.",
-                "error"
-            )
-
-            return redirect(
-                f"/admin/recetas/editar/{receta_id}"
-            )
-
-        finally:
-
-            try:
-
-                conn.close()
-
-            except Exception as e:
-
-                print("ERROR CERRANDO CONEXION:", e)
-
-    # ==================================================
-    # CARGAR RECETA PARA EDICIÓN
-    # ==================================================
-
-    try:
-        conn = get_connection()
-        cur = conn.cursor()
-
-        cur.execute("""
-            SELECT
-                r.id,
-                r.plato_id,
-                r.raciones_base,
-                r.preparacion,
-                r.elaboracion,
-                r.presentacion,
-                r.nutricion,
-                p.nombre as plato_nombre
-            FROM recetas_maestro r
-            JOIN platos p ON p.id = r.plato_id
-            WHERE r.id = ?
-        """, (receta_id,))
-
-        receta = cur.fetchone()
-
-        if not receta:
-            flash("Receta no encontrada.", "error")
-            return redirect("/admin/recetas/listado")
-
-        cur.execute("""
-            SELECT ingrediente_id, cantidad, rol,  unidad_codigo_presentacion, expresion_id
-            FROM recetas_ingredientes
-            WHERE receta_id = ?
-            ORDER BY id
-        """, (receta_id,))
-
-        ingredientes_receta = cur.fetchall()
-
-        print("DEBUG EDICION ingredientes_receta:", [
-              dict(f) for f in ingredientes_receta])
-
-        conn.close()
-
-    except Exception as e:
-        print("ERROR cargando receta:", e)
-        flash("Error cargando receta.", "error")
-        return redirect("/admin/recetas/listado")
-
-    contexto_receta["receta"] = receta
-    contexto_receta["ingredientes_receta"] = ingredientes_receta
-
-    return render_template(
-        "admin_recetas_editar_nuevo.html",
         **contexto_receta
     )
 
@@ -2038,13 +1775,13 @@ def admin_recetas_editar_nuevo(receta_id):
             cur.execute(
                 """
                 UPDATE recetas_maestro
-                SET plato_id=?,
-                    raciones_base=?,
-                    preparacion=?,
-                    elaboracion=?,
-                    presentacion=?,
-                    nutricion=?
-                WHERE id=?
+                SET plato_id=%s,
+                    raciones_base=%s,
+                    preparacion=%s,
+                    elaboracion=%s,
+                    presentacion=%s,
+                    nutricion=%s
+                WHERE id=%s
                 """,
                 (
                     int(plato_id),
@@ -2058,7 +1795,7 @@ def admin_recetas_editar_nuevo(receta_id):
             )
 
             cur.execute(
-                "DELETE FROM recetas_ingredientes WHERE receta_id=?",
+                "DELETE FROM recetas_ingredientes WHERE receta_id=%s",
                 (receta_id,)
             )
 
@@ -2098,14 +1835,18 @@ def admin_recetas_editar_nuevo(receta_id):
                         expresion_d_texto,
                         deco_captura
                     )
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
                     """,
                     (
                         receta_id,
                         ing_id,
                         cantidad_canonica,
                         unidad_presentacion,
-                        rol_f,
+                        normalizar(
+                            ingrediente_id=ing_id,
+                            cantidad=rol_f,
+                            unidad_origen=unidad_id
+                        ),
                         expresion_c_id_val,
                         expresion_c_texto_val,
                         cantidad_captura_val,
@@ -2134,14 +1875,9 @@ def admin_recetas_editar_nuevo(receta_id):
     platos = db_cargar_platos()
     ingredientes = cargar_ingredientes_con_unidad()
 
-    unidades_por_ingrediente = {}
-
-    for ingrediente in ingredientes:
-        unidades_por_ingrediente[ingrediente["id"]] = (
-            db_cargar_unidades_disponibles_por_ingrediente(
-                ingrediente["id"]
-            )
-        )
+    unidades_por_ingrediente = db_cargar_unidades_disponibles_por_ingredientes(
+        ingrediente["id"] for ingrediente in ingredientes
+    )
 
     expresiones_culinarias = db_cargar_expresiones_culinarias_admin()
 
@@ -2168,7 +1904,7 @@ def admin_recetas_editar_nuevo(receta_id):
                 p.nombre as plato_nombre
             FROM recetas_maestro r
             JOIN platos p ON p.id = r.plato_id
-            WHERE r.id = ?
+            WHERE r.id = %s
         """, (receta_id,))
 
         receta = cur.fetchone()
@@ -2189,7 +1925,7 @@ def admin_recetas_editar_nuevo(receta_id):
                    expresion_d_texto,
                    deco_captura
             FROM recetas_ingredientes
-            WHERE receta_id = ?
+            WHERE receta_id = %s
             ORDER BY id
         """, (receta_id,))
 
@@ -2232,7 +1968,7 @@ def borrar_receta(receta_id):
             SELECT p.nombre
             FROM recetas_maestro r
             JOIN platos p ON p.id=r.plato_id
-            WHERE r.id=?
+            WHERE r.id=%s
         """, (receta_id,))
 
         receta = cur.fetchone()
@@ -2246,17 +1982,17 @@ def borrar_receta(receta_id):
         # =========================
 
         cur.execute(
-            "DELETE FROM recetas_ingredientes WHERE receta_id = ?",
+            "DELETE FROM recetas_ingredientes WHERE receta_id = %s",
             (receta_id,)
         )
 
         cur.execute(
-            "DELETE FROM recetas_detalle WHERE receta_id = ?",
+            "DELETE FROM recetas_detalle WHERE receta_id = %s",
             (receta_id,)
         )
 
         cur.execute(
-            "DELETE FROM recetas_maestro WHERE id = ?",
+            "DELETE FROM recetas_maestro WHERE id = %s",
             (receta_id,)
         )
 
@@ -2295,10 +2031,10 @@ def toggle_publicacion_receta(receta_id):
         cur.execute("""
             UPDATE recetas_maestro
             SET visible_web=CASE
-                    WHEN visible_web=1 THEN 0
-                    ELSE 1
+                    WHEN visible_web=TRUE THEN FALSE
+                    ELSE TRUE
                 END
-            WHERE id=?
+            WHERE id=%s
         """, (receta_id,))
 
         conn.commit()
@@ -2309,6 +2045,68 @@ def toggle_publicacion_receta(receta_id):
     except Exception as e:
         print("ERROR toggle publicación:", e)
         flash("No se pudo actualizar la publicación.", "error")
+
+    return redirect("/admin/recetas/listado")
+
+
+@app.route(
+    "/admin/recetas/actualizar-publicacion/<int:receta_id>",
+    methods=["POST"]
+)
+def actualizar_publicacion_receta(receta_id):
+
+    conn = None
+
+    try:
+        conn = get_connection()
+        cur = conn.cursor()
+
+        cur.execute(
+            """
+            SELECT visible_web
+            FROM recetas_maestro
+            WHERE id = %s
+            """,
+            (receta_id,)
+        )
+
+        fila = cur.fetchone()
+
+        conn.close()
+        conn = None
+
+        if fila is None:
+            flash("La receta no existe.", "error")
+
+        elif not fila["visible_web"]:
+            flash(
+                "La receta está oculta. Activa su visibilidad "
+                "antes de actualizar la versión pública.",
+                "error"
+            )
+
+        elif db_guardar_version_publica(receta_id):
+            flash(
+                "Versión pública de la receta actualizada correctamente.",
+                "success"
+            )
+
+        else:
+            flash(
+                "No se pudo actualizar la versión pública.",
+                "error"
+            )
+
+    except Exception as e:
+        print("ERROR actualizando versión pública:", e)
+        flash(
+            "No se pudo actualizar la versión pública.",
+            "error"
+        )
+
+    finally:
+        if conn is not None:
+            conn.close()
 
     return redirect("/admin/recetas/listado")
 

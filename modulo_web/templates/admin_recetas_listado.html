@@ -67,7 +67,7 @@
                 ➕ Nueva receta
             </a>
 
-            <a href="/recetas?admin=1" target="_blank"
+            <a href="/recetas" target="_blank"
                 style="background:#198754;color:white;padding:6px 12px;border-radius:4px;text-decoration:none;font-weight:bold;">
                 📚 Ver catálogo público
             </a>
@@ -190,9 +190,17 @@
 
                         <td align="center">
 
-                            <a href="/receta/{{ r.id }}?admin=1" title="Ver receta pública" target="_blank">👁️</a>
+                            <a href="/receta/{{ r.id }}" title="Ver receta pública" target="_blank">👁️</a>
 
                             <a href="/admin/recetas/editar_nuevo/{{ r.id }}" title="Editar receta">✏️</a>
+
+                            {% if r.visible_web == 1 %}
+                            <form method="post" action="/admin/recetas/actualizar-publicacion/{{ r.id }}"
+                                onsubmit="return confirm('¿Desea actualizar la versión pública con los datos actuales de esta receta?');"
+                                style="display:inline;">
+                                <button type="submit" title="Actualizar versión pública">🔄</button>
+                            </form>
+                            {% endif %}
 
                             <form method="post" action="/admin/recetas/borrar/{{ r.id }}"
                                 onsubmit="return confirm('¿Seguro que desea borrar esta receta?');"
@@ -201,6 +209,7 @@
                             </form>
 
                         </td>
+
                     </tr>
                     {% else %}
                     <tr>

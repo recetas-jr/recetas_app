@@ -79,7 +79,11 @@ goto arrancar_flask
 :arrancar_flask
 echo.
 echo Iniciando Flask en PowerShell...
-start "Flask recetas_app" powershell -NoExit -Command "cd '!PROYECTO!'; python -m modulo_web.web_app"
+
+if defined PGPASSWORD echo DIAGNOSTICO BAT: PGPASSWORD PRESENTE
+if not defined PGPASSWORD echo DIAGNOSTICO BAT: PGPASSWORD AUSENTE
+
+start "Flask recetas_app" powershell -NoExit -Command "$env:DATABASE_URL='dbname=recetas_app user=postgres host=localhost'; cd '!PROYECTO!'; python -m modulo_web.web_app"
 
 echo Esperando que Flask levante en puerto 5000...
 
@@ -114,7 +118,7 @@ goto abrir_navegador
 :abrir_navegador
 echo.
 echo Abriendo navegador...
-start http://127.0.0.1:5000/admin/recetas/listado
+start http://127.0.0.1:5000/login
 goto fin
 
 

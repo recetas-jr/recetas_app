@@ -6,7 +6,7 @@
 </head>
 <body>
 
-{% if desde_admin %}
+{% if session.get('admin') %}
     {% include "componentes/menu_superior.html" %}
 {% endif %}
 
@@ -20,7 +20,7 @@
         </a>
     </p>
 
-    {% if desde_admin %}
+    {% if session.get('admin') %}
 
     <p>
         <a href="/admin/recetas/listado" class="btn-nuevo">

@@ -1561,9 +1561,10 @@ def admin_recetas_nueva():
                     preparacion,
                     elaboracion,
                     presentacion,
-                    nutricion
+                    nutricion,
+                    visible_web
                 )
-                VALUES (%s, %s, %s, %s, %s, %s)
+                VALUES (%s, %s, %s, %s, %s, %s, FALSE)
                 RETURNING id
                 """,
                 (
@@ -1992,6 +1993,11 @@ def borrar_receta(receta_id):
         )
 
         cur.execute(
+            "DELETE FROM recetas_publicadas WHERE receta_id = %s",
+            (receta_id,)
+        )
+
+        cur.execute(
             "DELETE FROM recetas_maestro WHERE id = %s",
             (receta_id,)
         )
@@ -2040,11 +2046,11 @@ def toggle_publicacion_receta(receta_id):
         conn.commit()
         conn.close()
 
-        flash("Estado de publicación actualizado.", "recetas")
+        flash("Estado de visibilidad actualizado.", "recetas")
 
     except Exception as e:
         print("ERROR toggle publicación:", e)
-        flash("No se pudo actualizar la publicación.", "error")
+        flash("No se pudo actualizar la visibilidad.", "error")
 
     return redirect("/admin/recetas/listado")
 

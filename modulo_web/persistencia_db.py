@@ -483,6 +483,12 @@ def db_cargar_recetas_maestro_listado():
             p.nombre AS plato_nombre,
             r.raciones_base,
             r.visible_web,
+
+            EXISTS (
+                SELECT 1
+                FROM recetas_publicadas rp
+                WHERE rp.receta_id = r.id
+            ) AS tiene_publicacion,
             COUNT(ri.id) AS cantidad_ingredientes,
             MAX(
                 CASE
@@ -528,6 +534,8 @@ def db_cargar_recetas_maestro_listado():
             "raciones_base": f["raciones_base"],
 
             "visible_web": f["visible_web"],
+
+            "tiene_publicacion": f["tiene_publicacion"],
 
             "cantidad_ingredientes": f["cantidad_ingredientes"],
 

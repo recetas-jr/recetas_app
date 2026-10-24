@@ -141,7 +141,8 @@
                         <th>Nombre Plato</th>
                         <th width="80" style="text-align:right;">Raciones</th>
                         <th width="110" style="text-align:right;"># Ingred.</th>
-                        <th width="100" style="text-align:center;">Publicación</th>
+                        <th width="100" style="text-align:center;">Visibilidad</th>
+                        <th width="140" style="text-align:center;">Versión pública</th>
                         <th width="90" style="text-align:center;">Acciones</th>
                     </tr>
                 </thead>
@@ -163,24 +164,24 @@
                         <td align="center">
 
                             {% if r.visible_web == 1 %}
-                            <div>🌐 Publicada</div>
+                            <div>🌐 VISIBLE</div>
 
                             <form method="post" action="/admin/recetas/toggle-publicacion/{{ r.id }}"
                                 style="margin-top:4px;">
                                 <button type="submit"
                                     style="background:#dc3545;color:white;border:none;padding:4px 8px;border-radius:4px;cursor:pointer;">
-                                    Despublicar
+                                    OCULTAR
                                 </button>
                             </form>
 
                             {% else %}
-                            <div>🚫 Oculta</div>
+                            <div>🚫 NO VISIBLE</div>
 
                             <form method="post" action="/admin/recetas/toggle-publicacion/{{ r.id }}"
                                 style="margin-top:4px;">
                                 <button type="submit"
                                     style="background:#198754;color:white;border:none;padding:4px 8px;border-radius:4px;cursor:pointer;">
-                                    Publicar
+                                    VISIBILIZAR
                                 </button>
                             </form>
 
@@ -189,8 +190,17 @@
                         </td>
 
                         <td align="center">
+                            {% if r.tiene_publicacion %}
+                            <div>GUARDADA</div>
+                            {% else %}
+                            <div>NO GUARDADA</div>
+                            {% endif %}
+                        </td>
 
-                            <a href="/receta/{{ r.id }}" title="Ver receta pública" target="_blank">👁️</a>
+                        <td align="center">
+
+                            <a href="/receta/{{ r.id }}" title="Ver receta pública"
+                                target="_blank">&#128065;&#65039;</a>
 
                             <a href="/admin/recetas/editar_nuevo/{{ r.id }}" title="Editar receta">✏️</a>
 

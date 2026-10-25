@@ -232,6 +232,11 @@ COLORES DEL SISTEMA
             font-weight: bold;
         }
 
+        .solicitadas {
+            color: #c2410c;
+            font-weight: bold;
+        }
+
         .deco {
             color: #007bff;
             font-weight: bold;
@@ -249,6 +254,14 @@ COLORES DEL SISTEMA
 
         button:hover {
             background: #1f57b8;
+        }
+
+        .btn-recalcular {
+            background: #c2410c;
+        }
+
+        .btn-recalcular:hover {
+            background: #9a3412;
         }
     </style>
 
@@ -277,7 +290,8 @@ COLORES DEL SISTEMA
             <span style="color:#2b7a2b;">{{ receta.plato_nombre }}</span>
         </h2>
 
-        <div id="estado-receta" style="margin: 12px 0; font-weight: bold;">
+        <div id="estado-receta"
+            style="display: inline-block; margin: 12px 0; padding: 7px 12px; font-weight: bold; color: #7a6a00; background: #fff6c8; border: 2px solid #d6c46b; border-radius: 6px;">
             Vista Original
         </div>
 
@@ -301,9 +315,9 @@ COLORES DEL SISTEMA
 
             <b>Raciones</b><br><br>
 
-            Raciones base de la receta: <b>{{ receta.raciones_base }}</b><br><br>
+            Raciones base de la receta: <b class="base">{{ receta.raciones_base }}</b><br><br>
 
-            Raciones solicitadas: <b>{{ raciones_nuevas }}</b>
+            Raciones solicitadas: <b class="solicitadas">{{ raciones_nuevas }}</b>
 
         </div>
 
@@ -329,11 +343,12 @@ LEYENDA COCINA / DECO
             <input type="hidden" name="admin" value="1">
             {% endif %}
 
-            <label>Raciones:</label>
+            <label class="solicitadas">Raciones Solicitadas:</label>
 
-            <input type="number" name="raciones" value="{{ raciones_nuevas }}" min="1" step="0.1">
+            <input type="number" class="solicitadas" name="raciones" value="{{ raciones_nuevas }}" min="1" step="0.1"
+                style="width: 80px; box-sizing: border-box;">
 
-            <button type="submit">Recalcular</button>
+            <button type="submit" class="btn-recalcular">Recalcular</button>
 
             <table class="tabla">
 

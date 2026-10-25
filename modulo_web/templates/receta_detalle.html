@@ -242,6 +242,38 @@ COLORES DEL SISTEMA
             font-weight: bold;
         }
 
+        .estado-receta {
+            display: inline-block;
+            margin: 12px 0;
+            padding: 7px 12px;
+            font-weight: bold;
+            color: #7a6a00;
+            background: #fff6c8;
+            border: 2px solid #d6c46b;
+            border-radius: 6px;
+        }
+
+        .estado-receta.modificada {
+            color: #6b21a8;
+            background: #f3e8ff;
+            border-color: #8b5cf6;
+        }
+
+        .unidad-modificada {
+            color: #6b21a8;
+            background: #f3e8ff;
+            border: 2px solid #8b5cf6;
+            border-radius: 4px;
+            font-weight: bold;
+        }
+
+        .ingrediente-modificado {
+            color: #6b21a8;
+            background: #f3e8ff;
+            font-weight: bold;
+            box-shadow: inset 3px 0 #8b5cf6;
+        }
+
         button {
             padding: 8px 14px;
             border: none;
@@ -290,8 +322,7 @@ COLORES DEL SISTEMA
             <span style="color:#2b7a2b;">{{ receta.plato_nombre }}</span>
         </h2>
 
-        <div id="estado-receta"
-            style="display: inline-block; margin: 12px 0; padding: 7px 12px; font-weight: bold; color: #7a6a00; background: #fff6c8; border: 2px solid #d6c46b; border-radius: 6px;">
+        <div id="estado-receta" class="estado-receta">
             Vista Original
         </div>
 
@@ -374,7 +405,7 @@ LEYENDA COCINA / DECO
 
                     <tr>
 
-                        <td>{{ ing.nombre }}</td>
+                        <td id="nombre_ingrediente_{{ ing.ingrediente_id }}">{{ ing.nombre }}</td>
 
                         <td>
 
@@ -540,13 +571,33 @@ LEYENDA COCINA / DECO
                 let modificada = false;
 
                 document.querySelectorAll("select[id^='unidad_']").forEach(function (select) {
-                    if (select.value !== select.dataset.unidadOriginal) {
+                    const unidadModificada =
+                        select.value !== select.dataset.unidadOriginal;
+
+                    select.classList.toggle("unidad-modificada", unidadModificada);
+
+                    const nombreIngrediente = document.getElementById(
+                        "nombre_ingrediente_" + select.dataset.ingredienteId
+                    );
+
+                    if (nombreIngrediente) {
+                        nombreIngrediente.classList.toggle(
+                            "ingrediente-modificado",
+                            unidadModificada
+                        );
+                    }
+
+                    if (unidadModificada) {
                         modificada = true;
                     }
                 });
 
-                document.getElementById("estado-receta").textContent =
+                const estadoReceta = document.getElementById("estado-receta");
+
+                estadoReceta.textContent =
                     modificada ? "Vista Modificada" : "Vista Original";
+
+                estadoReceta.classList.toggle("modificada", modificada);
 
                 document.getElementById("btn-receta-original").style.display =
                     modificada ? "inline-block" : "none";

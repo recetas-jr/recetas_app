@@ -62,9 +62,9 @@ white-space:pre-wrap;
 
 {% if not contacto.atendido %}
 
-<a href="/admin/contactos/{{ contacto.id }}/atender">
-    Marcar como atendido
-</a>
+<form method="post" action="/admin/contactos/{{ contacto.id }}/atender">
+    <button type="submit">Marcar como atendido</button>
+</form>
 
 {% endif %}
 

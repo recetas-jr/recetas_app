@@ -45,7 +45,7 @@ from flask import (
 from markupsafe import Markup
 from datetime import timedelta
 from datetime import datetime
-
+import os
 from fractions import Fraction
 import psycopg
 
@@ -114,8 +114,40 @@ def proteger_admin():
     if ruta.startswith("/admin"):
 
         if not session.get("admin"):
-
             return redirect("/login")
+
+        if os.getenv("RENDER", "").strip().lower() == "true":
+
+            rutas_publicacion_permitidas = (
+                "/admin/recetas/toggle-publicacion/",
+                "/admin/recetas/actualizar-publicacion/",
+            )
+
+            if request.method == "GET" and (
+                ruta == "/admin/recetas/nueva"
+                or ruta.startswith("/admin/recetas/editar_nuevo/")
+            ):
+                abort(
+                    403,
+                    description=(
+                        "La creación y edición de recetas Master "
+                        "están habilitadas únicamente en LOCAL."
+                    )
+                )
+
+            if (
+                request.method == "POST"
+                and not ruta.startswith(rutas_publicacion_permitidas)
+                and request.endpoint != "admin_contacto_atender"
+            ):
+                abort(
+                    403,
+                    description=(
+                        "Las modificaciones administrativas están "
+                        "habilitadas únicamente en LOCAL. Las operaciones "
+                        "autorizadas de publicación permanecen disponibles."
+                    )
+                )
 
 
 @app.route("/login", methods=["GET", "POST"])
@@ -2230,7 +2262,10 @@ def admin_contacto_detalle(contacto_id):
     )
 
 
-@app.route("/admin/contactos/<int:contacto_id>/atender")
+@app.route(
+    "/admin/contactos/<int:contacto_id>/atender",
+    methods=["POST"]
+)
 def admin_contacto_atender(contacto_id):
 
     if "usuario" not in session:
